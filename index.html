@@ -383,10 +383,15 @@ function all(){
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const fmt=d=>String(d||"").replaceAll("-",".");
 
+/* 라이브 방송은 제목 앞에 [yymmdd] 날짜를 붙여서 보여줘요 */
+function dispTitle(x){
+  if(x.category==="라이브 방송"&&/^\d{4}-\d{2}-\d{2}$/.test(String(x.date))&&!/^\[\d{6}\]/.test(x.title))return `[${String(x.date).slice(2).replaceAll("-","")}] ${x.title}`;
+  return x.title;
+}
 function cardHTML(x,i){
   const id=ytId(x.url);
   const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
-  const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(x.title)}</span></button>`;
+  const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
   const sl=SUBS[x.category];
@@ -552,7 +557,7 @@ function openVideo(x){
   const id=ytId(x.url);
   if(!id){window.open(x.url,"_blank","noopener");return;}
   $("#frame").innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
-  $("#p-title").textContent=x.title;
+  $("#p-title").textContent=dispTitle(x);
   $("#modal").hidden=false;$("#close").focus();
 }
 function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";}
