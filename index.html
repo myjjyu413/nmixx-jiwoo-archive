@@ -151,6 +151,11 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .pbox{background:var(--surface);border-radius:12px;overflow:hidden}
 .player .frame{aspect-ratio:16/9;max-width:100%;background:#000}
 .player iframe{width:100%;height:100%;border:0;display:block}
+.player.vertical{width:min(420px,100%,calc((100svh - 160px) * 9 / 16))}
+.player.vertical .frame{aspect-ratio:9/16;background:#000}
+.ptag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.02em}
+.igph{flex-direction:column;gap:2px;background:linear-gradient(135deg,#feda75,#d62976 50%,#4f5bd5);color:#fff!important;font-family:var(--latin)!important}
+.igph b{font-size:18px}.igph small{font-size:12px;opacity:.9}
 .player .info{padding:14px 18px}
 .player .info h3{margin:0;font-size:17px;min-width:0;overflow-wrap:anywhere}
 .close{position:absolute;top:0;right:0;width:40px;height:40px;border:0;background:none;color:#fff;cursor:pointer;display:grid;place-items:center;opacity:.85}
@@ -250,7 +255,7 @@ main{padding-bottom:40px}
       <h2 style="margin-top:28px">영상 추가 (관리자)</h2>
       <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.</p>
       <div class="form">
-        <label class="wide">유튜브 링크<input id="f-url" placeholder="https://www.youtube.com/watch?v=… 또는 youtu.be/…"></label>
+        <label class="wide">영상 링크<input id="f-url" placeholder="유튜브·틱톡·인스타그램 링크"></label>
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
         <label>날짜<input id="f-date" type="date"></label>
         <label>카테고리<select id="f-cat"></select></label>
@@ -365,7 +370,25 @@ function ytId(url){
   if(!url) return null;
   const m=url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);
   return m?m[1]:null;
+}/* 유튜브 말고 틱톡·인스타그램 링크도 받아요 */
+function platOf(url){url=String(url||"");if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
+function ttId(url){const m=String(url).match(/\/video\/(\d+)/);return m?m[1]:null;}
+function igCode(url){const m=String(url).match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/i);return m?m[1]:null;}
+function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}return null;}
+function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/"+ytId(url);
+  if(p==="tt"){const m=String(url).match(/tiktok\.com\/@([\w.\-]+)\/video\/(\d+)/i);return m?`https://www.tiktok.com/@${m[1]}/video/${m[2]}`:String(url).split("?")[0];}
+  if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;return url;}
+const TTK="jiwoo-archive-ttthumb";
+function ttThumbs(){try{return JSON.parse(sessionStorage.getItem(TTK))||{}}catch(e){return {}}}
+async function ttInfo(url){const r=await fetch("https://www.tiktok.com/oembed?url="+encodeURIComponent(url));return r.json();}
+function loadTTThumbs(root){
+  root.querySelectorAll("img[data-tt]").forEach(async img=>{
+    const u=img.dataset.tt,c=ttThumbs();
+    if(c[u]){img.src=c[u];return;}
+    try{const j=await ttInfo(u);if(j.thumbnail_url){img.src=j.thumbnail_url;const c2=ttThumbs();c2[u]=j.thumbnail_url;try{sessionStorage.setItem(TTK,JSON.stringify(c2))}catch(e){}}}catch(e){}
+  });
 }
+
 function loadDrafts(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}}
 function saveDrafts(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
 function isAdmin(){return location.hash==="#admin"}
@@ -389,8 +412,9 @@ function dispTitle(x){
   return x.title;
 }
 function cardHTML(x,i){
-  const id=ytId(x.url);
-  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
+  const tag=pf==="tt"?'<span class="ptag">TikTok</span>':pf==="ig"?'<span class="ptag">Instagram</span>':"";
+  const img=pf==="tt"?`<img loading="lazy" data-tt="${esc(x.url)}" alt="">`+tag:pf==="ig"?`<div class="nothumb igph"><b>Instagram</b><small>릴스</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
@@ -398,7 +422,7 @@ function cardHTML(x,i){
   const subSel=sl&&!x._del?`<select class="esub" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===subOf(x)?" selected":""}>${esc(n)}</option>`).join("")}</select>`:"";
   return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
-function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]))}
+function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]));loadTTThumbs(el);}
 
 /* 대표 영상 */
 (function(){
@@ -554,12 +578,17 @@ $("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").
 
 /* 재생창 */
 function openVideo(x){
-  const id=ytId(x.url);
-  if(!id){window.open(x.url,"_blank","noopener");return;}
-  $("#frame").innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
+  const pf=platOf(x.url);let src="";
+  if(pf==="yt")src=`https://www.youtube.com/embed/${ytId(x.url)}?autoplay=1&rel=0&playsinline=1`;
+  else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?autoplay=1&rel=0&description=1`;
+  else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
+  if(!src){window.open(x.url,"_blank","noopener");return;}
+  $(".player").classList.toggle("vertical",pf!=="yt");
+  $("#frame").innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=dispTitle(x);
   $("#modal").hidden=false;$("#close").focus();
 }
+
 function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";}
 $("#close").onclick=closeVideo;
 $("#modal").onclick=e=>{if(e.target.id==="modal")closeVideo()};
@@ -591,8 +620,8 @@ function syncMode(){
 }
 $("#yt-mode").onchange=syncMode;
 function ytStatus(id){
-  if((window.VIDEOS||[]).some(v=>ytId(v.url)===id))return "목록에 있음";
-  if(loadDrafts().some(v=>ytId(v.url)===id))return "추가됨";
+  if((window.VIDEOS||[]).some(v=>vidKey(v.url)===id))return "목록에 있음";
+  if(loadDrafts().some(v=>vidKey(v.url)===id))return "추가됨";
   return "";
 }
 function ytShow(list,append){
@@ -715,8 +744,20 @@ $("#f-title").addEventListener("input",fSubHint);$("#f-cat").addEventListener("c
 $("#f-date").value=new Date().toISOString().slice(0,10);
 function msg(t){$("#msg").textContent=t}
 $("#f-url").addEventListener("change",async()=>{
-  const id=ytId($("#f-url").value);
-  if(!id){msg("유튜브 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
+  const raw=$("#f-url").value.trim(),pf=platOf(raw),key0=vidKey(raw);
+  if(/vm\.tiktok\.com|vt\.tiktok\.com|tiktok\.com\/t\//i.test(raw)){msg("틱톡 짧은 링크는 못 읽어요. 틱톡 앱이나 웹에서 영상을 연 뒤 주소창의 긴 주소(…/@계정/video/숫자)를 넣어 주세요.");return;}
+  if(!key0){msg("유튜브·틱톡·인스타그램 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
+  {const st=ytStatus(key0);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
+  if(pf==="tt"){
+    $("#f-cat").value="숏폼";syncFSub();
+    const sec=Number(BigInt(ttId(raw))>>32n);if(sec>1.4e9)$("#f-date").value=kst(new Date(sec*1000).toISOString());
+    msg("틱톡 정보 가져오는 중…");
+    try{const j=await ttInfo(cleanUrl(raw));if(j.title||j.author_name){$("#f-title").value=(j.title||"").trim()||(j.author_name+" 틱톡");msg("틱톡 제목과 날짜를 가져왔어요. 제목이 길면 짧게 고쳐도 돼요.");}else msg("날짜는 가져왔어요. 제목은 직접 입력해 주세요.");}
+    catch(e){msg("날짜는 가져왔어요. 제목은 직접 입력해 주세요.");}
+    return;
+  }
+  if(pf==="ig"){$("#f-cat").value="숏폼";syncFSub();$("#f-date").value=new Date().toISOString().slice(0,10);msg("인스타그램은 제목과 날짜를 자동으로 못 가져와요. 직접 입력해 주세요.");$("#f-title").focus();return;}
+  const id=key0;
   {const st=ytStatus(id);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
   msg("영상 정보 가져오는 중…");
   /* API 키가 있으면 제목과 업로드 날짜를 함께 가져와요 (영상 1개당 1점, 검색 한도와 별개) */
@@ -742,12 +783,12 @@ $("#f-url").addEventListener("change",async()=>{
 });
 $("#add").onclick=()=>{
   const url=$("#f-url").value.trim(),title=$("#f-title").value.trim();
-  if(!ytId(url)){msg("유튜브 링크를 넣어 주세요.");return;}
+  if(!vidKey(url)){msg("유튜브·틱톡·인스타그램 링크를 넣어 주세요.");return;}
   if(!title){msg("제목을 입력해 주세요.");return;}
-  const st=ytStatus(ytId(url));
+  const st=ytStatus(vidKey(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const d=loadDrafts();
-  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:"",...($("#f-sub").value&&SUBS[$("#f-cat").value]?{sub:$("#f-sub").value}:{})});
+  d.push({url:cleanUrl(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:"",...($("#f-sub").value&&SUBS[$("#f-cat").value]?{sub:$("#f-sub").value}:{})});
   saveDrafts(d);
   $("#f-url").value="";$("#f-title").value="";
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
@@ -755,8 +796,8 @@ $("#add").onclick=()=>{
 };
 /* 이미 사이트에 올라간 영상은 미리보기 목록에서 자동으로 빼요 */
 function pruneDrafts(){
-  const have=new Set((window.VIDEOS||[]).map(v=>ytId(v.url)));
-  const d=loadDrafts(),keep=d.filter(v=>!have.has(ytId(v.url)));
+  const have=new Set((window.VIDEOS||[]).map(v=>vidKey(v.url)));
+  const d=loadDrafts(),keep=d.filter(v=>!have.has(vidKey(v.url)));
   if(keep.length!==d.length)saveDrafts(keep);
   const ed=loadEdits();let ch=false;
   for(const u of Object.keys(ed)){const v=(window.VIDEOS||[]).find(x=>x.url===u);
