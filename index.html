@@ -430,7 +430,7 @@ function syncMode(){
   const ch=$("#yt-mode").value==="channel";
   $("#yt-ch-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
   $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (선택)":"검색어";
-  $("#yt-q").placeholder=ch?"비워두면 전부 가져와요. 예: 지우|JIWOO":"";
+  $("#yt-q").placeholder=ch?"비워두면 전부 가져와요. 예: 지우, JIWOO":"";
   if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="";
   if(!ch&&!$("#yt-q").value)$("#yt-q").value="#지우 #NMIXX";
   $("#yt-go").textContent=ch?"가져오기":"검색";
@@ -475,7 +475,7 @@ async function ytChannel(){
   if(!ch){const sr=await ytGet("search",{part:"snippet",type:"channel",q:raw,maxResults:"1"});const cid=sr.items?.[0]?.id?.channelId;if(cid)ch=(await ytGet("channels",{part:"snippet,contentDetails",id:cid})).items?.[0];}
   if(!ch){ytMsg("채널을 찾지 못했어요. 채널 주소를 그대로 붙여넣어 보세요.");return;}
   const name=decodeHTML(ch.snippet.title),up=ch.contentDetails.relatedPlaylists.uploads;
-  const words=$("#yt-q").value.split("|").map(w=>w.trim().toLowerCase()).filter(Boolean);
+  const words=$("#yt-q").value.split(/[,|]/).map(w=>w.trim().toLowerCase()).filter(Boolean);
   ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
   let token="",scanned=0,page=0;
   do{
