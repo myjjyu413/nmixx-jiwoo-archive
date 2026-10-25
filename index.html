@@ -160,6 +160,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .player.vertical .frame{aspect-ratio:9/16;background:#000}
 .ptag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.02em}
 .igph{flex-direction:column;gap:2px;background:linear-gradient(135deg,#feda75,#d62976 50%,#4f5bd5);color:#fff!important;font-family:var(--latin)!important}
+.ttph{flex-direction:column;background:#111;color:#fff!important;font-family:var(--latin)!important}.ttph b{font-size:18px;text-shadow:2px 2px 0 #fe2c55,-2px -2px 0 #25f4ee}
 .igph b{font-size:18px}.igph small{font-size:12px;opacity:.9}
 .player .info{padding:14px 18px}
 .player .info h3{margin:0;font-size:17px;min-width:0;overflow-wrap:anywhere}
@@ -394,12 +395,20 @@ function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/
   if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;return url;}
 const TTK="jiwoo-archive-ttthumb";
 function ttThumbs(){try{return JSON.parse(sessionStorage.getItem(TTK))||{}}catch(e){return {}}}
-async function ttInfo(url){const r=await fetch("https://www.tiktok.com/oembed?url="+encodeURIComponent(url));return r.json();}
+async function ttInfo(url){
+  /* 틱톡 공식 oEmbed → 막히면 noembed 로 한 번 더 시도 */
+  for(const api of ["https://www.tiktok.com/oembed?url=","https://noembed.com/embed?url="]){
+    try{const r=await fetch(api+encodeURIComponent(url));const j=await r.json();if(j&&(j.thumbnail_url||j.title))return j;}catch(e){}
+  }
+  return {};
+}
 function loadTTThumbs(root){
   root.querySelectorAll("img[data-tt]").forEach(async img=>{
     const u=img.dataset.tt,c=ttThumbs();
     if(c[u]){img.src=c[u];return;}
-    try{const j=await ttInfo(u);if(j.thumbnail_url){img.src=j.thumbnail_url;const c2=ttThumbs();c2[u]=j.thumbnail_url;try{sessionStorage.setItem(TTK,JSON.stringify(c2))}catch(e){}}}catch(e){}
+    const fail=()=>{const ph=document.createElement("div");ph.className="nothumb ttph";ph.innerHTML="<b>TikTok</b>";img.replaceWith(ph);};
+    img.onerror=fail;
+    try{const j=await ttInfo(u);if(j.thumbnail_url){img.src=j.thumbnail_url;const c2=ttThumbs();c2[u]=j.thumbnail_url;try{sessionStorage.setItem(TTK,JSON.stringify(c2))}catch(e){}}else fail();}catch(e){fail();}
   });
 }
 
@@ -596,7 +605,7 @@ $("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").
 function openVideo(x){
   const pf=platOf(x.url);let src="";
   if(pf==="yt")src=`https://www.youtube.com/embed/${ytId(x.url)}?autoplay=1&rel=0&playsinline=1`;
-  else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?autoplay=1&rel=0&description=1`;
+  else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/embed/v2/${ttId(x.url)}?lang=ko-KR`;
   else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
   if(!src){window.open(x.url,"_blank","noopener");return;}
   $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
