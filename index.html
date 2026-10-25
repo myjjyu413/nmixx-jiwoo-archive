@@ -141,6 +141,10 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .note .nx{display:flex;flex-direction:column;gap:8px}.note .nx input:not([type=checkbox]),.note .nx textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--fg)}
 .note .nx .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.note .nx .row .sp{flex:1;font-size:12px;color:#a33}
 .bmore{text-align:center;margin-top:8px}
+.ncm{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}.ncm:not(:has(.cm)):has(.cf[hidden]){display:none}
+.ncm .cm{display:flex;gap:6px;align-items:baseline;font-size:13px;line-height:1.5}.ncm .cm b{flex:none}.ncm .cb{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}.ncm .cd{flex:none;font-size:11px;color:var(--muted)}
+.ncm .cm button{flex:none;border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}.ncm .cm button:hover{color:var(--fg)}
+.cf{display:flex;flex-direction:column;gap:6px}.cf .row{display:flex;gap:6px}.cf input{min-width:0;flex:1;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 9px;font:inherit;font-size:13px;color:var(--fg)}.cf .cname{flex:0 0 38%}.cf .btn{padding:6px 12px;font-size:13px}.cf .sp{font-size:12px;color:#a33}
 @media (max-width:520px){.brow{grid-template-columns:minmax(0,1fr)}}
 .igrid{columns:3 300px;column-gap:18px}
 .igrid>.sns{break-inside:avoid;margin:0 0 18px}
@@ -319,7 +323,7 @@ main{padding-bottom:40px}
   <section class="gut" id="board" hidden>
     <div class="vhead"><h2 class="row-title">게시판</h2><button class="vclear" id="bclear" aria-label="메인으로">×</button></div>
     <form class="bform" id="bform" autocomplete="off">
-      <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" required><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required></div>
+      <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" value="쮸랑단원"><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required></div>
       <textarea id="b-body" maxlength="1000" rows="3" placeholder="자유롭게 남겨 주세요" required></textarea>
       <div class="bbar"><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label><span class="bmsg" id="b-msg" role="status"></span><button type="submit" class="btn primary" id="b-send">등록</button></div>
     </form>
@@ -693,16 +697,20 @@ function bErr(e){const m=String(e&&e.message||e);
   return "문제가 생겼어요: "+m;}
 const bState={posts:[],loaded:false,more:false,busy:false};
 /* 내가 쓴 글(또는 비밀번호로 연 글)의 비밀번호를 이 브라우저에 기억 → 비밀글도 쓴 사람에게는 보여요 */
-const BMKEY="jiwoo-archive-boardmine";
+const BMKEY="jiwoo-archive-boardmine",BCKEY="jiwoo-archive-boardcm",DEFNAME="쮸랑단원";
+function bCm(){try{return JSON.parse(localStorage.getItem(BCKEY))||{}}catch(e){return {}}}
+function bCmRemember(id,pw){const m=bCm();if(pw==null)delete m[id];else m[id]=pw;try{localStorage.setItem(BCKEY,JSON.stringify(m))}catch(e){}}
 function bMine(){try{return JSON.parse(localStorage.getItem(BMKEY))||{}}catch(e){return {}}}
 function bRemember(id,pw){const m=bMine();if(pw==null)delete m[id];else m[id]=pw;try{localStorage.setItem(BMKEY,JSON.stringify(m))}catch(e){}}
-async function bUnlock(rows){const m=bMine();await Promise.all(rows.filter(p=>p.secret&&p.body==null&&m[p.id]).map(async p=>{try{const r=(await rpc("board_get",{p_id:p.id,p_pw:m[p.id]}))[0];if(r)p.body=r.body;}catch(e){bRemember(p.id,null);}}));}
+async function bUnlock(rows){const m=bMine();await Promise.all(rows.filter(p=>p.secret&&p.body==null&&m[p.id]).map(async p=>{try{const r=(await rpc("board_get",{p_id:p.id,p_pw:m[p.id]}))[0];if(r){p.body=r.body;if(r.comments)p.comments=r.comments;}}catch(e){bRemember(p.id,null);}}));}
 function kdate(d){const t=new Date(d);const p=n=>String(n).padStart(2,"0");return `${t.getFullYear()}.${p(t.getMonth()+1)}.${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;}
 function noteHTML(p){
   const locked=p.secret&&p.body==null;
   return `<article class="note${p.secret?" secret":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
-    `<div class="na">${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
+    (Array.isArray(p.comments)?`<div class="ncm">${p.comments.map(c=>`<div class="cm" data-cid="${c.id}"><b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span><button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
+      `<div class="cf" hidden><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
+    `<div class="na">${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
 function drawBoard(){
   const w=$("#bwall");
@@ -724,8 +732,8 @@ function renderBoard(){$("#bform").hidden=!(BOARD.url&&BOARD.key);loadBoard(fals
 $("#bmore").onclick=()=>loadBoard(true);
 $("#bform").addEventListener("submit",async e=>{
   e.preventDefault();const msg=$("#b-msg");
-  const name=$("#b-name").value.trim(),pw=$("#b-pw").value,body=$("#b-body").value.trim(),secret=$("#b-secret").checked;
-  if(!name||!body){msg.textContent="닉네임과 내용을 적어 주세요.";return;}
+  const name=$("#b-name").value.trim()||DEFNAME,pw=$("#b-pw").value,body=$("#b-body").value.trim(),secret=$("#b-secret").checked;
+  if(!body){msg.textContent="내용을 적어 주세요.";return;}
   if(pw.length<4){msg.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
   $("#b-send").disabled=true;msg.textContent="올리는 중…";
   try{const nid=await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});bRemember(nid,pw);
@@ -748,11 +756,28 @@ $("#bwall").addEventListener("click",async e=>{
       x.innerHTML=`<textarea class="xbody" maxlength="1000" rows="4">${esc(r.body)}</textarea><div class="row"><label class="bsecret"><input type="checkbox" class="xsec"${r.secret?" checked":""}> 비밀글</label><span class="sp"></span><button class="btn primary" data-a="save">저장</button><button class="btn" data-a="cancel">취소</button></div>`;
     }catch(e2){err(bErr(e2));}
   };
-  const openView=async pw=>{try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];p.body=r.body;if(pw!==apw)bRemember(id,pw);drawBoard();}catch(e2){err(bErr(e2));}};
+  const openView=async pw=>{try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];p.body=r.body;if(r.comments)p.comments=r.comments;if(pw!==apw)bRemember(id,pw);drawBoard();}catch(e2){err(bErr(e2));}};
   const doDel=async pw=>{if(!confirm("이 글을 지울까요?"))return;try{await rpc("board_delete",{p_id:id,p_pw:pw});bRemember(id,null);bState.posts=bState.posts.filter(q=>q.id!==id);drawBoard();}catch(e2){err(bErr(e2));}};
   if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
   if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
   if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
+  if(a==="creply"){const f=art.querySelector(".cf");f.hidden=!f.hidden;if(!f.hidden)f.querySelector(".cbody").focus();return;}
+  if(a==="csend"){
+    const f=art.querySelector(".cf"),cn=f.querySelector(".cname").value.trim()||DEFNAME,cp=f.querySelector(".cpw").value,cb=f.querySelector(".cbody").value.trim(),sp=f.querySelector(".sp");
+    if(!cb){sp.textContent="댓글을 적어 주세요.";return;}if(cp.length<4){sp.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
+    b.disabled=true;
+    try{const cid=await rpc("board_comment_add",{p_post:id,p_name:cn,p_body:cb,p_pw:cp});bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,name:cn,body:cb,created_at:new Date().toISOString()});drawBoard();
+      const nf=$("#bwall").querySelector(`.note[data-id="${id}"] .cf`);if(nf)nf.hidden=false;}
+    catch(e2){sp.textContent=bErr(e2);b.disabled=false;}
+    return;}
+  if(a==="cdel"||a==="cdel-ok"){
+    const cid=a==="cdel"?+b.closest(".cm").dataset.cid:+x.dataset.cid;
+    const pw=a==="cdel-ok"?x.querySelector(".xpw").value:(apw||bCm()[cid]);
+    if(!pw){askPw("댓글 삭제","cdel-ok");x.dataset.cid=cid;return;}
+    if(a==="cdel"&&!confirm("이 댓글을 지울까요?"))return;
+    try{await rpc("board_comment_delete",{p_id:cid,p_pw:pw});bCmRemember(cid,null);p.comments=(p.comments||[]).filter(c=>c.id!==cid);drawBoard();}
+    catch(e2){if(a==="cdel"){askPw("댓글 삭제","cdel-ok");x.dataset.cid=cid;}err(bErr(e2));}
+    return;}
   if(a==="view"){if(apw)openView(apw);else askPw("보기","view-ok");return;}
   if(a==="view-ok"){openView(x.querySelector(".xpw").value);return;}
   if(a==="edit-ok"){openEdit(x.querySelector(".xpw").value);return;}
@@ -762,7 +787,7 @@ $("#bwall").addEventListener("click",async e=>{
     try{await rpc("board_edit",{p_id:id,p_pw:x.dataset.pw,p_body:body,p_secret:sec});Object.assign(p,{body,secret:sec,updated_at:new Date().toISOString()});drawBoard();}catch(e2){err(bErr(e2));}
   }
 });
-$("#bwall").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList.contains("xpw")){e.preventDefault();e.target.parentNode.querySelector("button").click();}});
+$("#bwall").addEventListener("keydown",e=>{if(e.key!=="Enter"||e.isComposing)return;if(e.target.classList.contains("xpw")){e.preventDefault();e.target.parentNode.querySelector("button").click();}else if(e.target.classList.contains("cbody")){e.preventDefault();e.target.parentNode.querySelector("[data-a=csend]").click();}});
 try{$("#b-admin").value=localStorage.getItem(BAKEY)||"";}catch(e){}
 $("#b-admin").addEventListener("change",()=>{try{const v=$("#b-admin").value;if(v)localStorage.setItem(BAKEY,v);else localStorage.removeItem(BAKEY);}catch(e){}});
 
