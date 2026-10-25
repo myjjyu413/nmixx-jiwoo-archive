@@ -145,6 +145,8 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .ncm{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}.ncm:not(:has(.cm)):has(.cf[hidden]){display:none}
 .ncm .cm{display:flex;gap:6px;align-items:baseline;font-size:13px;line-height:1.5}.ncm .cm b{flex:none}.ncm .cb{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}.ncm .cd{flex:none;font-size:11px;color:var(--muted)}
 .ncm .cm button{flex:none;border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}.ncm .cm button:hover{color:var(--fg)}
+.ncm .cm.re{padding-left:14px}.ncm .cm i{font-style:normal;color:var(--muted);flex:none}.ncm .cm .crep{font-size:11px!important}
+.cto{font-size:12px;color:var(--muted)}.cto button{border:0;background:none;cursor:pointer;color:var(--muted)}
 .cf{display:flex;flex-direction:column;gap:6px}.cf .row{display:flex;gap:6px}.cf input{min-width:0;flex:1;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 9px;font:inherit;font-size:13px;color:var(--fg)}.cf .cname{flex:0 0 38%}.cf .btn{padding:6px 12px;font-size:13px}.cf .sp{font-size:12px;color:#a33}
 @media (max-width:520px){.brow{grid-template-columns:minmax(0,1fr)}}
 .igrid{columns:3 300px;column-gap:18px}
@@ -704,13 +706,14 @@ function bCmRemember(id,pw){const m=bCm();if(pw==null)delete m[id];else m[id]=pw
 function bMine(){try{return JSON.parse(localStorage.getItem(BMKEY))||{}}catch(e){return {}}}
 function bRemember(id,pw){const m=bMine();if(pw==null)delete m[id];else m[id]=pw;try{localStorage.setItem(BMKEY,JSON.stringify(m))}catch(e){}}
 async function bUnlock(rows){const m=bMine();await Promise.all(rows.filter(p=>p.secret&&p.body==null&&m[p.id]).map(async p=>{try{const r=(await rpc("board_get",{p_id:p.id,p_pw:m[p.id]}))[0];if(r){p.body=r.body;if(r.comments)p.comments=r.comments;}}catch(e){bRemember(p.id,null);}}));}
+function cmOrder(list){const tops=list.filter(c=>!c.parent_id),out=[];tops.forEach(t=>{out.push(t);list.filter(c=>c.parent_id===t.id).forEach(r=>out.push(r));});list.forEach(c=>{if(!out.includes(c))out.push(c);});return out;}
 function kdate(d){const t=new Date(d);const p=n=>String(n).padStart(2,"0");return `${t.getFullYear()}.${p(t.getMonth()+1)}.${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;}
 function noteHTML(p){
   const locked=p.secret&&p.body==null;
   return `<article class="note${p.secret?" secret":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
-    (Array.isArray(p.comments)?`<div class="ncm">${p.comments.map(c=>`<div class="cm" data-cid="${c.id}"><b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span><button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
-      `<div class="cf" hidden><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
+    (Array.isArray(p.comments)?`<div class="ncm">${cmOrder(p.comments).map(c=>`<div class="cm${c.parent_id?" re":""}" data-cid="${c.id}" data-name="${esc(c.name)}">${c.parent_id?`<i>↳</i>`:""}<b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span>${"parent_id" in c?`<button data-a="creply1" class="crep">답글</button>`:""}<button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
+      `<div class="cf" hidden><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
     `<div class="na">${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
 function drawBoard(){
@@ -762,12 +765,15 @@ $("#bwall").addEventListener("click",async e=>{
   if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
   if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
   if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
-  if(a==="creply"){const f=art.querySelector(".cf");f.hidden=!f.hidden;if(!f.hidden)f.querySelector(".cbody").focus();return;}
+  if(a==="creply"){const f=art.querySelector(".cf");f.hidden=!f.hidden;delete f.dataset.parent;f.querySelector(".cto").hidden=true;if(!f.hidden)f.querySelector(".cbody").focus();return;}
+  if(a==="creply1"){const cm=b.closest(".cm"),f=art.querySelector(".cf"),to=f.querySelector(".cto");f.hidden=false;f.dataset.parent=cm.dataset.cid;to.hidden=false;to.innerHTML=`↳ <b>${esc(cm.dataset.name)}</b> 님에게 답글 <button data-a="cto-x" aria-label="답글 취소">×</button>`;f.querySelector(".cbody").focus();return;}
+  if(a==="cto-x"){const f=art.querySelector(".cf");delete f.dataset.parent;f.querySelector(".cto").hidden=true;return;}
   if(a==="csend"){
     const f=art.querySelector(".cf"),cn=f.querySelector(".cname").value.trim()||DEFNAME,cp=f.querySelector(".cpw").value,cb=f.querySelector(".cbody").value.trim(),sp=f.querySelector(".sp");
     if(!cb){sp.textContent="댓글을 적어 주세요.";return;}if(cp.length<4){sp.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
     b.disabled=true;
-    try{const cid=await rpc("board_comment_add",{p_post:id,p_name:cn,p_body:cb,p_pw:cp});bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,name:cn,body:cb,created_at:new Date().toISOString()});drawBoard();
+    const par=f.dataset.parent?+f.dataset.parent:null;const parC=par&&(p.comments||[]).find(c=>c.id===par);
+    try{const args={p_post:id,p_name:cn,p_body:cb,p_pw:cp};if(par)args.p_parent=par;const cid=await rpc("board_comment_add",args);bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,parent_id:par?(parC&&parC.parent_id||par):null,name:cn,body:cb,created_at:new Date().toISOString()});drawBoard();
       const nf=$("#bwall").querySelector(`.note[data-id="${id}"] .cf`);if(nf)nf.hidden=false;}
     catch(e2){sp.textContent=bErr(e2);b.disabled=false;}
     return;}
@@ -776,7 +782,7 @@ $("#bwall").addEventListener("click",async e=>{
     const pw=a==="cdel-ok"?x.querySelector(".xpw").value:(apw||bCm()[cid]);
     if(!pw){askPw("댓글 삭제","cdel-ok");x.dataset.cid=cid;return;}
     if(a==="cdel"&&!confirm("이 댓글을 지울까요?"))return;
-    try{await rpc("board_comment_delete",{p_id:cid,p_pw:pw});bCmRemember(cid,null);p.comments=(p.comments||[]).filter(c=>c.id!==cid);drawBoard();}
+    try{await rpc("board_comment_delete",{p_id:cid,p_pw:pw});bCmRemember(cid,null);p.comments=(p.comments||[]).filter(c=>c.id!==cid&&c.parent_id!==cid);drawBoard();}
     catch(e2){if(a==="cdel"){askPw("댓글 삭제","cdel-ok");x.dataset.cid=cid;}err(bErr(e2));}
     return;}
   if(a==="view"){if(apw)openView(apw);else askPw("보기","view-ok");return;}
