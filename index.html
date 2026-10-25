@@ -99,7 +99,17 @@ main section{padding-block:44px 0}
 .vhead{margin-bottom:16px}
 .vhead .row-title{margin:0}
 body.is-home .vhead{margin-bottom:12px}
-.vtools{display:flex;align-items:center;gap:10px;min-width:0}
+.vbody.has-side{display:grid;grid-template-columns:200px minmax(0,1fr);gap:clamp(18px,2.4vw,36px);align-items:start}
+.side{position:sticky;top:calc(84px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:4px}
+.side button{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:9px 12px 9px 14px;white-space:nowrap;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted);font-size:15px}
+.side button:hover{color:var(--fg);background:var(--surface)}
+.side button[aria-current="true"]{color:var(--fg);background:var(--surface)}
+.side button[aria-current="true"]::before{content:"";position:absolute;left:4px;top:9px;bottom:9px;width:3px;background:var(--accent);border-radius:2px}
+.side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
+.vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
+.vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
 .csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
 .csearch svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
@@ -203,12 +213,17 @@ main{padding-bottom:40px}
 
   <section class="gut" id="videos">
     <div class="vhead"><h2 class="row-title" id="vtitle">NEW</h2><div class="vtools"><form class="csearch" id="csearch" role="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><input id="cq" type="search" placeholder="이 카테고리에서 검색" aria-label="이 카테고리에서 검색" autocomplete="off"></form><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div></div>
+    <div class="vbody" id="vbody">
+    <aside class="side" id="side" hidden aria-label="세부 카테고리"></aside>
+    <div class="vmain">
     <div class="shelf-wrap">
       <button class="arrow prev" id="prev" aria-label="이전" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2 4 8l7 6z" fill="currentColor"/></svg></button>
       <div class="shelf" id="grid"></div>
       <button class="arrow next" id="next" aria-label="다음" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2l7 6-7 6z" fill="currentColor"/></svg></button>
     </div>
     <nav class="pager" id="pager" aria-label="페이지" hidden></nav>
+    </div>
+    </div>
 
     <section class="admin" id="admin" hidden>
       <h2>유튜브에서 찾기</h2>
@@ -321,9 +336,23 @@ const CATS=["무대","예능","라디오","인터뷰","숏폼","라이브 방송
 /* 예전 카테고리 이름도 새 이름으로 읽어요 */
 const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","자컨":"예능","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
+/* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
+const SUBS={"무대":[["jiwoo","지우 직캠"],["full","풀캠·단체 직캠"],["main","본방송 무대"],["mix","교차편집·스테이지믹스"],["etc","앵콜·기타"]]};
+function subOf(x){
+  if(x.sub)return x.sub;
+  if(x.category!=="무대")return "";
+  const t=x.title;
+  if(/교차편집|stage ?mix/i.test(t))return "mix";
+  if(/앵콜|encore/i.test(t))return "etc";
+  const cam=/직캠|fancam|fan cam|close-?up|facecam|voicecam|얼빡/i.test(t);
+  if(cam&&/지우|jiwoo/i.test(t))return "jiwoo";
+  if(cam||/풀캠|fullcam|full cam|choreo|sky cam|항공캠|단독샷|one take|비주얼캠|visual cam|tower cam/i.test(t))return "full";
+  if(/방송|musiccore|music core|music bank|뮤직뱅크|인기가요|inkigayo|엠카운트다운|gayo|가요/i.test(t))return "main";
+  return "etc";
+}
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
-let state={view:"home",cat:"전체",q:"",cq:"",page:1};
+let state={view:"home",cat:"전체",q:"",cq:"",sub:"",page:1};
 const PER=9;
 
 function ytId(url){
@@ -387,7 +416,15 @@ function render(){
   $("#csearch").hidden=!catView;
   if(catView&&$("#cq").value!==state.cq&&document.activeElement!==$("#cq"))$("#cq").value=state.cq;
   let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q))&&(!catView||!cq||(x.title+" "+(x.note||"")).toLowerCase().includes(cq)));
-  $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
+  const subs=catView&&SUBS[state.cat];
+  $("#vbody").classList.toggle("has-side",!!subs);$("#side").hidden=!subs;
+  if(subs){
+    const cnt={};v.forEach(x=>{const k=subOf(x);cnt[k]=(cnt[k]||0)+1;});
+    $("#side").innerHTML=[["","전체"],...subs].map(([k,n])=>`<button data-s="${k}" aria-current="${state.sub===k}">${esc(n)}<span class="n">${k?(cnt[k]||0):v.length}</span></button>`).join("");
+    if(state.sub)v=v.filter(x=>subOf(x)===state.sub);
+  }
+  $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:"");
+  $("#vtitle").hidden=catView;
   v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
   if(home)v=v.slice(0,20);
   const pages=home?1:Math.max(1,Math.ceil(v.length/PER));
@@ -425,7 +462,8 @@ $("#pager").onclick=e=>{
   if(v&&!v.disabled){pgView=+v.dataset.v;renderPager(pgPages,true);return;}
   const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
   go(hashFor(+b.dataset.p));};
-function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
+function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.sub)h+="&s="+state.sub;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
+$("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;state.sub=b.dataset.s;go(hashFor(1));});
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
@@ -458,8 +496,8 @@ function goHome(){$("#mq").value="";if(location.hash){history.pushState(null,"",
 function route(){
   const parts=location.hash.slice(1).split("&");const h=parts[0];
   const prm={};parts.slice(1).forEach(x=>{const i=x.indexOf("=");if(i>0){try{prm[x.slice(0,i)]=decodeURIComponent(x.slice(i+1))}catch(e){prm[x.slice(0,i)]=x.slice(i+1)}}});
-  const prev=state.view+state.cat+state.q+state.page;
-  state.cat="전체";state.q="";state.cq=prm.q||"";state.page=Math.max(1,parseInt(prm.p)||1);
+  const prev=state.view+state.cat+state.q+state.page+state.sub;
+  state.cat="전체";state.q="";state.cq=prm.q||"";state.sub=prm.s||"";state.page=Math.max(1,parseInt(prm.p)||1);
   if(h==="profile")state.view="profile";
   else if(h==="sns")state.view="insta";
   else if(h==="all")state.view="list";
@@ -470,7 +508,7 @@ function route(){
   render();
   updateBadge();
   if(isAdmin())$("#admin").scrollIntoView();
-  else if(prev!==state.view+state.cat+state.q+state.page)window.scrollTo(0,0);
+  else if(prev!==state.view+state.cat+state.q+state.page+state.sub)window.scrollTo(0,0);
 }
 $("#vclear").onclick=goHome;
 $("#iclear").onclick=goHome;
