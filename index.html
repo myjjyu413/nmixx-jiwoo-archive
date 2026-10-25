@@ -107,6 +107,11 @@ body.is-home .vhead{margin-bottom:12px}
 .side button[aria-current="true"]::before{content:"";position:absolute;left:4px;top:9px;bottom:9px;width:3px;background:var(--accent);border-radius:2px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* 숏폼: 9:16 세로 카드 */
+.grid.vert{grid-template-columns:repeat(5,minmax(0,1fr))}
+.grid.vert .thumb{aspect-ratio:9/16}
+@media (max-width:900px){.grid.vert{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.grid.vert{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
@@ -445,7 +450,9 @@ function render(){
   if(ins){renderInsta();return;}
   if(prof)return;
   const g=$("#grid");
-  g.className=home?"shelf":"grid";
+  const vert=!home&&!state.q&&state.cat==="숏폼";
+  const per=vert?10:PER;
+  g.className=home?"shelf":(vert?"grid vert":"grid");
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
   const cq=state.cq.trim().toLowerCase();
@@ -464,9 +471,9 @@ function render(){
   $("#vtitle").hidden=catView;
   v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
   if(home)v=v.slice(0,20);
-  const pages=home?1:Math.max(1,Math.ceil(v.length/PER));
+  const pages=home?1:Math.max(1,Math.ceil(v.length/per));
   if(state.page>pages)state.page=pages;
-  if(!home)v=v.slice((state.page-1)*PER,state.page*PER);
+  if(!home)v=v.slice((state.page-1)*per,state.page*per);
   renderPager(home?1:pages);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
   g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);
@@ -583,7 +590,7 @@ function openVideo(x){
   else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?autoplay=1&rel=0&description=1`;
   else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
   if(!src){window.open(x.url,"_blank","noopener");return;}
-  $(".player").classList.toggle("vertical",pf!=="yt");
+  $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
   $("#frame").innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=dispTitle(x);
   $("#modal").hidden=false;$("#close").focus();
