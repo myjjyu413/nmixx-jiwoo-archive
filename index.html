@@ -80,6 +80,7 @@ main section{padding-block:44px 0}
 .arrow svg{width:16px;height:16px}
 .arrow.prev{left:-22px}.arrow.next{right:-22px}
 .arrow:disabled{opacity:0;pointer-events:none}
+@media (max-width:640px){.shelf{grid-auto-columns:100%}.shelf>*{scroll-snap-align:center;scroll-snap-stop:always}}
 @media (max-width:640px){.arrow.prev{left:-6px}.arrow.next{right:-6px}.arrow{width:36px;height:36px}}
 .shelf>*{scroll-snap-align:start}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,24px)}
