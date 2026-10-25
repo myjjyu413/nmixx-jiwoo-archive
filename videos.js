@@ -352,7 +352,6 @@ window.VIDEOS = [
   {"url":"https://youtu.be/u36GUrwskEU","title":"[예능연구소] NMIXX – DICE(엔믹스 - 다이스) FanCam | Show! MusicCore | MBC220924방송","date":"2022-09-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/rTvrW8yXojA","title":"NMIXX(엔믹스) - DICE | Show! MusicCore | MBC220924방송","date":"2022-09-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/SYOyyEUPvLE","title":"NMIXX(엔믹스) - COOL(Your rainbow) | Show! MusicCore | MBC220924방송","date":"2022-09-24","category":"무대","group":"단독","note":""},
-  {"url":"https://youtu.be/e38EolkNusE","title":"[Teaser] 엔믹스 (NMIXX) - DICE │잇츠라이브","date":"2022-09-23","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/2FW2h8pbi2I","title":"[얼빡직캠 4K] 엔믹스 지우 'DICE' (NMIXX JIWOO Facecam) @뮤직뱅크(Music Bank) 220923","date":"2022-09-23","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/_HVOLLFjlg0","title":"(ENG)[MusicBank Interview Cam] 엔믹스 (NMIXX Interview)l @MusicBank KBS 220923","date":"2022-09-23","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/YIHecqu1f8c","title":"[K-Choreo 8K] 엔믹스 직캠 'DICE' (NMIXX Choreography) l @MusicBank 220923","date":"2022-09-23","category":"무대","group":"단독","note":""},
