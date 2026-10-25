@@ -240,6 +240,7 @@ main{padding-bottom:40px}
         <button class="btn primary" id="add">추가</button>
         <button class="btn" id="export">추가·수정 내용 복사</button>
         <button class="btn" id="clear">미리보기 비우기</button>
+        <button class="btn" id="fclear">입력 내용 지우기</button>
       </div>
       <p class="msg" id="msg"></p>
       <div class="drafts" id="drafts"></div>
@@ -727,6 +728,7 @@ $("#export").onclick=async()=>{
   try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
 };
+$("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-date").value=new Date().toISOString().slice(0,10);msg("");$("#f-url").focus();};
 $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
 /* 카드 아래 카테고리 바꾸기 */
 document.addEventListener("change",e=>{
