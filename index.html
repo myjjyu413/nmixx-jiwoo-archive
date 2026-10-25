@@ -429,9 +429,10 @@ async function ytGet(path,params){
 function syncMode(){
   const ch=$("#yt-mode").value==="channel";
   $("#yt-ch-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
-  $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (| 로 여러 개, 비우면 전부)":"검색어";
-  if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="지우|JIWOO|Jiwoo";
-  if(!ch&&$("#yt-q").value==="지우|JIWOO|Jiwoo")$("#yt-q").value="#지우 #NMIXX";
+  $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (선택)":"검색어";
+  $("#yt-q").placeholder=ch?"비워두면 전부 가져와요. 예: 지우|JIWOO":"";
+  if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="";
+  if(!ch&&!$("#yt-q").value)$("#yt-q").value="#지우 #NMIXX";
   $("#yt-go").textContent=ch?"가져오기":"검색";
 }
 $("#yt-mode").onchange=syncMode;
