@@ -352,9 +352,18 @@ const CATS=["무대","예능","라디오","인터뷰","숏폼","라이브 방송
 const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","자컨":"예능","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
-const SUBS={"무대":[["main","무대"],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["etc","기타"]]};
+const SUBS={"무대":[["main","무대"],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["etc","기타"]],
+  "라이브 방송":[["comeback","컴백"],["anniv","N주년"],["solo","개인"],["unit","유닛"],["group","단체"]]};
 function subOf(x){
   if(x.sub)return x.sub;
+  if(x.category==="라이브 방송"){
+    const t=x.title;
+    if(/anniversar|anniver|주년|1000일|1st anniversary/i.test(t))return "anniv";
+    if(/countdown|카운트다운|showcase|쇼케이스|comeback|컴백|wrap-up|첫 1위|1위 축하/i.test(t))return "comeback";
+    if(/쮸솔|쮸뀨|행쮸뀨|규진 지우|지우 규진|단발셋|한림즈|막냉이|진규|with /i.test(t))return "unit";
+    if(/지우|쮸|jiwoo/i.test(t))return "solo";
+    return "group";
+  }
   if(x.category!=="무대")return "";
   const t=x.title;
   if(/교차편집|stage ?mix/i.test(t))return "etc";
