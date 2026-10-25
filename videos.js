@@ -2,11 +2,20 @@
 // category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체
 
 window.VIDEOS = [
+  {"url":"https://youtu.be/a3nfknkbOcs","title":"긴 소원 (Birthday Wish) - NMIXX | SBS 261025 방송","date":"2026-10-25","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/p4Mhynamnq0","title":"[#음중풀캠] NMIXX (엔믹스) – 긴 소원(Birthday Wish) FullCam | 쇼! 음악중심 | MBC261024","date":"2026-10-24","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/GUQxwaML-ts","title":"NMIXX (엔믹스) - Birthday Wish (긴 소원) | Show! MusicCore | MBC261024방송","date":"2026-10-24","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/dqQWHxcGIt0","title":"[VLF] NMIXX - Blue Valentine | MBC 버추얼 라이브 페스티벌 with CoupangPlay","date":"2026-08-13","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/FRnYTD6i2Po","title":"매점 신기록 췤췤췤✨ 울믹스 잘알들이 멤버 털기하면 벌어지는 일😲 척하면 척! 1위는 엔↗️믹스 체인지 업🥇 #인기가요끝나면매점가요2 EP.8 #NMIXX | SUB","date":"2026-06-05","category":"자컨 & 예능","group":"단독","note":""},
+  {"url":"https://youtu.be/gz17zBV8LcQ","title":"[안방1열 풀캠4K] 엔믹스 'Heavy Serenade' (NMIXX FullCam) @SBS Inkigayo 260524","date":"2026-05-25","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/wE6Tj-FLqK4","title":"Heavy Serenade - NMIXX | SBS 260524 방송","date":"2026-05-24","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/Tr5RZhHOPzw","title":"[#음중직캠] NMIXX JIWOO (엔믹스 지우) – Heavy Serenade FanCam | 쇼! 음악중심 | MBC260523","date":"2026-05-23","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/4apVPzvnYNk","title":"[#음중풀캠] NMIXX (엔믹스) – Heavy Serenade FullCam | 쇼! 음악중심 | MBC260523","date":"2026-05-23","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/-GQKjxkB9q4","title":"[단독샷캠4K] 엔믹스 'Heavy Serenade' 단독샷 별도녹화│NMIXX ONE TAKE STAGE│@SBS Inkigayo 260517","date":"2026-05-18","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/B3s8fRvg6I4","title":"[안방1열 풀캠4K] 엔믹스 'Crescendo' (NMIXX FullCam) @SBS Inkigayo 260517","date":"2026-05-18","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/fD-QzSeH-1s","title":"[안방1열 풀캠4K] 엔믹스 'Heavy Serenade' (NMIXX FullCam) @SBS Inkigayo 260517","date":"2026-05-18","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/WbYBIQNf8pc","title":"Heavy Serenade - NMIXX | SBS 260517 방송","date":"2026-05-17","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/P3rpv0wAizk","title":"Crescendo - NMIXX | SBS 260517 방송","date":"2026-05-17","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/0nYGvW8AlzE","title":"[#음중풀캠] NMIXX (엔믹스) – Crescendo FullCam | 쇼! 음악중심 | MBC260516","date":"2026-05-16","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/xa-kYj0fqKc","title":"[#음중직캠] NMIXX JIWOO (엔믹스 지우) – Heavy Serenade FanCam | 쇼! 음악중심 | MBC260516","date":"2026-05-16","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/CW2-3kIHmV0","title":"[#음중풀캠8K] NMIXX (엔믹스) – Heavy Serenade FullCam | 쇼! 음악중심 | MBC260516","date":"2026-05-16","category":"무대 & 직캠","group":"단독","note":""},
