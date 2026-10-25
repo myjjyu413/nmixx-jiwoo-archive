@@ -51,8 +51,12 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .brand .home:hover .logo{opacity:.75}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .brand p{margin:12px 0 0;color:var(--muted)}
-.search{flex:1 1 260px;max-width:360px;position:relative}
-.search input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.search{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 auto;min-width:0}
+.search input{width:0;padding:11px 0;border:1px solid transparent;border-radius:999px;background:transparent;opacity:0;transition:width .25s,padding .25s,opacity .2s}
+.search.open input{width:min(320px,100%);padding:11px 16px;border-color:var(--line);background:var(--surface);opacity:1}
+.search-btn{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--fg)}
+.search-btn:hover{border-color:var(--fg)}
+.search-btn svg{width:20px;height:20px}
 
 .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-block:18px}
 .tabs{display:flex;flex-wrap:wrap;gap:6px}
@@ -123,7 +127,7 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
     <div class="brand">
       <h1><a class="home" href="./" title="메인 화면으로"><span class="logo" role="img" aria-label="쮸카이브"></span></a></h1>
     </div>
-    <div class="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색"></div>
+    <div class="search" id="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색" tabindex="-1"><button class="search-btn" id="search-btn" aria-label="검색 열기" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button></div>
   </header>
 
   <section class="hero" id="hero" aria-label="대표 영상"><div id="hero-frame"></div></section>
@@ -249,6 +253,20 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden
 
 $("#tabs").onclick=e=>{const b=e.target.closest(".tab");if(b){state.cat=b.dataset.c;render();}};
 $("#q").oninput=e=>{state.q=e.target.value;render()};
+function setSearch(open){
+  $("#search").classList.toggle("open",open);
+  $("#search-btn").setAttribute("aria-expanded",String(open));
+  $("#search-btn").setAttribute("aria-label",open?"검색 닫기":"검색 열기");
+  $("#q").tabIndex=open?0:-1;
+  if(open){$("#q").focus()}
+}
+$("#search-btn").onclick=()=>{
+  const open=!$("#search").classList.contains("open");
+  if(!open&&state.q){$("#q").value="";state.q="";render();}
+  setSearch(open);
+};
+$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){$("#q").value="";state.q="";render();setSearch(false);$("#search-btn").focus();}});
+$("#q").addEventListener("blur",()=>{setTimeout(()=>{if(!state.q&&document.activeElement!==$("#search-btn"))setSearch(false)},150)});
 $("#group").onchange=e=>{state.group=e.target.value;render()};
 $("#sort").onchange=e=>{state.sort=e.target.value;render()};
 
