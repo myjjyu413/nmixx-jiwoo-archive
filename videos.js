@@ -3,6 +3,7 @@
 
 window.VIDEOS = [
   {"url":"https://youtu.be/a3nfknkbOcs","title":"긴 소원 (Birthday Wish) - NMIXX | SBS 261025 방송","date":"2026-10-25","category":"무대","group":"단독","note":""},
+  {"url":"https://youtu.be/zvoqOdKdho8","title":"100살까지 아이돌 해주세요 🐈‍⬛ NMIXX(엔믹스) 규냥이의 장수돌잔치ㅣ스포티파이 아이돌잔치","date":"2026-10-25","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/p4Mhynamnq0","title":"[#음중풀캠] NMIXX (엔믹스) – 긴 소원(Birthday Wish) FullCam | 쇼! 음악중심 | MBC261024","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/GUQxwaML-ts","title":"NMIXX (엔믹스) - Birthday Wish (긴 소원) | Show! MusicCore | MBC261024방송","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/ESkXaz8OvNA","title":"[K-Fancam] 엔믹스 지우 직캠 '긴 소원 (Birthday Wish)' (NMIXX JIWOO Fancam) @뮤직뱅크(Music Bank) 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
