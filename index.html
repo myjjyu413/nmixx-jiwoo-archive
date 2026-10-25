@@ -52,6 +52,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* 대표 영상 */
 .hero{padding-block:8px 0}
+.hero-in{max-width:1180px;margin:0 auto}
 .hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
 .hero-frame iframe{width:100%;height:100%;border:0;display:block}
 .hero-cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-top:14px}
@@ -174,8 +175,10 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
 
 <main>
   <section class="hero gut" id="hero" aria-label="대표 영상">
-    <div class="hero-frame"><div id="hero-frame"></div></div>
-    <div class="hero-cap"><span class="album" id="hero-album"></span><span class="song" id="hero-song"></span></div>
+    <div class="hero-in">
+      <div class="hero-frame"><div id="hero-frame"></div></div>
+      <div class="hero-cap"><span class="album" id="hero-album"></span><span class="song" id="hero-song"></span></div>
+    </div>
   </section>
 
   <section class="gut" id="today-sec">
