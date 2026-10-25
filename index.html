@@ -518,6 +518,7 @@ const YTK="jiwoo-archive-ytkey",YT="https://www.googleapis.com/youtube/v3/";
 try{$("#yt-key").value=localStorage.getItem(YTK)||""}catch(e){}
 let ytNext="",ytItems=[],ytStop=false;
 function ytMsg(t){$("#yt-msg").textContent=t}
+function kst(t){if(!t)return "";const d=new Date(new Date(t).getTime()+9*3600e3);return isNaN(d)?String(t).slice(0,10):d.toISOString().slice(0,10);}
 function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
 function ytKey(){const k=$("#yt-key").value.trim();if(k){try{localStorage.setItem(YTK,k)}catch(e){}}return k;}
 async function ytGet(path,params){
@@ -578,7 +579,7 @@ async function ytSearch(more){
   ytMsg("검색 중…");
   const j=await ytGet("search",ps);
   ytNext=j.nextPageToken||"";$("#yt-more").hidden=!ytNext;
-  ytShow((j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:decodeHTML(it.snippet.channelTitle)})),more);
+  ytShow((j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:kst(it.snippet.publishedAt),channel:decodeHTML(it.snippet.channelTitle)})),more);
   ytMsg(`${ytItems.length}개 찾았어요${ytHaveCount()}. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
 /* 기간이 정해지면: 채널 + 날짜로 바로 검색 (최신 영상을 건너뛸 필요 없음) */
@@ -592,7 +593,7 @@ async function ytChannelByDate(cid,name,words){
   do{
     const j=await ytGet("search",{...ps,...(token?{pageToken:token}:{})});
     token=j.nextPageToken||"";page++;
-    const list=(j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:name}))
+    const list=(j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:kst(it.snippet.publishedAt),channel:name}))
       .filter(v=>!words.length||words.some(w=>v.title.toLowerCase().includes(w)));
     total+=list.length;
     if(list.length)ytShow(list,true);
@@ -620,7 +621,7 @@ async function ytChannel(){
   do{
     const j=await ytGet("playlistItems",{part:"snippet,contentDetails",playlistId:up,maxResults:"50",...(token?{pageToken:token}:{})});
     token=j.nextPageToken||"";page++;
-    const list=(j.items||[]).map(it=>({id:it.contentDetails.videoId,title:decodeHTML(it.snippet.title),date:(it.contentDetails.videoPublishedAt||it.snippet.publishedAt||"").slice(0,10),channel:name}))
+    const list=(j.items||[]).map(it=>({id:it.contentDetails.videoId,title:decodeHTML(it.snippet.title),date:kst(it.contentDetails.videoPublishedAt||it.snippet.publishedAt||""),channel:name}))
       .filter(v=>v.id&&v.title!=="Private video"&&v.title!=="Deleted video");
     scanned+=list.length;
     const hit=list.filter(v=>inRange(v.date)&&(!words.length||words.some(w=>v.title.toLowerCase().includes(w))));
@@ -658,11 +659,25 @@ function msg(t){$("#msg").textContent=t}
 $("#f-url").addEventListener("change",async()=>{
   const id=ytId($("#f-url").value);
   if(!id){msg("유튜브 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
-  msg("제목 가져오는 중…");
+  msg("영상 정보 가져오는 중…");
+  /* API 키가 있으면 제목과 업로드 날짜를 함께 가져와요 (영상 1개당 1점, 검색 한도와 별개) */
+  const key=($("#yt-key")&&$("#yt-key").value.trim())||(()=>{try{return localStorage.getItem("jiwoo-archive-ytkey")||""}catch(e){return ""}})();
+  if(key){
+    try{
+      const r=await fetch("https://www.googleapis.com/youtube/v3/videos?"+new URLSearchParams({part:"snippet",id,key}));
+      const j=await r.json();
+      const sn=j.items&&j.items[0]&&j.items[0].snippet;
+      if(sn){
+        $("#f-title").value=decodeHTML(sn.title);
+        $("#f-date").value=kst(sn.publishedAt);
+        msg(`제목과 업로드 날짜(${kst(sn.publishedAt).replaceAll("-",".")})를 가져왔어요.`);return;
+      }
+    }catch(e){}
+  }
   try{
     const r=await fetch(`https://noembed.com/embed?url=${encodeURIComponent("https://www.youtube.com/watch?v="+id)}`);
     const j=await r.json();
-    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;msg("제목을 가져왔어요.");}
+    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;msg(key?"제목만 가져왔어요. 날짜는 직접 입력해 주세요.":"제목을 가져왔어요. 위 '유튜브에서 찾기'에 API 키를 넣어두면 날짜도 자동으로 들어가요.");}
     else msg("제목을 못 가져왔어요. 직접 입력해 주세요.");
   }catch(e){msg("제목을 못 가져왔어요. 직접 입력해 주세요.");}
 });
