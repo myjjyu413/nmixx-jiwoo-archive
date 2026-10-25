@@ -222,7 +222,7 @@ main{padding-bottom:40px}
       <div class="ytres" id="yt-res"></div>
 
       <h2 style="margin-top:28px">영상 추가 (관리자)</h2>
-      <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>videos.js 내용 복사</b>를 눌러 videos.js 파일에 통째로 붙여넣으면 모두에게 보여요.</p>
+      <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>추가한 영상 복사</b>를 눌러 Claude에게 보내주면 기존 목록에 더해져요.</p>
       <div class="form">
         <label class="wide">유튜브 링크<input id="f-url" placeholder="https://www.youtube.com/watch?v=… 또는 youtu.be/…"></label>
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
@@ -233,7 +233,7 @@ main{padding-bottom:40px}
       </div>
       <div class="btns">
         <button class="btn primary" id="add">추가</button>
-        <button class="btn" id="export">videos.js 내용 복사</button>
+        <button class="btn" id="export">추가한 영상 복사</button>
         <button class="btn" id="clear">미리보기 비우기</button>
       </div>
       <p class="msg" id="msg"></p>
@@ -661,11 +661,13 @@ function renderDrafts(){
   $("#drafts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const d=loadDrafts();d.splice(+b.dataset.i,1);saveDrafts(d);renderDrafts();renderAll();});
 }
 $("#export").onclick=async()=>{
-  const merged=(window.VIDEOS||[]).concat(loadDrafts());
+  const have=new Set((window.VIDEOS||[]).map(v=>v.url));
+  const merged=loadDrafts().filter(v=>!have.has(v.url));
+  if(!merged.length){msg("새로 추가한 영상이 없어요.");return;}
   const lines=merged.map(v=>"  "+JSON.stringify({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group,note:v.note||""})+",");
-  const text=`// 쮸카이브 영상 목록 (관리자 화면에서 생성)\n// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n`;
+  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개 (관리자 화면에서 생성)\n// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n`;
   const out=$("#out");out.value=text;out.hidden=false;
-  try{await navigator.clipboard.writeText(text);msg("복사했어요. videos.js 파일 내용을 전부 바꾼 뒤 '미리보기 비우기'를 누르면 돼요.");}
+  try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
 };
 $("#clear").onclick=()=>{saveDrafts([]);renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
