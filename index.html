@@ -271,8 +271,8 @@ main{padding-bottom:40px}
   </div>
 </div>
 
-<script src="videos.js"></script>
-<script src="sns.js"></script>
+<script>/* 목록 파일은 매번 새로 받아서, 올린 영상이 바로 보이게 해요 */
+document.write('<script src="videos.js?v='+Date.now()+'"><\/script><script src="sns.js?v='+Date.now()+'"><\/script>');</script>
 <script>
 // ===== 컴백 테마: 메인 대표 영상 =====
 const FEATURED={
