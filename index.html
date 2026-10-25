@@ -41,6 +41,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-block:36px 20px;border-bottom:1px solid var(--line)}
 .brand h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,52px);line-height:1;margin:0;letter-spacing:-.02em}
 .brand h1 span{background:linear-gradient(transparent 62%,var(--butter) 62%,var(--butter) 92%,transparent 92%)}
+.brand .home{color:inherit;text-decoration:none}
+.brand .home:hover span{background:linear-gradient(transparent 50%,var(--butter) 50%,var(--butter) 92%,transparent 92%)}
 .brand p{margin:8px 0 0;color:var(--muted)}
 .search{flex:1 1 260px;max-width:360px;position:relative}
 .search input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
@@ -108,7 +110,7 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1><span>쮸카이브</span></h1>
+      <h1><a class="home" href="./" title="메인 화면으로"><span>쮸카이브</span></a></h1>
       <p>엔믹스 지우의 무대·직캠·자컨·라이브·예능·라디오 모음</p>
     </div>
     <div class="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색"></div>
