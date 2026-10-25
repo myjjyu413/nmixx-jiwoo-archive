@@ -254,6 +254,7 @@ main{padding-bottom:40px}
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
         <label>날짜<input id="f-date" type="date"></label>
         <label>카테고리<select id="f-cat"></select></label>
+        <label id="f-sub-wrap">세부 카테고리<select id="f-sub"></select></label>
       </div>
       <div class="btns">
         <button class="btn primary" id="add">추가</button>
@@ -701,6 +702,11 @@ $("#yt-res").addEventListener("click",e=>{
 
 /* 관리자 */
 $("#f-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+function syncFSub(){const sl=SUBS[$("#f-cat").value];$("#f-sub-wrap").hidden=!sl;$("#f-sub").innerHTML=sl?`<option value="">자동 (제목 보고 분류)</option>`+sl.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""):"";}
+$("#f-cat").addEventListener("change",syncFSub);syncFSub();
+/* 제목이 바뀌면 자동 분류 결과를 안내 */
+function fSubHint(){const o=$("#f-sub").options[0];if(!o||o.value)return;const sl=SUBS[$("#f-cat").value];if(!sl)return;const k=subOf({title:$("#f-title").value,category:$("#f-cat").value});const n=(sl.find(x=>x[0]===k)||[])[1];o.textContent=n?`자동 (${n})`:"자동 (제목 보고 분류)";}
+$("#f-title").addEventListener("input",fSubHint);$("#f-cat").addEventListener("change",fSubHint);
 $("#f-date").value=new Date().toISOString().slice(0,10);
 function msg(t){$("#msg").textContent=t}
 $("#f-url").addEventListener("change",async()=>{
@@ -718,14 +724,14 @@ $("#f-url").addEventListener("change",async()=>{
       if(sn){
         $("#f-title").value=decodeHTML(sn.title);
         $("#f-date").value=kst(sn.publishedAt);
-        msg(`제목과 업로드 날짜(${kst(sn.publishedAt).replaceAll("-",".")})를 가져왔어요.`);return;
+        fSubHint();msg(`제목과 업로드 날짜(${kst(sn.publishedAt).replaceAll("-",".")})를 가져왔어요.`);return;
       }
     }catch(e){}
   }
   try{
     const r=await fetch(`https://noembed.com/embed?url=${encodeURIComponent("https://www.youtube.com/watch?v="+id)}`);
     const j=await r.json();
-    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;msg(key?"제목만 가져왔어요. 날짜는 직접 입력해 주세요.":"제목을 가져왔어요. 위 '유튜브에서 찾기'에 API 키를 넣어두면 날짜도 자동으로 들어가요.");}
+    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;fSubHint();msg(key?"제목만 가져왔어요. 날짜는 직접 입력해 주세요.":"제목을 가져왔어요. 위 '유튜브에서 찾기'에 API 키를 넣어두면 날짜도 자동으로 들어가요.");}
     else msg("제목을 못 가져왔어요. 직접 입력해 주세요.");
   }catch(e){msg("제목을 못 가져왔어요. 직접 입력해 주세요.");}
 });
@@ -736,7 +742,7 @@ $("#add").onclick=()=>{
   const st=ytStatus(ytId(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const d=loadDrafts();
-  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:""});
+  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:"",...($("#f-sub").value&&SUBS[$("#f-cat").value]?{sub:$("#f-sub").value}:{})});
   saveDrafts(d);
   $("#f-url").value="";$("#f-title").value="";
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
@@ -774,7 +780,7 @@ $("#export").onclick=async()=>{
   try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
 };
-$("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-date").value=new Date().toISOString().slice(0,10);msg("");$("#f-url").focus();};
+$("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-sub").value="";fSubHint();$("#f-date").value=new Date().toISOString().slice(0,10);msg("");$("#f-url").focus();};
 $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
 /* 카드 아래 카테고리 바꾸기 */
 document.addEventListener("change",e=>{
