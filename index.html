@@ -149,9 +149,9 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .menu .menu-body{display:flex;flex-direction:column;align-items:stretch;gap:24px;padding:8px 32px 40px}
 .msearch{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--fg);width:100%;padding:6px 2px}
 .msearch svg{width:20px;height:20px;flex:none}
-.msearch input{flex:1;min-width:0;border:0;background:transparent;font-size:17px;font-weight:600;padding:6px 0;outline:none}
+.msearch{cursor:text}.msearch input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;font-weight:600;padding:6px 0;outline:none}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;width:100%}
-.mlist button,.mlist a{display:block;text-decoration:none;border:0;background:none;cursor:pointer;font-weight:700;font-size:24px;letter-spacing:.03em;padding:8px 0;text-align:left;width:100%;color:var(--fg);transition:color .15s,transform .15s}
+.mlist button,.mlist a{display:block;text-decoration:none;border:0;background:none;cursor:pointer;font-weight:600;font-size:17px;letter-spacing:.02em;padding:9px 0;text-align:left;width:100%;color:var(--fg);transition:color .15s,transform .15s}
 .mlist button:hover,.mlist a:hover{color:var(--logo);transform:translateX(4px)}
 .mlist .en{font-family:var(--latin);font-size:12px;letter-spacing:.16em;color:var(--muted);margin-left:12px;vertical-align:middle;font-weight:600}
 
@@ -628,11 +628,12 @@ const MENU=[["프로필",goProfile],
   ["SNS",goInsta]];
 $("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${esc(m[0])}</button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][1]();});
-function openMenu(){$("#menu").hidden=false;$("#mback").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";$("#mq").focus();}
+function openMenu(){$("#menu").hidden=false;$("#mback").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";}
 function closeMenu(){$("#menu").hidden=true;$("#mback").hidden=true;$("#open-menu").setAttribute("aria-expanded","false");document.body.style.overflow="";}
 $("#open-menu").onclick=openMenu;
 $("#close-menu").onclick=closeMenu;
 $("#mback").onclick=closeMenu;
+$("#msearch").addEventListener("click",()=>$("#mq").focus());
 $("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").value.trim();closeMenu();goVideos({cat:"전체",q});});
 
 /* 재생창 */
