@@ -53,62 +53,31 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* 대표 영상 */
 .hero{padding-block:8px 0}
 .hero-in{max-width:1180px;margin:0 auto}
+#videos,#profile{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
 .hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
 .hero-frame iframe{width:100%;height:100%;border:0;display:block}
 .hero-cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-top:14px}
 .hero-cap .album{font-family:var(--latin);font-weight:700;font-size:clamp(20px,2.4vw,30px);letter-spacing:-.01em;color:var(--logo)}
 .hero-cap .song{font-weight:600;color:var(--logo);font-size:clamp(15px,1.6vw,19px)}
 
-main section{padding-block:48px 0}
+main section{padding-block:44px 0}
 .sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
 .sec-head h2{margin:0;font-family:var(--latin);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .sec-head h2 b{font-family:var(--body);font-size:20px;letter-spacing:0;color:var(--fg);margin-left:10px;text-transform:none}
 .more{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:14px;padding:4px 0}
 
-/* 오늘의 지우 + 디데이 */
-.today{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:18px;align-items:start}
-.dday{display:flex;flex-direction:column;gap:10px}
-.dbox{background:var(--surface);border-radius:12px;padding:16px 18px}
-.dbox .k{font-size:13px;color:var(--muted)}
-.dbox .v{font-family:var(--latin);font-weight:700;font-size:30px;line-height:1.2;font-variant-numeric:tabular-nums}
-.dbox .d{font-size:12px;color:var(--muted);font-family:var(--mono)}
-.soft{color:var(--muted);font-size:14px;margin:0;padding:22px 18px;background:var(--surface);border-radius:12px}
-
-/* 가로 줄 */
-.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(220px,22vw,300px);gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+/* 영상 줄 (포스터 카드) */
+.row-title{margin:0 0 16px;font-weight:700;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.01em}
+.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(150px,15vw,250px);gap:clamp(12px,1.6vw,24px);overflow-x:auto;padding-bottom:12px;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .shelf>*{scroll-snap-align:start}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px 18px}
-.card{background:none;border:0;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0}
-.thumb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:8px;overflow:hidden;background:var(--chip)}
-.thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-.card:hover .thumb img{transform:scale(1.04)}
-.thumb .nothumb{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:13px}
-.meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
-.chip{background:var(--chip);padding:2px 8px;border-radius:5px;font-weight:600}
-.chip.solo{background:var(--butter);color:var(--fg)}
-.date{font-family:var(--mono);color:var(--muted)}
-.title{font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-
-/* 활동 시기 */
-.eras{display:flex;gap:10px;flex-wrap:wrap}
-.era{border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600}
-.era i{width:12px;height:12px;border-radius:50%;display:block}
-.era[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-
-/* 전체 영상 */
-.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
-.tabs{display:flex;flex-wrap:wrap;gap:6px}
-.tab{border:1px solid var(--line);background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:500}
-.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.tab .n{font-family:var(--mono);font-size:12px;opacity:.6;margin-left:4px}
-.opts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.opts select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.qtag{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
-.qtag button{border:0;background:var(--chip);border-radius:50%;width:22px;height:22px;cursor:pointer;line-height:1}
-.count{font-size:13px;color:var(--muted);margin:0 0 14px}
-.count b{font-family:var(--mono);color:var(--fg)}
-.empty{border:1.5px dashed var(--line);border-radius:14px;padding:48px 20px;text-align:center;color:var(--muted)}
-.empty h3{color:var(--fg);margin:0 0 6px;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,15vw,250px),1fr));gap:clamp(12px,1.6vw,24px)}
+.card{background:none;border:0;padding:0;cursor:pointer;display:block;min-width:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:3/4;max-width:100%;background-color:var(--chip)}
+.card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.card:hover img{transform:scale(1.05)}
+.card .nothumb{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:13px}
+.vhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
+.vnone{color:var(--muted);margin:0}
 
 /* 프로필 */
 .profile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start}
@@ -160,10 +129,7 @@ dl.pinfo dd{margin:0;font-weight:600;overflow-wrap:anywhere}
 textarea{width:100%;min-height:120px;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);font-family:var(--mono);font-size:12px}
 footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
-@media (max-width:760px){
-  .today,.profile{grid-template-columns:minmax(0,1fr)}
-  .dday{flex-direction:row;flex-wrap:wrap}.dday .dbox{flex:1 1 140px}
-}
+@media (max-width:760px){.profile{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
@@ -181,37 +147,9 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
     </div>
   </section>
 
-  <section class="gut" id="today-sec">
-    <div class="sec-head"><h2>Today<b>오늘의 지우</b></h2></div>
-    <div class="today">
-      <div id="today"></div>
-      <div class="dday" id="dday"></div>
-    </div>
-  </section>
-
-  <div id="shelves"></div>
-
-  <section class="gut" id="era-sec" hidden>
-    <div class="sec-head"><h2>Era<b>활동 시기별 보기</b></h2></div>
-    <div class="eras" id="eras"></div>
-  </section>
-
   <section class="gut" id="videos">
-    <div class="sec-head"><h2>Video<b>전체 영상</b></h2></div>
-    <div class="bar">
-      <div class="tabs" id="tabs" role="group" aria-label="카테고리"></div>
-      <div class="opts">
-        <span class="qtag" id="qtag" hidden></span>
-        <select id="group" aria-label="단독/단체">
-          <option value="">단독+단체</option><option value="단독">지우 단독</option><option value="단체">단체</option>
-        </select>
-        <select id="sort" aria-label="정렬">
-          <option value="new">최신순</option><option value="old">오래된순</option>
-        </select>
-      </div>
-    </div>
-    <p class="count" id="count"></p>
-    <div class="grid" id="grid"></div>
+    <div class="vhead"><h2 class="row-title" id="vtitle">최근 추가</h2><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div>
+    <div class="shelf" id="grid"></div>
 
     <section class="admin" id="admin" hidden>
       <h2>영상 추가 (관리자)</h2>
@@ -235,8 +173,7 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
     </section>
   </section>
 
-  <section class="gut" id="profile">
-    <div class="sec-head"><h2>Profile<b>프로필</b></h2></div>
+  <section class="gut" id="profile" hidden>
     <div class="profile">
       <h3 class="pname" id="pname"></h3>
       <dl class="pinfo" id="pinfo"></dl>
@@ -295,15 +232,10 @@ const PROFILE={
   ]
 };
 
-// ===== 활동 시기 (컴백마다 한 줄씩 추가. from 날짜부터 다음 시기 전까지의 영상이 묶여요) =====
-const ERAS=[
-  // {name:"Strange Muse", from:"2026-10-01", color:"#CCC9DC"},
-];
-
 const CATS=["무대","직캠","자컨","라이브","예능","라디오"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
-let state={cat:"전체",q:"",group:"",sort:"new",era:""};
+let state={view:"home",cat:"전체",q:""};
 
 function ytId(url){
   if(!url) return null;
@@ -320,19 +252,11 @@ function all(){
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const fmt=d=>String(d||"").replaceAll("-",".");
-function eraOf(date){
-  const list=[...ERAS].sort((a,b)=>a.from.localeCompare(b.from));
-  let e=null;for(const x of list){if(String(date)>=x.from)e=x.name}
-  return e;
-}
 
 function cardHTML(x,i){
   const id=ytId(x.url);
-  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">`:`<div class="nothumb">외부 링크</div>`;
-  return `<button class="card" data-i="${i}">
-    <div class="thumb">${img}</div>
-    <div class="meta"><span class="chip">${esc(x.category)}</span>${x.group==="단독"?'<span class="chip solo">지우 단독</span>':''}${x._draft?'<span class="chip">미리보기</span>':''}<span class="date">${esc(fmt(x.date))}</span></div>
-    <div class="title">${esc(x.title)}</div></button>`;
+  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  return `<button class="card" data-i="${i}" title="${esc(x.title)}" aria-label="${esc(x.title)}">${img}</button>`;
 }
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]))}
 
@@ -345,78 +269,30 @@ function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()
   $("#hero-song").textContent=FEATURED.song||"";
 })();
 
-/* 오늘의 지우 + 디데이 */
-function renderToday(){
-  const now=new Date(),md=String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
-  const list=all().filter(v=>String(v.date).slice(5)===md&&String(v.date).slice(0,4)<String(now.getFullYear()));
-  list.sort((a,b)=>String(b.date).localeCompare(a.date));
-  const el=$("#today");
-  if(!list.length){el.innerHTML=`<p class="soft">${now.getMonth()+1}월 ${now.getDate()}일에 올라온 지난 영상이 아직 없어요. 영상이 쌓이면 매일 이 자리에 '몇 년 전 오늘'의 지우가 나와요.</p>`;return;}
-  el.innerHTML=`<div class="shelf">${list.map(cardHTML).join("")}</div>`;bindCards(el,list);
-}
-function dday(md){
-  const now=new Date();now.setHours(0,0,0,0);
-  const [m,d]=md.split("-").map(Number);
-  let t=new Date(now.getFullYear(),m-1,d);if(t<now)t=new Date(now.getFullYear()+1,m-1,d);
-  return Math.round((t-now)/864e5);
-}
-function renderDday(){
-  const items=[];
-  if(PROFILE.birthday)items.push(["지우 생일",PROFILE.birthday]);
-  if(PROFILE.debut)items.push(["데뷔 기념일",PROFILE.debut]);
-  $("#dday").innerHTML=items.map(([k,date])=>{
-    const n=dday(date.slice(5));
-    return `<div class="dbox"><div class="k">${k}</div><div class="v">${n===0?"D-DAY":"D-"+n}</div><div class="d">${fmt(date.slice(5))}</div></div>`;
-  }).join("");
-}
-
-/* 카테고리별 가로 줄 */
-function renderShelves(){
-  const list=all().sort((a,b)=>String(b.date).localeCompare(a.date));
-  const rows=[["Latest","최신 영상",list.slice(0,12),"전체"]].concat(CATS.map(c=>[null,c,list.filter(v=>v.category===c).slice(0,12),c])).filter(r=>r[2].length);
-  const el=$("#shelves");
-  el.innerHTML=rows.map((r,ri)=>`<section class="gut"><div class="sec-head"><h2>${r[0]||""}<b>${esc(r[1])}</b></h2><button class="more" data-cat="${esc(r[3])}">전체 보기 →</button></div><div class="shelf" data-row="${ri}">${r[2].map(cardHTML).join("")}</div></section>`).join("");
-  el.querySelectorAll(".shelf").forEach(s=>bindCards(s,rows[+s.dataset.row][2]));
-  el.querySelectorAll(".more").forEach(b=>b.onclick=()=>goVideos({cat:b.dataset.cat}));
-}
-
-/* 활동 시기 */
-function renderEras(){
-  if(!ERAS.length){$("#era-sec").hidden=true;return;}
-  $("#era-sec").hidden=false;
-  $("#eras").innerHTML=ERAS.map(e=>`<button class="era" aria-pressed="${state.era===e.name}" data-e="${esc(e.name)}"><i style="background:${esc(e.color||"var(--chip)")}"></i>${esc(e.name)}</button>`).join("");
-  $("#eras").querySelectorAll(".era").forEach(b=>b.onclick=()=>{state.era=state.era===b.dataset.e?"":b.dataset.e;renderEras();goVideos({});});
-}
-
-/* 전체 영상 */
-function renderTabs(list){
-  const counts={전체:list.length};CATS.forEach(c=>counts[c]=list.filter(v=>v.category===c).length);
-  $("#tabs").innerHTML=["전체",...CATS].map(c=>`<button class="tab" aria-pressed="${state.cat===c}" data-c="${c}">${c}<span class="n">${counts[c]}</span></button>`).join("");
-}
+/* 화면: home(대표 영상 + 최근 추가) / list(메뉴의 카테고리·검색) / profile */
 function render(){
   const list=all();
-  renderTabs(list);
-  const q=state.q.trim().toLowerCase();
-  const qt=$("#qtag");
-  if(state.q){qt.hidden=false;qt.innerHTML=`검색: ${esc(state.q)} <button aria-label="검색 지우기">×</button>`;qt.querySelector("button").onclick=()=>{state.q="";$("#mq").value="";render();};}
-  else qt.hidden=true;
-  let v=list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!state.group||x.group===state.group)
-    &&(!state.era||eraOf(x.date)===state.era)
-    &&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
-  v.sort((a,b)=>state.sort==="new"?String(b.date).localeCompare(a.date):String(a.date).localeCompare(b.date));
-  $("#count").innerHTML=`<b>${v.length}</b>개의 영상${state.era?` · ${esc(state.era)} 시기`:""}`;
+  const home=state.view==="home",prof=state.view==="profile";
+  $("#hero").hidden=!home;
+  $("#videos").hidden=prof;
+  $("#profile").hidden=!prof;
+  $("#vclear").hidden=home;
+  if(prof)return;
   const g=$("#grid");
-  if(!list.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1"><h3>아직 올라온 영상이 없어요</h3><p>영상이 추가되면 여기에 날짜순으로 쌓여요.</p></div>`;return;}
-  if(!v.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1"><h3>조건에 맞는 영상이 없어요</h3><p>검색어나 카테고리를 바꿔 보세요.</p></div>`;return;}
+  g.className=home?"shelf":"grid";
+  const q=state.q.trim().toLowerCase();
+  let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
+  $("#vtitle").textContent=home?"최근 추가":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
+  v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
+  if(home)v=v.slice(0,20);
+  if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
   g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);
 }
-function renderAll(){renderToday();renderDday();renderShelves();renderEras();render();}
-function goVideos({cat,q}){
-  if(cat)state.cat=cat;
-  if(q!==undefined)state.q=q;
-  render();
-  $("#videos").scrollIntoView();
-}
+function renderAll(){render();}
+function goVideos({cat,q}){state.view="list";state.cat=cat||"전체";state.q=q||"";render();window.scrollTo(0,0);}
+function goProfile(){state.view="profile";render();window.scrollTo(0,0);}
+function goHome(){state.view="home";state.cat="전체";state.q="";$("#mq").value="";render();window.scrollTo(0,0);}
+$("#vclear").onclick=goHome;
 
 /* 프로필 */
 (function(){
@@ -426,7 +302,7 @@ function goVideos({cat,q}){
 
 /* 메뉴 */
 const EN={무대:"STAGE",직캠:"FANCAM",자컨:"ORIGINAL",라이브:"LIVE",예능:"VARIETY",라디오:"RADIO"};
-const MENU=[["프로필","PROFILE",()=>$("#profile").scrollIntoView()],
+const MENU=[["프로필","PROFILE",goProfile],
   ...CATS.map(c=>[c,EN[c],()=>goVideos({cat:c})]),
   ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})]];
 $("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
@@ -452,9 +328,6 @@ $("#close").onclick=closeVideo;
 $("#modal").onclick=e=>{if(e.target.id==="modal")closeVideo()};
 document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("#modal").hidden)closeVideo();else if(!$("#menu").hidden)closeMenu();});
 
-$("#tabs").onclick=e=>{const b=e.target.closest(".tab");if(b){state.cat=b.dataset.c;render();}};
-$("#group").onchange=e=>{state.group=e.target.value;render()};
-$("#sort").onchange=e=>{state.sort=e.target.value;render()};
 
 /* 관리자 */
 $("#f-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
