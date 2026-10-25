@@ -81,6 +81,17 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .empty{border:1.5px dashed var(--line);border-radius:14px;padding:48px 20px;text-align:center;color:var(--muted)}
 .empty h2{font-family:var(--display);color:var(--fg);margin:0 0 6px;font-size:22px}
 
+/* 메인 대표 영상 */
+.hero{position:relative;margin-top:22px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:21/9;max-width:100%}
+.hero iframe{position:absolute;left:0;top:50%;width:100%;aspect-ratio:16/9;height:auto;transform:translateY(-50%);border:0;pointer-events:none}
+.hero .shade{position:absolute;inset:auto 0 0 0;height:45%;background:linear-gradient(transparent,rgba(20,16,36,.55));pointer-events:none}
+.hero .ctrl{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.hero .label{color:var(--logo);font-family:var(--display);font-weight:800;font-size:clamp(18px,2.6vw,28px);text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.hero .btns2{display:flex;gap:8px}
+.hero button{border:1px solid rgba(241,243,228,.6);background:rgba(20,16,36,.45);color:var(--logo);padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;backdrop-filter:blur(4px)}
+.hero button:hover{background:rgba(20,16,36,.7)}
+@media (max-width:640px){.hero{aspect-ratio:16/9}}
+
 /* 재생창 */
 .modal{position:fixed;inset:0;background:rgba(8,12,10,.82);display:grid;place-items:center;z-index:50;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -121,6 +132,18 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
     </div>
     <div class="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색"></div>
   </header>
+
+  <section class="hero" id="hero" aria-label="대표 영상">
+    <div id="hero-frame"></div>
+    <div class="shade"></div>
+    <div class="ctrl">
+      <div class="label" id="hero-label"></div>
+      <div class="btns2">
+        <button id="hero-sound" aria-pressed="false">🔇 소리 켜기</button>
+        <button id="hero-open">크게 보기</button>
+      </div>
+    </div>
+  </section>
 
   <div class="bar">
     <div class="tabs" id="tabs" role="group" aria-label="카테고리"></div>
@@ -172,6 +195,9 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
 
 <script src="videos.js"></script>
 <script>
+// ===== 컴백 테마: 메인 대표 영상 (유튜브 링크와 이름만 바꾸면 돼요) =====
+const FEATURED={url:"https://youtu.be/roHWN9fL2SM",title:"긴 소원 MV"};
+
 const CATS=["무대","직캠","자컨","라이브","예능","라디오"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
@@ -230,7 +256,7 @@ function openVideo(x){
   $("#p-link").href=`https://www.youtube.com/watch?v=${id}`;
   $("#modal").hidden=false;$("#close").focus();
 }
-function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";}
+function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";window.heroResume&&window.heroResume();}
 $("#close").onclick=closeVideo;
 $("#modal").onclick=e=>{if(e.target.id==="modal")closeVideo()};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeVideo()});
@@ -280,6 +306,24 @@ $("#export").onclick=async()=>{
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
 };
 $("#clear").onclick=()=>{saveDrafts([]);renderDrafts();render();msg("미리보기를 비웠어요.");};
+
+/* 대표 영상 */
+(function(){
+  const id=ytId(FEATURED.url);
+  if(!id){$("#hero").hidden=true;return;}
+  $("#hero-label").textContent=FEATURED.title;
+  $("#hero-frame").innerHTML=`<iframe id="hero-iframe" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&iv_load_policy=3" allow="autoplay; encrypted-media" title="${esc(FEATURED.title)}" tabindex="-1"></iframe>`;
+  let muted=true;
+  window.heroResume=()=>cmd("playVideo");
+  var cmd=(func,args=[])=>{try{$("#hero-iframe").contentWindow.postMessage(JSON.stringify({event:"command",func,args}),"*")}catch(e){}};
+  $("#hero-sound").onclick=()=>{
+    muted=!muted;
+    if(muted){cmd("mute")}else{cmd("unMute");cmd("setVolume",[70]);cmd("playVideo")}
+    $("#hero-sound").textContent=muted?"🔇 소리 켜기":"🔊 소리 끄기";
+    $("#hero-sound").setAttribute("aria-pressed",String(!muted));
+  };
+  $("#hero-open").onclick=()=>{cmd("pauseVideo");openVideo({url:FEATURED.url,title:FEATURED.title,category:"대표 영상",date:""});};
+})();
 
 function syncAdmin(){$("#admin").hidden=!isAdmin();if(isAdmin())renderDrafts();render();}
 window.addEventListener("hashchange",syncAdmin);
