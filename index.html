@@ -123,6 +123,17 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .csearch svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
+@media (max-width:640px){
+  body:not(.is-home) #videos:has(#vtitle[hidden]){display:flex;flex-direction:column}
+  body:not(.is-home) #videos:has(#vtitle[hidden])>.vhead{order:2;margin:14px 0 0;justify-content:center}
+  body:not(.is-home) #videos:has(#vtitle[hidden])>.vbody{order:1}
+  body:not(.is-home) #videos:has(#vtitle[hidden])>#admin{order:3}
+  body:not(.is-home) #videos:has(#vtitle[hidden]) .vtools{margin-left:0}
+  .csearch{height:34px;width:min(240px,62vw);padding:0 12px}.csearch input{font-size:13px}.csearch svg{width:15px;height:15px}
+  .vclear{width:34px;height:34px;font-size:17px}
+  .pager{gap:4px;flex-wrap:nowrap;margin-top:18px}
+  .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
+}
 .vnone{color:var(--muted);margin:0}
 .ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
 /* 게시판 */
