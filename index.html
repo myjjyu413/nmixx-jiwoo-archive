@@ -68,10 +68,17 @@ main section{padding-block:44px 0}
 
 /* 영상 줄 (포스터 카드) */
 .row-title{margin:0 0 16px;font-weight:700;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.01em}
-.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(150px,15vw,250px);gap:clamp(12px,1.6vw,24px);overflow-x:auto;padding-bottom:12px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.shelf-wrap{position:relative}
+.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(240px,calc((100% - 2*clamp(12px,1.6vw,24px))/3),380px);gap:clamp(12px,1.6vw,24px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none}
+.shelf::-webkit-scrollbar{display:none}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:var(--surface);color:var(--fg);cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 14px rgba(30,24,60,.18);transition:opacity .2s}
+.arrow svg{width:16px;height:16px}
+.arrow.prev{left:-22px}.arrow.next{right:-22px}
+.arrow:disabled{opacity:0;pointer-events:none}
+@media (max-width:640px){.arrow.prev{left:-6px}.arrow.next{right:-6px}.arrow{width:36px;height:36px}}
 .shelf>*{scroll-snap-align:start}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,15vw,250px),1fr));gap:clamp(12px,1.6vw,24px)}
-.card{background:none;border:0;padding:0;cursor:pointer;display:block;min-width:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:3/4;max-width:100%;background-color:var(--chip)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(240px,24vw,340px),1fr));gap:clamp(12px,1.6vw,24px)}
+.card{background:none;border:0;padding:0;cursor:pointer;display:block;min-width:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:16/9;max-width:100%;background-color:var(--chip)}
 .card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
 .card:hover img{transform:scale(1.05)}
 .card .nothumb{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:13px}
@@ -167,7 +174,11 @@ main{padding-bottom:72px}
 
   <section class="gut" id="videos">
     <div class="vhead"><h2 class="row-title" id="vtitle">최근 추가</h2><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div>
-    <div class="shelf" id="grid"></div>
+    <div class="shelf-wrap">
+      <button class="arrow prev" id="prev" aria-label="이전" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2 4 8l7 6z" fill="currentColor"/></svg></button>
+      <div class="shelf" id="grid"></div>
+      <button class="arrow next" id="next" aria-label="다음" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2l7 6-7 6z" fill="currentColor"/></svg></button>
+    </div>
 
     <section class="admin" id="admin" hidden>
       <h2>유튜브에서 찾기</h2>
@@ -297,7 +308,7 @@ const fmt=d=>String(d||"").replaceAll("-",".");
 
 function cardHTML(x,i){
   const id=ytId(x.url);
-  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/hqdefault.jpg'" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'" alt="">`:`<div class="nothumb">외부 링크</div>`;
   return `<button class="card" data-i="${i}" title="${esc(x.title)}" aria-label="${esc(x.title)}">${img}</button>`;
 }
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]))}
@@ -322,6 +333,7 @@ function render(){
   if(prof)return;
   const g=$("#grid");
   g.className=home?"shelf":"grid";
+  $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
   let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
   $("#vtitle").textContent=home?"최근 추가":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
@@ -329,7 +341,17 @@ function render(){
   if(home)v=v.slice(0,20);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
   g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);
+  requestAnimationFrame(arrows);
 }
+function arrows(){
+  const g=$("#grid");if(g.className!=="shelf")return;
+  $("#prev").disabled=g.scrollLeft<=4;
+  $("#next").disabled=g.scrollLeft+g.clientWidth>=g.scrollWidth-4;
+}
+$("#grid").addEventListener("scroll",()=>requestAnimationFrame(arrows),{passive:true});
+window.addEventListener("resize",arrows);
+$("#prev").onclick=()=>{const g=$("#grid");g.scrollBy({left:-g.clientWidth,behavior:"smooth"});};
+$("#next").onclick=()=>{const g=$("#grid");g.scrollBy({left:g.clientWidth,behavior:"smooth"});};
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
 const SLUG={"무대 & 직캠":"stage","자컨 & 예능":"variety","라디오":"radio","라이브 방송":"live"};
