@@ -85,14 +85,14 @@ main section{padding-block:44px 0}
 .igrid .instagram-media{background:var(--surface)!important;border:0!important;border-radius:10px!important}
 
 /* 프로필: 사진 + 뒤 사각형, 오른쪽 아래 이름과 정보 */
-.profile{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(28px,5vw,80px);align-items:end;padding-top:12px}
+.profile{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(28px,5vw,80px);align-items:center;padding-top:12px}
 .pphoto{position:relative;padding:clamp(20px,3vw,40px) 0 0 clamp(20px,3vw,40px);max-width:560px}
 .pphoto::before{content:"";position:absolute;left:0;top:0;width:88%;height:88%;background:var(--surface)}
 .pphoto img{position:relative;width:100%;aspect-ratio:1000/1274;object-fit:cover;box-shadow:14px 18px 34px rgba(30,24,60,.28)}
 .pname{font-family:var(--latin);font-weight:700;font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:.06em;margin:0 0 20px}
 dl.pinfo{margin:0;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 22px;font-size:15px}
 dl.pinfo dt{color:var(--muted);font-weight:500}
-dl.pinfo dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+dl.pinfo dd{margin:0;font-weight:600;overflow-wrap:anywhere;white-space:pre-line}
 dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 
 /* 메뉴 (전체 화면) */
@@ -237,7 +237,13 @@ const PROFILE={
   info:[
     ["본명","김지우 (金智佑, Kim Jiwoo)"],
     ["생년월일","2005. 04. 13","age"],
-    ["신체","161cm · AB형"],
+    ["출생지","경기도 남양주시 와부읍 덕소리"],
+    ["국적","대한민국"],
+    ["본관","구 안동 김씨 (舊 安東 金氏)"],
+    ["신체","161cm · AB형 · 240mm"],
+    ["가족","아버지, 어머니(1977년생), 언니(2001년생)"],
+    ["반려견","또리, 두유(푸들)"],
+    ["학력","차산초등학교병설유치원 (졸업)\n차산초등학교 (졸업)\n동화중학교 (졸업)\n구리여자고등학교 (중퇴)\n한림연예예술고등학교 연예과 13기 (중퇴)"],
     ["소속사","JYP엔터테인먼트"],
     ["소속 그룹","NMIXX"],
     ["포지션","보컬, 래퍼, 댄서"],
