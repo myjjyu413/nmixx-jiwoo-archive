@@ -341,7 +341,7 @@ const CATS=["무대","예능","라디오","인터뷰","숏폼","라이브 방송
 const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","자컨":"예능","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
-const SUBS={"무대":[["main","무대"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["etc","기타"]]};
+const SUBS={"무대":[["main","무대"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["cover","커버"],["etc","기타"]]};
 function subOf(x){
   if(x.sub)return x.sub;
   if(x.category!=="무대")return "";
@@ -349,6 +349,7 @@ function subOf(x){
   if(/교차편집|stage ?mix/i.test(t))return "etc";
   if(/앵콜|encore/i.test(t))return "encore";
   const cam=/직캠|fancam|fan cam|close-?up|facecam|voicecam|얼빡/i.test(t);
+  if(!cam&&/원곡|커버|cover|\(by |블랙핑크|blackpink/i.test(t))return "cover";
   if(cam&&/지우|jiwoo/i.test(t))return "jiwoo";
   if(cam||/풀캠|fullcam|full cam|choreo|sky cam|항공캠|단독샷|one take|비주얼캠|visual cam|tower cam/i.test(t))return "full";
   if(/방송|musiccore|music core|music bank|뮤직뱅크|인기가요|inkigayo|엠카운트다운|gayo|가요/i.test(t))return "main";
