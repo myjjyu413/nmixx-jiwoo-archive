@@ -589,7 +589,7 @@ function fitPage(){
   else if(r.classList.contains("shortsview"))search(x=>st.setProperty("--vchrome",(2000-x)+"px"),0,2000-120);
   else if(r.classList.contains("listfit"))search(x=>st.setProperty("--listw",x+"px"),320,innerWidth);
   /* 휴대폰처럼 아무리 줄여도 안 들어가면 스크롤은 되게(스크롤바는 숨김) */
-  r.classList.toggle("fitfail",!fits());
+  if(!fits()){st.removeProperty("--listw");r.classList.add("fitfail");}
 }
 window.addEventListener("resize",fitPage);
 window.addEventListener("load",fitPage);
