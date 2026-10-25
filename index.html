@@ -389,17 +389,22 @@ window.addEventListener("resize",arrows);
 function step(){const g=$("#grid"),c=g.querySelector(".card");return c?c.getBoundingClientRect().width+parseFloat(getComputedStyle(g).columnGap||0):g.clientWidth/3;}
 $("#prev").onclick=()=>{$("#grid").scrollBy({left:-step(),behavior:"smooth"});};
 $("#next").onclick=()=>{$("#grid").scrollBy({left:step(),behavior:"smooth"});};
-function renderPager(pages){
-  const n=$("#pager");n.hidden=pages<=1;if(pages<=1){n.innerHTML="";return;}
-  const p=state.page;
-  const B=5,start=Math.floor((p-1)/B)*B+1,end=Math.min(start+B-1,pages);
-  let html=`<button data-p="1" aria-label="첫 페이지" ${p<=1?"disabled":""}>«</button><button data-p="${start-1}" aria-label="이전 페이지 묶음" ${start<=1?"disabled":""}>‹</button>`;
+let pgView=null,pgPages=1;
+function renderPager(pages,keepView){
+  const n=$("#pager");n.hidden=pages<=1;pgPages=pages;if(pages<=1){n.innerHTML="";return;}
+  const p=state.page,B=5;
+  if(!keepView||pgView===null)pgView=Math.floor((p-1)/B)*B+1;
+  const start=pgView,end=Math.min(start+B-1,pages);
+  let html=`<button data-p="1" aria-label="첫 페이지" ${p<=1?"disabled":""}>«</button><button data-v="${start-B}" aria-label="이전 번호" ${start<=1?"disabled":""}>‹</button>`;
   for(let i=start;i<=end;i++)html+=`<button data-p="${i}"${i===p?' aria-current="page"':""}>${i}</button>`;
-  html+=`<button data-p="${end+1}" aria-label="다음 페이지 묶음" ${end>=pages?"disabled":""}>›</button><button data-p="${pages}" aria-label="마지막 페이지" ${p>=pages?"disabled":""}>»</button>`;
+  html+=`<button data-v="${start+B}" aria-label="다음 번호" ${end>=pages?"disabled":""}>›</button><button data-p="${pages}" aria-label="마지막 페이지" ${p>=pages?"disabled":""}>»</button>`;
   n.innerHTML=html;
 }
-$("#pager").onclick=e=>{const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
-  const p=+b.dataset.p;go(hashFor(p));};
+$("#pager").onclick=e=>{
+  const v=e.target.closest("button[data-v]");
+  if(v&&!v.disabled){pgView=+v.dataset.v;renderPager(pgPages,true);return;}
+  const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
+  go(hashFor(+b.dataset.p));};
 function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
