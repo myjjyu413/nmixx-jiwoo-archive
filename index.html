@@ -108,7 +108,7 @@ body.is-home .vhead{margin-bottom:12px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* 숏폼: 9:16 세로 카드 */
-.grid.vert{grid-template-columns:repeat(5,minmax(0,1fr))}
+.grid.vert{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grid.vert .thumb{aspect-ratio:9/16}
 @media (max-width:900px){.grid.vert{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:520px){.grid.vert{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -474,7 +474,7 @@ function render(){
   if(prof)return;
   const g=$("#grid");
   const vert=!home&&!state.q&&state.cat==="숏폼";
-  const per=vert?10:PER;
+  const per=PER;
   g.className=home?"shelf":(vert?"grid vert":"grid");
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
