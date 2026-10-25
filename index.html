@@ -843,6 +843,10 @@ const YTK="jiwoo-archive-ytkey",YT="https://www.googleapis.com/youtube/v3/";
 try{$("#yt-key").value=localStorage.getItem(YTK)||""}catch(e){}
 let ytNext="",ytItems=[],ytStop=false;
 function ytMsg(t){$("#yt-msg").textContent=t}
+/* 제목에 적힌 날짜 찾기: 250324 / 2025.03.24 / 20250324 / 2025-03-24 */
+function titleDate(t){t=String(t||"");let m=t.match(/(?:^|[^\d])(20\d{2})[.\-/ ]?(0[1-9]|1[0-2])[.\-/ ]?(0[1-9]|[12]\d|3[01])(?!\d)/);
+  if(!m){const k=t.match(/(?:^|[^\d])(\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/);if(k&&+k[1]>=15&&+k[1]<=40)m=[0,"20"+k[1],k[2],k[3]];}
+  return m?`${m[1]}-${m[2]}-${m[3]}`:"";}
 function kst(t){if(!t)return "";const d=new Date(new Date(t).getTime()+9*3600e3);return isNaN(d)?String(t).slice(0,10):d.toISOString().slice(0,10);}
 function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
 function ytKey(){const k=$("#yt-key").value.trim();if(k){try{localStorage.setItem(YTK,k)}catch(e){}}return k;}
@@ -1007,10 +1011,12 @@ $("#f-url").addEventListener("change",async()=>{
   msg("영상 정보 가져오는 중…");
   /* API 키가 있으면 제목과 업로드 날짜를 함께 가져와요 (영상 1개당 1점, 검색 한도와 별개) */
   const key=($("#yt-key")&&$("#yt-key").value.trim())||(()=>{try{return localStorage.getItem("jiwoo-archive-ytkey")||""}catch(e){return ""}})();
+  let apiErr="";
   if(key){
     try{
       const r=await fetch("https://www.googleapis.com/youtube/v3/videos?"+new URLSearchParams({part:"snippet",id,key}));
       const j=await r.json();
+      if(j.error)apiErr=/quota/i.test(j.error.message||"")?"오늘 API 사용 한도를 다 써서":"API 키 오류로";
       const sn=j.items&&j.items[0]&&j.items[0].snippet;
       if(sn){
         $("#f-title").value=decodeHTML(sn.title);
@@ -1022,7 +1028,10 @@ $("#f-url").addEventListener("change",async()=>{
   try{
     const r=await fetch(`https://noembed.com/embed?url=${encodeURIComponent("https://www.youtube.com/watch?v="+id)}`);
     const j=await r.json();
-    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;fSubHint();msg(key?"제목만 가져왔어요. 날짜는 직접 입력해 주세요.":"제목을 가져왔어요. 위 '유튜브에서 찾기'에 API 키를 넣어두면 날짜도 자동으로 들어가요.");}
+    if(j.title){if(!$("#f-title").value)$("#f-title").value=j.title;fSubHint();
+      const td=titleDate($("#f-title").value);
+      if(td){$("#f-date").value=td;msg(`제목과 날짜(${td.replaceAll("-",".")}, 제목에 적힌 날짜)를 가져왔어요. 업로드 날짜와 다를 수 있으니 확인해 주세요.`);}
+      else msg(key?`${apiErr||"API로"} 날짜를 못 가져왔어요. 제목만 넣었으니 날짜는 직접 입력해 주세요.`:"제목을 가져왔어요. 날짜는 직접 입력해 주세요. (위 '유튜브에서 찾기'에 API 키를 넣어두면 업로드 날짜도 자동으로 들어가요.)");}
     else msg("제목을 못 가져왔어요. 직접 입력해 주세요.");
   }catch(e){msg("제목을 못 가져왔어요. 직접 입력해 주세요.");}
 });
