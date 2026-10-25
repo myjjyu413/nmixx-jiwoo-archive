@@ -551,7 +551,8 @@ async function ytChannel(){
   const name=decodeHTML(ch.snippet.title),up=ch.contentDetails.relatedPlaylists.uploads;
   const words=$("#yt-q").value.split(/[,|]/).map(w=>w.trim().toLowerCase()).filter(Boolean);
   ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
-  let token="",scanned=0,page=0;
+  let token="",scanned=0,page=0,oldest="",reached=false;
+  const MAXP=500;
   do{
     const j=await ytGet("playlistItems",{part:"snippet,contentDetails",playlistId:up,maxResults:"50",...(token?{pageToken:token}:{})});
     token=j.nextPageToken||"";page++;
@@ -560,12 +561,15 @@ async function ytChannel(){
     scanned+=list.length;
     const hit=list.filter(v=>inRange(v.date)&&(!words.length||words.some(w=>v.title.toLowerCase().includes(w))));
     if(hit.length)ytShow(hit,true);
-    ytMsg(`${name}: 영상 ${scanned}개 훑는 중… 찾은 영상 ${ytItems.length}개`);
+    if(list.length)oldest=list[list.length-1].date;
+    const bf=$("#yt-before").value;
+    ytMsg(`${name}: 영상 ${scanned.toLocaleString()}개 훑는 중… 지금 ${oldest.replaceAll("-",".")} 영상까지 봤어요${bf&&oldest>bf?" (기간 끝 날짜까지 건너뛰는 중)":""} · 찾은 영상 ${ytItems.length}개`);
     const a=$("#yt-after").value;
-    if(a&&list.length&&list[list.length-1].date<a)break;
-  }while(token&&!ytStop&&page<80);
+    if(a&&list.length&&oldest<a){reached=true;break;}
+  }while(token&&!ytStop&&page<MAXP);
   $("#yt-stop").hidden=true;
-  ytMsg(`${name}: 영상 ${scanned}개 중 ${ytItems.length}개를 찾았어요${ytHaveCount()}.${ytStop?" (중간에 멈춤)":""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
+  const capped=!reached&&token&&!ytStop;
+  ytMsg(`${name}: 영상 ${scanned.toLocaleString()}개 중 ${ytItems.length}개를 찾았어요${ytHaveCount()}.${ytStop?" (중간에 멈춤)":""}${capped?` 한 번에 훑을 수 있는 양을 넘어서 ${oldest.replaceAll("-",".")}까지만 봤어요. 기간 끝을 그 날짜로 바꿔서 한 번 더 가져오면 이어서 볼 수 있어요.`:""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
 $("#yt-go").onclick=async()=>{
   if(!ytKey()){ytMsg("API 키를 넣어 주세요.");return;}
