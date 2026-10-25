@@ -393,9 +393,9 @@ function renderPager(pages){
   const n=$("#pager");n.hidden=pages<=1;if(pages<=1){n.innerHTML="";return;}
   const p=state.page;
   const B=5,start=Math.floor((p-1)/B)*B+1,end=Math.min(start+B-1,pages);
-  let html=`<button data-p="${start-1}" aria-label="이전 페이지 묶음" ${start<=1?"disabled":""}>‹</button>`;
+  let html=`<button data-p="1" aria-label="첫 페이지" ${p<=1?"disabled":""}>«</button><button data-p="${start-1}" aria-label="이전 페이지 묶음" ${start<=1?"disabled":""}>‹</button>`;
   for(let i=start;i<=end;i++)html+=`<button data-p="${i}"${i===p?' aria-current="page"':""}>${i}</button>`;
-  html+=`<button data-p="${end+1}" aria-label="다음 페이지 묶음" ${end>=pages?"disabled":""}>›</button>`;
+  html+=`<button data-p="${end+1}" aria-label="다음 페이지 묶음" ${end>=pages?"disabled":""}>›</button><button data-p="${pages}" aria-label="마지막 페이지" ${p>=pages?"disabled":""}>»</button>`;
   n.innerHTML=html;
 }
 $("#pager").onclick=e=>{const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
