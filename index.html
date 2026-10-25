@@ -53,7 +53,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* 대표 영상 */
 .hero{padding-block:clamp(32px,7vh,88px) 0}
 .hero-in{max-width:1180px;margin:0 auto}
-#videos,#profile{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
+#videos,#profile,#insta{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
 .hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
 .hero-frame iframe{width:100%;height:100%;border:0;display:block}
 .hero-cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-top:14px}
@@ -78,6 +78,9 @@ main section{padding-block:44px 0}
 .vhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 .vnone{color:var(--muted);margin:0}
+.igrid{columns:3 300px;column-gap:18px}
+.igrid>*{break-inside:avoid;margin:0 0 18px!important;min-width:0!important;width:100%!important}
+.igrid .instagram-media{background:var(--surface)!important;border:0!important;border-radius:10px!important}
 
 /* 프로필 */
 .profile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start}
@@ -172,6 +175,11 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
     </section>
   </section>
 
+  <section class="gut" id="insta" hidden>
+    <div class="vhead"><h2 class="row-title">인스타그램</h2><button class="vclear" id="iclear" aria-label="메인으로">×</button></div>
+    <div class="igrid" id="igrid"></div>
+  </section>
+
   <section class="gut" id="profile" hidden>
     <div class="profile">
       <h3 class="pname" id="pname"></h3>
@@ -207,6 +215,7 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
 </div>
 
 <script src="videos.js"></script>
+<script src="insta.js"></script>
 <script>
 // ===== 컴백 테마: 메인 대표 영상 =====
 const FEATURED={
@@ -214,9 +223,6 @@ const FEATURED={
   album:"Strange Muse",
   song:"긴 소원 (Birthday Wish)"
 };
-
-// ===== 메뉴의 인스타그램 링크 =====
-const INSTAGRAM="https://www.instagram.com/nmixx_official/";
 
 // ===== 프로필 (빈 칸은 화면에 안 나와요. 채우고 싶은 항목만 적으세요) =====
 const PROFILE={
@@ -272,11 +278,13 @@ function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()
 /* 화면: home(대표 영상 + 최근 추가) / list(메뉴의 카테고리·검색) / profile */
 function render(){
   const list=all();
-  const home=state.view==="home",prof=state.view==="profile";
+  const home=state.view==="home",prof=state.view==="profile",ins=state.view==="insta";
   $("#hero").hidden=!home;
-  $("#videos").hidden=prof;
+  $("#videos").hidden=prof||ins;
+  $("#insta").hidden=!ins;
   $("#profile").hidden=!prof;
   $("#vclear").hidden=home;
+  if(ins){renderInsta();return;}
   if(prof)return;
   const g=$("#grid");
   g.className=home?"shelf":"grid";
@@ -290,9 +298,22 @@ function render(){
 }
 function renderAll(){render();}
 function goVideos({cat,q}){state.view="list";state.cat=cat||"전체";state.q=q||"";render();window.scrollTo(0,0);}
+function goInsta(){state.view="insta";render();window.scrollTo(0,0);}
+let igLoaded=false;
+function renderInsta(){
+  const list=[...(window.INSTA||[])].sort((a,b)=>String(b.date).localeCompare(a.date));
+  const g=$("#igrid");
+  if(!list.length){g.innerHTML=`<p class="vnone">아직 게시물이 없어요.</p>`;return;}
+  if(g.dataset.done)return;
+  g.dataset.done="1";
+  g.innerHTML=list.map(x=>`<blockquote class="instagram-media" data-instgrm-permalink="${esc(x.url)}" data-instgrm-version="14"><a href="${esc(x.url)}" target="_blank" rel="noopener">인스타그램에서 보기</a></blockquote>`).join("");
+  if(window.instgrm){window.instgrm.Embeds.process();return;}
+  if(!igLoaded){igLoaded=true;const t=document.createElement("script");t.async=true;t.src="https://www.instagram.com/embed.js";document.body.appendChild(t);}
+}
 function goProfile(){state.view="profile";render();window.scrollTo(0,0);}
 function goHome(){state.view="home";state.cat="전체";state.q="";$("#mq").value="";render();window.scrollTo(0,0);}
 $("#vclear").onclick=goHome;
+$("#iclear").onclick=goHome;
 
 /* 프로필 */
 (function(){
@@ -305,7 +326,7 @@ const EN={무대:"STAGE",직캠:"FANCAM",자컨:"ORIGINAL",라이브:"LIVE",예�
 const MENU=[["프로필","PROFILE",goProfile],
   ...CATS.map(c=>[c,EN[c],()=>goVideos({cat:c})]),
   ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})],
-  ["인스타그램","INSTAGRAM",null,INSTAGRAM]];
+  ["인스타그램","INSTAGRAM",goInsta]];
 $("#mlist").innerHTML=MENU.map((m,i)=>m[3]?`<li><a href="${esc(m[3])}" target="_blank" rel="noopener">${m[0]}<span class="en">${m[1]} ↗</span></a></li>`:`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][2]();});
 function openMenu(){$("#menu").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";$("#mq").focus();}
