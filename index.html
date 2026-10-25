@@ -235,8 +235,6 @@ main{padding-bottom:40px}
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
         <label>날짜<input id="f-date" type="date"></label>
         <label>카테고리<select id="f-cat"></select></label>
-        <label>단독/단체<select id="f-group"><option>단독</option><option>단체</option></select></label>
-        <label>메모<input id="f-note" placeholder="예: 생일 라이브, 엔딩요정"></label>
       </div>
       <div class="btns">
         <button class="btn primary" id="add">추가</button>
@@ -691,9 +689,9 @@ $("#add").onclick=()=>{
   const st=ytStatus(ytId(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const d=loadDrafts();
-  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:$("#f-group").value,note:$("#f-note").value.trim()});
+  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:""});
   saveDrafts(d);
-  $("#f-url").value="";$("#f-title").value="";$("#f-note").value="";
+  $("#f-url").value="";$("#f-title").value="";
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
   renderDrafts();renderAll();
 };
