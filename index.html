@@ -318,7 +318,10 @@ const PROFILE={
   ]
 };
 
-const CATS=["무대 & 직캠","자컨 & 예능","라디오","라이브 방송"];
+const CATS=["무대","예능","라디오","숏폼","라이브 방송"];
+/* 예전 카테고리 이름도 새 이름으로 읽어요 */
+const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","자컨":"예능","라이브":"라이브 방송"};
+const normCat=c=>OLDCAT[c]||c;
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
 let state={view:"home",cat:"전체",q:"",cq:"",page:1};
@@ -339,8 +342,8 @@ function loadEdits(){try{return JSON.parse(localStorage.getItem(EKEY))||{}}catch
 function saveEdits(o){try{localStorage.setItem(EKEY,JSON.stringify(o))}catch(e){}}
 function all(){
   const am=adminMode(),ed=am?loadEdits():{};
-  const base=(window.VIDEOS||[]).map(v=>{const e=ed[v.url];if(!e)return {...v};if(e.delete)return {...v,_del:true};return {...v,category:e.category||v.category,_edited:true};});
-  const drafts=am?loadDrafts().map(v=>({...v,_draft:true})):[];
+  const base=(window.VIDEOS||[]).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.delete)return {...v,_del:true};return {...v,category:normCat(e.category)||v.category,_edited:true};});
+  const drafts=am?loadDrafts().map(v=>({...v,category:normCat(v.category),_draft:true})):[];
   return base.concat(drafts);
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -429,7 +432,7 @@ $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{sta
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
-const SLUG={"무대 & 직캠":"stage","자컨 & 예능":"variety","라디오":"radio","라이브 방송":"live"};
+const SLUG={"무대":"stage","예능":"variety","라디오":"radio","숏폼":"shorts","라이브 방송":"live"};
 function go(hash){if(location.hash==="#"+hash)route();else location.hash=hash;}
 function goVideos({cat,q}){go(q?"search="+encodeURIComponent(q):(SLUG[cat]||"all"));}
 function goInsta(){go("sns");}
@@ -707,7 +710,7 @@ $("#export").onclick=async()=>{
   if(!merged.length&&!ekeys.length){msg("새로 추가하거나 고친 영상이 없어요.");return;}
   const lines=merged.map(v=>"  "+JSON.stringify({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group,note:v.note||""})+",");
   const elines=ekeys.map(u=>"  "+JSON.stringify(u)+": "+JSON.stringify(ed[u])+",");
-  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
+  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: 무대 / 예능 / 라디오 / 숏폼 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
   const out=$("#out");out.value=text;out.hidden=false;
   try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
