@@ -95,8 +95,8 @@ dl.pinfo dd{margin:0;font-weight:600;overflow-wrap:anywhere}
 .msearch svg{width:24px;height:24px;flex:none}
 .msearch input{flex:1;min-width:0;border:0;background:transparent;font-size:20px;font-weight:600;padding:6px 0;outline:none}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;width:min(420px,100%)}
-.mlist button{border:0;background:none;cursor:pointer;font-weight:700;font-size:clamp(28px,4.2vw,42px);letter-spacing:.04em;padding:4px 0;text-align:left;color:var(--fg);transition:color .15s,transform .15s}
-.mlist button:hover{color:var(--logo);transform:translateX(4px)}
+.mlist button,.mlist a{display:block;text-decoration:none;border:0;background:none;cursor:pointer;font-weight:700;font-size:clamp(28px,4.2vw,42px);letter-spacing:.04em;padding:4px 0;text-align:left;color:var(--fg);transition:color .15s,transform .15s}
+.mlist button:hover,.mlist a:hover{color:var(--logo);transform:translateX(4px)}
 .mlist .en{font-family:var(--latin);font-size:12px;letter-spacing:.16em;color:var(--muted);margin-left:12px;vertical-align:middle;font-weight:600}
 
 /* 재생창 */
@@ -190,7 +190,7 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
   <div class="menu-body gut">
     <form class="msearch" id="msearch" role="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
-      <input id="mq" type="search" placeholder="영상 검색" aria-label="영상 검색" autocomplete="off">
+      <input id="mq" type="search" placeholder="검색" aria-label="검색" autocomplete="off">
     </form>
     <ul class="mlist" id="mlist"></ul>
   </div>
@@ -214,6 +214,9 @@ const FEATURED={
   album:"Strange Muse",
   song:"긴 소원 (Birthday Wish)"
 };
+
+// ===== 메뉴의 인스타그램 링크 =====
+const INSTAGRAM="https://www.instagram.com/nmixx_official/";
 
 // ===== 프로필 (빈 칸은 화면에 안 나와요. 채우고 싶은 항목만 적으세요) =====
 const PROFILE={
@@ -301,8 +304,9 @@ $("#vclear").onclick=goHome;
 const EN={무대:"STAGE",직캠:"FANCAM",자컨:"ORIGINAL",라이브:"LIVE",예능:"VARIETY",라디오:"RADIO"};
 const MENU=[["프로필","PROFILE",goProfile],
   ...CATS.map(c=>[c,EN[c],()=>goVideos({cat:c})]),
-  ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})]];
-$("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
+  ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})],
+  ["인스타그램","INSTAGRAM",null,INSTAGRAM]];
+$("#mlist").innerHTML=MENU.map((m,i)=>m[3]?`<li><a href="${esc(m[3])}" target="_blank" rel="noopener">${m[0]}<span class="en">${m[1]} ↗</span></a></li>`:`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][2]();});
 function openMenu(){$("#menu").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";$("#mq").focus();}
 function closeMenu(){$("#menu").hidden=true;$("#open-menu").setAttribute("aria-expanded","false");document.body.style.overflow="";}
