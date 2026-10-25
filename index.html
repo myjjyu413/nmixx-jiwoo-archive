@@ -177,7 +177,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 
 
 /* 게시판 (Supabase) — url/key 는 공개용 값이라 코드에 넣어도 괜찮아요 */
-const BOARD={url:"",key:""};
+const BOARD={url:"https://hzcsaitzhzmwlhtrcsad.supabase.co",key:"sb_publishable_sMVbjoFS0VwINLiA0lH29A_i4wjCANG"};
 const BAKEY="jiwoo-archive-boardadmin";
 function boardAdminPw(){if(!adminMode())return null;try{return localStorage.getItem(BAKEY)||null}catch(e){return null}}
 async function rpc(fn,args){
