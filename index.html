@@ -110,7 +110,7 @@ body.is-home .vhead{margin-bottom:12px}
 /* 숏폼: 9:16 세로 카드 */
 #grid.vert{grid-template-columns:repeat(3,minmax(0,calc((100svh - var(--vchrome,300px)) * 9 / 16)));justify-content:center}
 html{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
-html.fitview,html.fitview body{overflow:hidden}
+html.fitview:not(.fitfail),html.fitview:not(.fitfail) body{overflow:hidden}
 html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .grid.vert .thumb{aspect-ratio:9/16}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
@@ -524,7 +524,7 @@ window.addEventListener("resize",arrows);
 /* 스크롤 없이 한 화면에 들어오도록 크기 맞추기 (메인 / 카테고리 / 숏폼) */
 function fitPage(){
   const r=document.documentElement,st=r.style;
-  st.removeProperty("--hchrome");st.removeProperty("--vchrome");st.removeProperty("--listw");
+  r.classList.remove("fitfail");st.removeProperty("--hchrome");st.removeProperty("--vchrome");st.removeProperty("--listw");
   if(!r.classList.contains("fitview")||$("#videos").hidden&&$("#hero").hidden)return;
   const fits=()=>r.scrollHeight<=innerHeight+1;
   /* set(x): x가 클수록 내용이 커짐. 들어맞는 가장 큰 x를 찾음 */
@@ -532,6 +532,8 @@ function fitPage(){
   if(document.body.classList.contains("is-home"))search(x=>st.setProperty("--hchrome",(2000-x)+"px"),0,2000-150);
   else if(r.classList.contains("shortsview"))search(x=>st.setProperty("--vchrome",(2000-x)+"px"),0,2000-120);
   else if(r.classList.contains("listfit"))search(x=>st.setProperty("--listw",x+"px"),320,innerWidth);
+  /* 휴대폰처럼 아무리 줄여도 안 들어가면 스크롤은 되게(스크롤바는 숨김) */
+  r.classList.toggle("fitfail",!fits());
 }
 window.addEventListener("resize",fitPage);
 window.addEventListener("load",fitPage);
