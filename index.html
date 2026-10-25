@@ -206,6 +206,7 @@ main{padding-bottom:40px}
         <label>기간 시작<input id="yt-after" type="date"></label>
         <label>기간 끝<input id="yt-before" type="date"></label>
       </div>
+      <label class="hidechk" id="yt-full-wrap" hidden><input type="checkbox" id="yt-full"> 빠짐없이 훑기 (기간을 정해도 최신부터 하나하나 확인해서 느려요)</label>
       <label class="hidechk"><input type="checkbox" id="yt-hide" checked> 이미 목록에 있는 영상 숨기기</label>
       <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button></div>
       <p class="msg" id="yt-msg"></p>
@@ -485,7 +486,7 @@ async function ytGet(path,params){
 }
 function syncMode(){
   const ch=$("#yt-mode").value==="channel";
-  $("#yt-ch-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
+  $("#yt-ch-wrap").hidden=!ch;$("#yt-full-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
   $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (선택)":"검색어";
   $("#yt-q").placeholder=ch?"비워두면 전부 가져와요. 예: 지우, JIWOO":"";
   if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="";
@@ -538,6 +539,26 @@ async function ytSearch(more){
   ytShow((j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:decodeHTML(it.snippet.channelTitle)})),more);
   ytMsg(`${ytItems.length}개 찾았어요${ytHaveCount()}. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
+/* 기간이 정해지면: 채널 + 날짜로 바로 검색 (최신 영상을 건너뛸 필요 없음) */
+async function ytChannelByDate(cid,name,words){
+  ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
+  const ps={part:"snippet",type:"video",channelId:cid,maxResults:"50",order:"date"};
+  if(words.length)ps.q=words.join("|");
+  if($("#yt-after").value)ps.publishedAfter=$("#yt-after").value+"T00:00:00Z";
+  if($("#yt-before").value)ps.publishedBefore=$("#yt-before").value+"T23:59:59Z";
+  let token="",page=0,total=0;
+  do{
+    const j=await ytGet("search",{...ps,...(token?{pageToken:token}:{})});
+    token=j.nextPageToken||"";page++;
+    const list=(j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:name}))
+      .filter(v=>!words.length||words.some(w=>v.title.toLowerCase().includes(w)));
+    total+=list.length;
+    if(list.length)ytShow(list,true);
+    ytMsg(`${name}: 기간 안에서 찾는 중… ${ytItems.length}개`);
+  }while(token&&!ytStop&&page<20);
+  $("#yt-stop").hidden=true;
+  ytMsg(`${name}: 기간 안에서 ${ytItems.length}개를 찾았어요${ytHaveCount()}.${ytStop?" (중간에 멈춤)":""} 유튜브 검색 방식이라 몇 개 빠질 수 있어요. 빠진 게 있으면 '빠짐없이 훑기'를 켜고 다시 가져오세요.`);
+}
 async function ytChannel(){
   const raw=$("#yt-ch").value.trim();
   if(!raw){ytMsg("채널 주소나 @아이디를 넣어 주세요.");return;}
@@ -550,6 +571,7 @@ async function ytChannel(){
   if(!ch){ytMsg("채널을 찾지 못했어요. 채널 주소를 그대로 붙여넣어 보세요.");return;}
   const name=decodeHTML(ch.snippet.title),up=ch.contentDetails.relatedPlaylists.uploads;
   const words=$("#yt-q").value.split(/[,|]/).map(w=>w.trim().toLowerCase()).filter(Boolean);
+  if(($("#yt-after").value||$("#yt-before").value)&&!$("#yt-full").checked){await ytChannelByDate(ch.id,name,words);return;}
   ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
   let token="",scanned=0,page=0,oldest="",reached=false;
   const MAXP=500;
