@@ -119,6 +119,8 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .close{background:var(--fg);color:var(--bg);border:0;border-radius:8px;padding:6px 12px;cursor:pointer}
 
 /* 관리자 */
+.hidechk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-top:12px;cursor:pointer}
+.yt.have{opacity:.55}
 .ytres{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:12px}
 .yt{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:8px;min-width:0}
 .yt img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px}
@@ -179,6 +181,7 @@ main{padding-bottom:72px}
         <label>기간 시작<input id="yt-after" type="date"></label>
         <label>기간 끝<input id="yt-before" type="date"></label>
       </div>
+      <label class="hidechk"><input type="checkbox" id="yt-hide" checked> 이미 목록에 있는 영상 숨기기</label>
       <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button></div>
       <p class="msg" id="yt-msg"></p>
       <div class="ytres" id="yt-res"></div>
@@ -436,17 +439,34 @@ function syncMode(){
   $("#yt-go").textContent=ch?"가져오기":"검색";
 }
 $("#yt-mode").onchange=syncMode;
+function ytStatus(id){
+  if((window.VIDEOS||[]).some(v=>ytId(v.url)===id))return "목록에 있음";
+  if(loadDrafts().some(v=>ytId(v.url)===id))return "추가됨";
+  return "";
+}
 function ytShow(list,append){
   if(!append){ytItems=[];$("#yt-res").innerHTML="";}
-  const have=new Set(all().map(v=>ytId(v.url)));
   const start=ytItems.length;ytItems=ytItems.concat(list);
   $("#yt-res").insertAdjacentHTML("beforeend",list.map((it,k)=>{
-    const dup=have.has(it.id);
-    return `<div class="yt"><a href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" alt=""></a>
+    const st=ytStatus(it.id);
+    return `<div class="yt${st?" have":""}" data-id="${it.id}"${st&&$("#yt-hide").checked?" hidden":""}><a href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" alt=""></a>
       <div class="t">${esc(it.title)}</div><div class="c">${esc(it.date.replaceAll("-","."))} · ${esc(it.channel)}</div>
-      <div class="row"><select aria-label="카테고리">${CATS.map(c=>`<option>${c}</option>`).join("")}</select><button data-k="${start+k}" ${dup?"disabled":""}>${dup?"추가됨":"추가"}</button></div></div>`;
+      <div class="row"><select aria-label="카테고리"${st?" disabled":""}>${CATS.map(c=>`<option>${c}</option>`).join("")}</select><button data-k="${start+k}" ${st?"disabled":""}>${st||"추가"}</button></div></div>`;
   }).join(""));
 }
+function ytHaveCount(){const n=ytItems.filter(it=>ytStatus(it.id)).length;return n?` (그중 ${n}개는 이미 목록에 있음)`:"";}
+function ytRefreshHidden(){
+  const hide=$("#yt-hide").checked;
+  $("#yt-res").querySelectorAll(".yt").forEach(el=>{
+    const st=ytStatus(el.dataset.id);
+    el.classList.toggle("have",!!st);
+    el.hidden=!!st&&hide;
+    const b=el.querySelector("button"),sel=el.querySelector("select");
+    b.disabled=!!st;sel.disabled=!!st;b.textContent=st||"추가";
+  });
+}
+$("#yt-hide").onchange=ytRefreshHidden;
+function ytRefreshHiddenSoft(){$("#yt-res").querySelectorAll(".yt").forEach(el=>{const st=ytStatus(el.dataset.id),b=el.querySelector("button"),sel=el.querySelector("select");el.classList.toggle("have",!!st);b.disabled=!!st;sel.disabled=!!st;b.textContent=st||"추가";if(!st)el.hidden=false;});}
 function inRange(date){
   const a=$("#yt-after").value,b=$("#yt-before").value;
   return (!a||date>=a)&&(!b||date<=b);
@@ -462,7 +482,7 @@ async function ytSearch(more){
   const j=await ytGet("search",ps);
   ytNext=j.nextPageToken||"";$("#yt-more").hidden=!ytNext;
   ytShow((j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:decodeHTML(it.snippet.channelTitle)})),more);
-  ytMsg(`${ytItems.length}개 찾았어요. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
+  ytMsg(`${ytItems.length}개 찾았어요${ytHaveCount()}. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
 async function ytChannel(){
   const raw=$("#yt-ch").value.trim();
@@ -491,7 +511,7 @@ async function ytChannel(){
     if(a&&list.length&&list[list.length-1].date<a)break;
   }while(token&&!ytStop&&page<80);
   $("#yt-stop").hidden=true;
-  ytMsg(`${name}: 영상 ${scanned}개 중 ${ytItems.length}개를 찾았어요.${ytStop?" (중간에 멈춤)":""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
+  ytMsg(`${name}: 영상 ${scanned}개 중 ${ytItems.length}개를 찾았어요${ytHaveCount()}.${ytStop?" (중간에 멈춤)":""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
 $("#yt-go").onclick=async()=>{
   if(!ytKey()){ytMsg("API 키를 넣어 주세요.");return;}
@@ -528,6 +548,8 @@ $("#add").onclick=()=>{
   const url=$("#f-url").value.trim(),title=$("#f-title").value.trim();
   if(!ytId(url)){msg("유튜브 링크를 넣어 주세요.");return;}
   if(!title){msg("제목을 입력해 주세요.");return;}
+  const st=ytStatus(ytId(url));
+  if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const d=loadDrafts();
   d.push({url,title,date:$("#f-date").value,category:$("#f-cat").value,group:$("#f-group").value,note:$("#f-note").value.trim()});
   saveDrafts(d);
@@ -536,6 +558,7 @@ $("#add").onclick=()=>{
   renderDrafts();renderAll();
 };
 function renderDrafts(){
+  if(typeof ytRefreshHidden==="function"&&$("#yt-res").children.length)ytRefreshHiddenSoft();
   const d=loadDrafts();
   $("#drafts").innerHTML=d.map((x,i)=>`<div class="draft"><span>${esc(x.date)} · ${esc(x.category)} · ${esc(x.title)}</span><button data-i="${i}" aria-label="삭제">삭제</button></div>`).join("");
   $("#drafts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const d=loadDrafts();d.splice(+b.dataset.i,1);saveDrafts(d);renderDrafts();renderAll();});
