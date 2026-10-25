@@ -41,7 +41,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/939gbo4fxZU","title":"[#음중직캠] NMIXX JIWOO (엔믹스 지우) – 별별별 (See that?) | 쇼! 음악중심 | MBC240907방송","date":"2024-09-07","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/KmksIGmFNMs","title":"[#음중직캠] NMIXX (엔믹스) – 별별별 (See that?) | 쇼! 음악중심 | MBC240907방송","date":"2024-09-07","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/kjPT5qLZhv0","title":"NMIXX (엔믹스) - See that? | Show! MusicCore | MBC240907방송","date":"2024-09-07","category":"무대 & 직캠","group":"단독","note":""},
-  {"url":"https://youtu.be/zePTMlSLBH8","title":"[JPN SUB] [#직캠보고서🔍] ⭐⭐ [제보] 조용할 틈이 없었던 NMIXX 사녹현장 증거 영상과 함께 제보합니다 ⭐⭐   #NMIXX #엔믹스  사전녹화 비하인드⏯","date":"2024-09-06","category":"무대 & 직캠","group":"단독","note":""},
+  {"url":"https://youtu.be/zePTMlSLBH8","title":"[JPN SUB] [#직캠보고서🔍] ⭐⭐ [제보] 조용할 틈이 없었던 NMIXX 사녹현장 증거 영상과 함께 제보합니다 ⭐⭐   #NMIXX #엔믹스  사전녹화 비하인드⏯","date":"2024-09-06","category":"자컨 & 예능","group":"단독","note":""},
   {"url":"https://youtu.be/EnSf0Kms68k","title":"[#음중직캠] NMIXX JIWOO (엔믹스 지우) – 별별별 (See that?) | 쇼! 음악중심 | MBC240831방송","date":"2024-08-31","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/oTVJUCNVf9s","title":"[#음중직캠] NMIXX (엔믹스) – 별별별 (See that?) | 쇼! 음악중심 | MBC240831방송","date":"2024-08-31","category":"무대 & 직캠","group":"단독","note":""},
   {"url":"https://youtu.be/XaDkIPlotLU","title":"NMIXX (엔믹스) - See that? | Show! MusicCore | MBC240831방송","date":"2024-08-31","category":"무대 & 직캠","group":"단독","note":""},
