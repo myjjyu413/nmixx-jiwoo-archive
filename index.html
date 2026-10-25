@@ -692,12 +692,17 @@ function bErr(e){const m=String(e&&e.message||e);
   if(/TOO_MANY/.test(m))return "글이 너무 많이 올라오고 있어요. 잠시 뒤에 다시 해 주세요.";if(/EMPTY/.test(m))return "내용을 적어 주세요.";
   return "문제가 생겼어요: "+m;}
 const bState={posts:[],loaded:false,more:false,busy:false};
+/* 내가 쓴 글(또는 비밀번호로 연 글)의 비밀번호를 이 브라우저에 기억 → 비밀글도 쓴 사람에게는 보여요 */
+const BMKEY="jiwoo-archive-boardmine";
+function bMine(){try{return JSON.parse(localStorage.getItem(BMKEY))||{}}catch(e){return {}}}
+function bRemember(id,pw){const m=bMine();if(pw==null)delete m[id];else m[id]=pw;try{localStorage.setItem(BMKEY,JSON.stringify(m))}catch(e){}}
+async function bUnlock(rows){const m=bMine();await Promise.all(rows.filter(p=>p.secret&&p.body==null&&m[p.id]).map(async p=>{try{const r=(await rpc("board_get",{p_id:p.id,p_pw:m[p.id]}))[0];if(r)p.body=r.body;}catch(e){bRemember(p.id,null);}}));}
 function kdate(d){const t=new Date(d);const p=n=>String(n).padStart(2,"0");return `${t.getFullYear()}.${p(t.getMonth()+1)}.${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;}
 function noteHTML(p){
   const locked=p.secret&&p.body==null;
   return `<article class="note${p.secret?" secret":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
-    `<div class="na"><button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
+    `<div class="na">${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
 function drawBoard(){
   const w=$("#bwall");
@@ -710,6 +715,7 @@ async function loadBoard(more){
   try{
     const before=more&&bState.posts.length?bState.posts[bState.posts.length-1].id:null;
     const rows=await rpc("board_list",{p_admin:boardAdminPw(),p_before:before,p_limit:60})||[];
+    await bUnlock(rows);
     bState.posts=more?bState.posts.concat(rows):rows;bState.more=rows.length===60;bState.loaded=true;drawBoard();
   }catch(e){$("#bwall").innerHTML=`<p class="vnone">${esc(bErr(e))}</p>`;}
   finally{bState.busy=false;}
@@ -722,7 +728,7 @@ $("#bform").addEventListener("submit",async e=>{
   if(!name||!body){msg.textContent="닉네임과 내용을 적어 주세요.";return;}
   if(pw.length<4){msg.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
   $("#b-send").disabled=true;msg.textContent="올리는 중…";
-  try{await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});
+  try{const nid=await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});bRemember(nid,pw);
     $("#b-body").value="";$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";
     try{localStorage.setItem("jiwoo-archive-boardname",name)}catch(e){}
     await loadBoard(false);
@@ -738,14 +744,17 @@ $("#bwall").addEventListener("click",async e=>{
   const err=m=>{const sp=x.querySelector(".sp");if(sp)sp.textContent=m;};
   const openEdit=async pw=>{
     try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];
-      x.hidden=false;x.dataset.pw=pw;
+      x.hidden=false;x.dataset.pw=pw;if(pw!==apw)bRemember(id,pw);
       x.innerHTML=`<textarea class="xbody" maxlength="1000" rows="4">${esc(r.body)}</textarea><div class="row"><label class="bsecret"><input type="checkbox" class="xsec"${r.secret?" checked":""}> 비밀글</label><span class="sp"></span><button class="btn primary" data-a="save">저장</button><button class="btn" data-a="cancel">취소</button></div>`;
     }catch(e2){err(bErr(e2));}
   };
-  const doDel=async pw=>{if(!confirm("이 글을 지울까요?"))return;try{await rpc("board_delete",{p_id:id,p_pw:pw});bState.posts=bState.posts.filter(q=>q.id!==id);drawBoard();}catch(e2){err(bErr(e2));}};
+  const openView=async pw=>{try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];p.body=r.body;if(pw!==apw)bRemember(id,pw);drawBoard();}catch(e2){err(bErr(e2));}};
+  const doDel=async pw=>{if(!confirm("이 글을 지울까요?"))return;try{await rpc("board_delete",{p_id:id,p_pw:pw});bRemember(id,null);bState.posts=bState.posts.filter(q=>q.id!==id);drawBoard();}catch(e2){err(bErr(e2));}};
   if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
   if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
   if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
+  if(a==="view"){if(apw)openView(apw);else askPw("보기","view-ok");return;}
+  if(a==="view-ok"){openView(x.querySelector(".xpw").value);return;}
   if(a==="edit-ok"){openEdit(x.querySelector(".xpw").value);return;}
   if(a==="del-ok"){doDel(x.querySelector(".xpw").value);return;}
   if(a==="save"){
