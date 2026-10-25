@@ -395,9 +395,9 @@ function renderPager(pages,keepView){
   const p=state.page,B=5;
   if(!keepView||pgView===null)pgView=Math.floor((p-1)/B)*B+1;
   const start=pgView,end=Math.min(start+B-1,pages);
-  let html=`<button data-p="1" aria-label="첫 페이지" ${p<=1?"disabled":""}>«</button><button data-v="${start-B}" aria-label="이전 번호" ${start<=1?"disabled":""}>‹</button>`;
+  let html=`<button data-v="1" aria-label="처음 번호" ${start<=1?"disabled":""}>«</button><button data-v="${start-B}" aria-label="이전 번호" ${start<=1?"disabled":""}>‹</button>`;
   for(let i=start;i<=end;i++)html+=`<button data-p="${i}"${i===p?' aria-current="page"':""}>${i}</button>`;
-  html+=`<button data-v="${start+B}" aria-label="다음 번호" ${end>=pages?"disabled":""}>›</button><button data-p="${pages}" aria-label="마지막 페이지" ${p>=pages?"disabled":""}>»</button>`;
+  html+=`<button data-v="${start+B}" aria-label="다음 번호" ${end>=pages?"disabled":""}>›</button><button data-v="${Math.floor((pages-1)/B)*B+1}" aria-label="마지막 번호" ${end>=pages?"disabled":""}>»</button>`;
   n.innerHTML=html;
 }
 $("#pager").onclick=e=>{
