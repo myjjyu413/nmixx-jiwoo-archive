@@ -81,18 +81,9 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .empty{border:1.5px dashed var(--line);border-radius:14px;padding:48px 20px;text-align:center;color:var(--muted)}
 .empty h2{font-family:var(--display);color:var(--fg);margin:0 0 6px;font-size:22px}
 
-/* 메인 대표 영상 */
-.hero{position:relative;margin-top:22px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:21/9;max-width:100%}
-.hero iframe{position:absolute;left:0;top:50%;width:100%;aspect-ratio:16/9;height:auto;transform:translateY(-50%);border:0;pointer-events:none}
-.hero .poster{position:absolute;inset:0;background:#000 center/cover no-repeat;transition:opacity .6s;pointer-events:none}
-.hero .poster.off{opacity:0}
-.hero .shade{position:absolute;inset:auto 0 0 0;height:45%;background:linear-gradient(transparent,rgba(20,16,36,.55));pointer-events:none}
-.hero .ctrl{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.hero .label{color:var(--logo);font-family:var(--display);font-weight:800;font-size:clamp(18px,2.6vw,28px);text-shadow:0 1px 8px rgba(0,0,0,.35)}
-.hero .btns2{display:flex;gap:8px}
-.hero button{border:1px solid rgba(241,243,228,.6);background:rgba(20,16,36,.45);color:var(--logo);padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;backdrop-filter:blur(4px)}
-.hero button:hover{background:rgba(20,16,36,.7)}
-@media (max-width:640px){.hero{aspect-ratio:16/9}}
+/* 메인 대표 영상: 일반 유튜브 플레이어, 누르면 그 자리에서 재생 */
+.hero{margin-top:22px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9;max-width:100%}
+.hero iframe{width:100%;height:100%;border:0;display:block}
 
 /* 재생창 */
 .modal{position:fixed;inset:0;background:rgba(8,12,10,.82);display:grid;place-items:center;z-index:50;
@@ -135,18 +126,7 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
     <div class="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색"></div>
   </header>
 
-  <section class="hero" id="hero" aria-label="대표 영상">
-    <div id="hero-frame"></div>
-    <div class="poster" id="hero-poster"></div>
-    <div class="shade"></div>
-    <div class="ctrl">
-      <div class="label" id="hero-label"></div>
-      <div class="btns2">
-        <button id="hero-sound" aria-pressed="false">🔇 소리 켜기</button>
-        <button id="hero-open">크게 보기</button>
-      </div>
-    </div>
-  </section>
+  <section class="hero" id="hero" aria-label="대표 영상"><div id="hero-frame"></div></section>
 
   <div class="bar">
     <div class="tabs" id="tabs" role="group" aria-label="카테고리"></div>
@@ -201,8 +181,7 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
 // ===== 컴백 테마: 메인 대표 영상 (유튜브 링크와 이름만 바꾸면 돼요) =====
 const FEATURED={
   url:"https://youtu.be/roHWN9fL2SM",
-  title:"긴 소원 MV",
-  poster:""   // 영상이 시작되기 전(광고 등) 덮어둘 이미지. 비워두면 영상 썸네일을 써요
+  title:"긴 소원 MV"
 };
 
 const CATS=["무대","직캠","자컨","라이브","예능","라디오"];
@@ -263,7 +242,7 @@ function openVideo(x){
   $("#p-link").href=`https://www.youtube.com/watch?v=${id}`;
   $("#modal").hidden=false;$("#close").focus();
 }
-function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";window.heroResume&&window.heroResume();}
+function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML=""}
 $("#close").onclick=closeVideo;
 $("#modal").onclick=e=>{if(e.target.id==="modal")closeVideo()};
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeVideo()});
@@ -314,37 +293,11 @@ $("#export").onclick=async()=>{
 };
 $("#clear").onclick=()=>{saveDrafts([]);renderDrafts();render();msg("미리보기를 비웠어요.");};
 
-/* 대표 영상 — 광고나 로딩 중에는 포스터로 가리고, 본편이 재생되면 걷어요 */
+/* 대표 영상 */
 (function(){
   const id=ytId(FEATURED.url);
   if(!id){$("#hero").hidden=true;return;}
-  $("#hero-label").textContent=FEATURED.title;
-  const poster=$("#hero-poster");
-  poster.style.backgroundImage=`url("${FEATURED.poster||`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}")`;
-  let player=null,muted=true;
-  window.heroResume=()=>{try{player&&player.playVideo()}catch(e){}};
-  window.onYouTubeIframeAPIReady=()=>{
-    player=new YT.Player("hero-frame",{
-      host:"https://www.youtube-nocookie.com",videoId:id,
-      playerVars:{autoplay:1,mute:1,loop:1,playlist:id,controls:0,playsinline:1,rel:0,iv_load_policy:3,modestbranding:1,disablekb:1},
-      events:{onReady:e=>{e.target.mute();e.target.playVideo();}}
-    });
-    setInterval(()=>{
-      try{
-        const playing=player.getPlayerState()===1&&player.getCurrentTime()>0.2;
-        poster.classList.toggle("off",playing);
-      }catch(e){}
-    },300);
-  };
-  const tag=document.createElement("script");tag.src="https://www.youtube.com/iframe_api";document.head.appendChild(tag);
-  $("#hero-sound").onclick=()=>{
-    if(!player)return;
-    muted=!muted;
-    try{if(muted){player.mute()}else{player.unMute();player.setVolume(70);player.playVideo()}}catch(e){}
-    $("#hero-sound").textContent=muted?"🔇 소리 켜기":"🔊 소리 끄기";
-    $("#hero-sound").setAttribute("aria-pressed",String(!muted));
-  };
-  $("#hero-open").onclick=()=>{try{player&&player.pauseVideo()}catch(e){};openVideo({url:FEATURED.url,title:FEATURED.title,category:"대표 영상",date:""});};
+  $("#hero-frame").outerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(FEATURED.title)}"></iframe>`;
 })();
 
 function syncAdmin(){$("#admin").hidden=!isAdmin();if(isAdmin())renderDrafts();render();}
