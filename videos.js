@@ -8,6 +8,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/ESkXaz8OvNA","title":"[K-Fancam] 엔믹스 지우 직캠 '긴 소원 (Birthday Wish)' (NMIXX JIWOO Fancam) @뮤직뱅크(Music Bank) 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/2et9-4peX1M","title":"'최초 공개' NMIXX - 긴 소원 (Birthday Wish) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/6Ttct0xxxts","title":"'컴백 인터뷰' NMIXX (엔믹스) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"예능","group":"단독","note":""},
+  {"url":"https://youtu.be/WQLBKLrgreU","title":"[MPD직캠] 엔믹스 지우 직캠 4K '긴 소원 (Birthday Wish)' (NMIXX JIWOO FanCam) | @MCOUNTDOWN_2026.10.22","date":"2026-10-22","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/dqQWHxcGIt0","title":"[VLF] NMIXX - Blue Valentine | MBC 버추얼 라이브 페스티벌 with CoupangPlay","date":"2026-08-13","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/FRnYTD6i2Po","title":"매점 신기록 췤췤췤✨ 울믹스 잘알들이 멤버 털기하면 벌어지는 일😲 척하면 척! 1위는 엔↗️믹스 체인지 업🥇 #인기가요끝나면매점가요2 EP.8 #NMIXX | SUB","date":"2026-06-05","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/gz17zBV8LcQ","title":"[안방1열 풀캠4K] 엔믹스 'Heavy Serenade' (NMIXX FullCam) @SBS Inkigayo 260524","date":"2026-05-25","category":"무대","group":"단독","note":""},
