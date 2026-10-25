@@ -122,6 +122,8 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
 .csearch svg{width:18px;height:18px;flex:none;color:var(--muted)}
 .csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
+/* 아이폰은 글자가 16px보다 작은 입력칸을 누르면 화면을 확대해요 → 휴대폰에서는 16px로 */
+@media (max-width:640px){input,textarea,select{font-size:16px!important}}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 @media (max-width:640px){
   body:not(.is-home) #videos:has(#vtitle[hidden]){display:flex;flex-direction:column}
