@@ -51,7 +51,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/jlKPl2tS6Gk","title":"[쇼! 음악중심 미방분] 10월 4주차 1위 엔믹스 - Blue Valentine (NMIXX - Blue Valentine), MBC 251025 방송","date":"2025-10-25","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/nDrn-gLUYLs","title":"[#음중직캠] NMIXX JIWOO (엔믹스 지우) – Blue Valentine FanCam | 쇼! 음악중심 | MBC251025","date":"2025-10-25","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/7Mn8vleglSU","title":"[#음중풀캠] NMIXX (엔믹스) – Blue Valentine FullCam | 쇼! 음악중심 | MBC251025","date":"2025-10-25","category":"무대","group":"단독","note":""},
-  {"url":"https://youtu.be/1L0Xr21vMyc","title":"[#음중직캠] NMIXX (엔믹스) – Blue Valentine 1위 직캠 | 쇼! 음악중심 | MBC251025","date":"2025-10-25","category":"무대","group":"단독","note":""},
+  {"url":"https://youtu.be/1L0Xr21vMyc","title":"[#음중직캠] NMIXX (엔믹스) – Blue Valentine 1위 직캠 | 쇼! 음악중심 | MBC251025","date":"2025-10-25","category":"무대","group":"단독","note":"","sub":"encore"},
   {"url":"https://youtu.be/UDacqJF10eI","title":"'차차차' NMIXX 𝘷𝘴 TWS 𝘷𝘴 BABYMONSTER! 오늘은 내가 내려오지므왕👑 #엠카운트다운 EP.910 | Mnet 251023 방송","date":"2025-10-23","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/CAOYJFLFuL8","title":"NMIXX - Blue Valentine #엠카운트다운 EP.910 | Mnet 251023 방송","date":"2025-10-23","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/rCjaTL2PpYc","title":"[엠카운트다운] ✨Special MC 해원X지우X규진✨ MC석 직캠 4K (HAEWON X JIWOO X KYUJIN (NMIXX) MC FanCam) 251016","date":"2025-10-21","category":"무대","group":"단독","note":""},
