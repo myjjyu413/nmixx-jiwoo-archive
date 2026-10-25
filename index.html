@@ -123,6 +123,7 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 .vnone{color:var(--muted);margin:0}
+.ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
 /* 게시판 */
 .bform{background:var(--surface);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
 .bform input:not([type=checkbox]),.bform textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font:inherit;color:var(--fg)}
@@ -550,7 +551,7 @@ function render(){
   if(!home)v=v.slice((state.page-1)*per,state.page*per);
   renderPager(home?1:pages);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
-  g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);fitPage();
+  g.innerHTML=v.map(cardHTML).join("")+(home||!v.length?"":`<div class="ghost" aria-hidden="true"><span class="thumb"></span><span class="ct">&nbsp;</span></div>`.repeat(Math.max(0,per-v.length)));bindCards(g,v);fitPage();
   requestAnimationFrame(arrows);
 }
 function arrows(){
