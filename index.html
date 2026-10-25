@@ -108,9 +108,10 @@ body.is-home .vhead{margin-bottom:12px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* 숏폼: 9:16 세로 카드 */
-.grid.vert{grid-template-columns:repeat(3,minmax(0,calc((100svh - var(--vchrome,300px)) * 9 / 16)));justify-content:center}
+#grid.vert{grid-template-columns:repeat(3,minmax(0,calc((100svh - var(--vchrome,300px)) * 9 / 16)));justify-content:center}
 html.shortsview,html.shortsview body{overflow:hidden}
 .grid.vert .thumb{aspect-ratio:9/16}
+@media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
 @media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
