@@ -128,7 +128,9 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   body:not(.is-home) #videos:has(#vtitle[hidden])>.vhead{order:2;margin:14px 0 0;justify-content:center}
   body:not(.is-home) #videos:has(#vtitle[hidden])>.vbody{order:1}
   body:not(.is-home) #videos:has(#vtitle[hidden])>#admin{order:3}
-  body:not(.is-home) #videos:has(#vtitle[hidden]) .vtools{margin-left:0}
+  body:not(.is-home) #videos:has(#vtitle[hidden]) .vtools{margin-left:0;width:min(320px,100%)}
+  body:not(.is-home) #videos:has(#vtitle[hidden]) .vclear{display:none}
+  body:not(.is-home) #videos:has(#vtitle[hidden]) .csearch{width:100%}
   .csearch{height:34px;width:min(240px,62vw);padding:0 12px}.csearch input{font-size:13px}.csearch svg{width:15px;height:15px}
   .vclear{width:34px;height:34px;font-size:17px}
   .pager{gap:4px;flex-wrap:nowrap;margin-top:18px}
@@ -445,6 +447,7 @@ const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
 let state={view:"home",cat:"전체",q:"",cq:"",sub:"",page:1};
 const PER=9;
+const MOBILE=matchMedia("(max-width:640px)");MOBILE.addEventListener("change",()=>{state.page=1;render();});
 
 function ytId(url){
   if(!url) return null;
@@ -540,7 +543,7 @@ function render(){
   if(prof)return;
   const g=$("#grid");
   const vert=!home&&!state.q&&state.cat==="숏폼";
-  const per=vert?3:PER;
+  const per=vert?3:(MOBILE.matches?5:PER);
   g.className=home?"shelf":(vert?"grid vert":"grid");
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
