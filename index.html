@@ -660,6 +660,7 @@ function msg(t){$("#msg").textContent=t}
 $("#f-url").addEventListener("change",async()=>{
   const id=ytId($("#f-url").value);
   if(!id){msg("유튜브 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
+  {const st=ytStatus(id);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
   msg("영상 정보 가져오는 중…");
   /* API 키가 있으면 제목과 업로드 날짜를 함께 가져와요 (영상 1개당 1점, 검색 한도와 별개) */
   const key=($("#yt-key")&&$("#yt-key").value.trim())||(()=>{try{return localStorage.getItem("jiwoo-archive-ytkey")||""}catch(e){return ""}})();
@@ -695,6 +696,19 @@ $("#add").onclick=()=>{
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
   renderDrafts();renderAll();
 };
+/* 이미 사이트에 올라간 영상은 미리보기 목록에서 자동으로 빼요 */
+function pruneDrafts(){
+  const have=new Set((window.VIDEOS||[]).map(v=>ytId(v.url)));
+  const d=loadDrafts(),keep=d.filter(v=>!have.has(ytId(v.url)));
+  if(keep.length!==d.length)saveDrafts(keep);
+  const ed=loadEdits();let ch=false;
+  for(const u of Object.keys(ed)){const v=(window.VIDEOS||[]).find(x=>x.url===u);
+    if(!v&&!ed[u].delete){delete ed[u];ch=true;continue;}
+    if(v&&ed[u].category&&normCat(v.category)===normCat(ed[u].category)){delete ed[u];ch=true;}
+    if(!v&&ed[u].delete){delete ed[u];ch=true;}}
+  if(ch)saveEdits(ed);
+  return d.length-keep.length;
+}
 function renderDrafts(){
   if(typeof ytRefreshHidden==="function"&&$("#yt-res").children.length)ytRefreshHiddenSoft();
   const d=loadDrafts();
@@ -730,6 +744,7 @@ function updateBadge(){
 }
 $("#aoff").onclick=()=>{try{localStorage.removeItem(AKEY)}catch(e){}if(isAdmin())goHome();else{render();}updateBadge();};
 
+try{pruneDrafts()}catch(e){}
 window.addEventListener("hashchange",route);
 window.addEventListener("popstate",route);
 route();
