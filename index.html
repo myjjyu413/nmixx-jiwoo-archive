@@ -51,7 +51,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .burger svg{width:30px;height:30px}
 
 /* 대표 영상 */
-.hero{padding-block:8px 0}
+.hero{padding-block:clamp(32px,7vh,88px) 0}
 .hero-in{max-width:1180px;margin:0 auto}
 #videos,#profile{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
 .hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
@@ -143,7 +143,6 @@ footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);
   <section class="hero gut" id="hero" aria-label="대표 영상">
     <div class="hero-in">
       <div class="hero-frame"><div id="hero-frame"></div></div>
-      <div class="hero-cap"><span class="album" id="hero-album"></span><span class="song" id="hero-song"></span></div>
     </div>
   </section>
 
@@ -265,8 +264,6 @@ function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()
   const id=ytId(FEATURED.url);
   if(!id){$("#hero").hidden=true;return;}
   $("#hero-frame").outerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(FEATURED.song)}"></iframe>`;
-  $("#hero-album").textContent=FEATURED.album||"";
-  $("#hero-song").textContent=FEATURED.song||"";
 })();
 
 /* 화면: home(대표 영상 + 최근 추가) / list(메뉴의 카테고리·검색) / profile */
