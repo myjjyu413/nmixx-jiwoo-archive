@@ -4,9 +4,9 @@
 //
 // 항목 형식 예시:
 // { url: "https://www.youtube.com/watch?v=영상ID", title: "제목", date: "2026-10-25",
-//   category: "무대", group: "단독", note: "" },
+//   category: "무대 & 직캠", group: "단독", note: "" },
 //
-// category: 무대 / 직캠 / 자컨 / 라이브 / 예능 / 라디오
+// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송
 // group: 단독(지우 개인) / 단체(지우가 나오는 단체 영상)
 
 window.VIDEOS = [

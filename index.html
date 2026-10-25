@@ -79,7 +79,9 @@ main section{padding-block:44px 0}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 .vnone{color:var(--muted);margin:0}
 .igrid{columns:3 300px;column-gap:18px}
-.igrid>*{break-inside:avoid;margin:0 0 18px!important;min-width:0!important;width:100%!important}
+.igrid>.sns{break-inside:avoid;margin:0 0 18px}
+.igrid .sns>*{min-width:0!important;max-width:100%!important;margin:0!important}
+.igrid .instagram-media{width:100%!important}
 .igrid .instagram-media{background:var(--surface)!important;border:0!important;border-radius:10px!important}
 
 /* 프로필 */
@@ -176,7 +178,7 @@ main{padding-bottom:72px}
   </section>
 
   <section class="gut" id="insta" hidden>
-    <div class="vhead"><h2 class="row-title">인스타그램</h2><button class="vclear" id="iclear" aria-label="메인으로">×</button></div>
+    <div class="vhead"><h2 class="row-title">SNS</h2><button class="vclear" id="iclear" aria-label="메인으로">×</button></div>
     <div class="igrid" id="igrid"></div>
   </section>
 
@@ -214,7 +216,7 @@ main{padding-bottom:72px}
 </div>
 
 <script src="videos.js"></script>
-<script src="insta.js"></script>
+<script src="sns.js"></script>
 <script>
 // ===== 컴백 테마: 메인 대표 영상 =====
 const FEATURED={
@@ -239,7 +241,7 @@ const PROFILE={
   ]
 };
 
-const CATS=["무대","직캠","자컨","라이브","예능","라디오"];
+const CATS=["무대 & 직캠","자컨 & 예능","라디오","라이브 방송"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
 let state={view:"home",cat:"전체",q:""};
@@ -298,16 +300,23 @@ function render(){
 function renderAll(){render();}
 function goVideos({cat,q}){state.view="list";state.cat=cat||"전체";state.q=q||"";render();window.scrollTo(0,0);}
 function goInsta(){state.view="insta";render();window.scrollTo(0,0);}
-let igLoaded=false;
+let igLoaded=false,xLoaded=false;
+function loadScript(src){const t=document.createElement("script");t.async=true;t.src=src;document.body.appendChild(t);}
 function renderInsta(){
-  const list=[...(window.INSTA||[])].sort((a,b)=>String(b.date).localeCompare(a.date));
+  const list=[...(window.SNS||[])].sort((a,b)=>String(b.date).localeCompare(a.date));
   const g=$("#igrid");
   if(!list.length){g.innerHTML=`<p class="vnone">아직 게시물이 없어요.</p>`;return;}
   if(g.dataset.done)return;
   g.dataset.done="1";
-  g.innerHTML=list.map(x=>`<blockquote class="instagram-media" data-instgrm-permalink="${esc(x.url)}" data-instgrm-version="14"><a href="${esc(x.url)}" target="_blank" rel="noopener">인스타그램에서 보기</a></blockquote>`).join("");
-  if(window.instgrm){window.instgrm.Embeds.process();return;}
-  if(!igLoaded){igLoaded=true;const t=document.createElement("script");t.async=true;t.src="https://www.instagram.com/embed.js";document.body.appendChild(t);}
+  let hasIg=false,hasX=false;
+  g.innerHTML=list.map(x=>{
+    const u=String(x.url);
+    if(/instagram\.com/.test(u)){hasIg=true;return `<div class="sns"><blockquote class="instagram-media" data-instgrm-permalink="${esc(u)}" data-instgrm-version="14"><a href="${esc(u)}" target="_blank" rel="noopener">인스타그램에서 보기</a></blockquote></div>`;}
+    if(/(x|twitter)\.com/.test(u)){hasX=true;const t=u.replace(/\/\/(www\.)?x\.com/,"//twitter.com");return `<div class="sns"><blockquote class="twitter-tweet" data-dnt="true"><a href="${esc(t)}"></a></blockquote></div>`;}
+    return `<div class="sns"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div>`;
+  }).join("");
+  if(hasIg){if(window.instgrm)window.instgrm.Embeds.process();else if(!igLoaded){igLoaded=true;loadScript("https://www.instagram.com/embed.js");}}
+  if(hasX){if(window.twttr&&window.twttr.widgets)window.twttr.widgets.load(g);else if(!xLoaded){xLoaded=true;loadScript("https://platform.twitter.com/widgets.js");}}
 }
 function goProfile(){state.view="profile";render();window.scrollTo(0,0);}
 function goHome(){state.view="home";state.cat="전체";state.q="";$("#mq").value="";render();window.scrollTo(0,0);}
@@ -321,13 +330,11 @@ $("#iclear").onclick=goHome;
 })();
 
 /* 메뉴 */
-const EN={무대:"STAGE",직캠:"FANCAM",자컨:"ORIGINAL",라이브:"LIVE",예능:"VARIETY",라디오:"RADIO"};
-const MENU=[["프로필","PROFILE",goProfile],
-  ...CATS.map(c=>[c,EN[c],()=>goVideos({cat:c})]),
-  ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})],
-  ["인스타그램","INSTAGRAM",goInsta]];
-$("#mlist").innerHTML=MENU.map((m,i)=>m[3]?`<li><a href="${esc(m[3])}" target="_blank" rel="noopener">${m[0]}<span class="en">${m[1]} ↗</span></a></li>`:`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
-$("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][2]();});
+const MENU=[["프로필",goProfile],
+  ...CATS.map(c=>[c,()=>goVideos({cat:c})]),
+  ["SNS",goInsta]];
+$("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${esc(m[0])}</button></li>`).join("");
+$("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][1]();});
 function openMenu(){$("#menu").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";$("#mq").focus();}
 function closeMenu(){$("#menu").hidden=true;$("#open-menu").setAttribute("aria-expanded","false");document.body.style.overflow="";}
 $("#open-menu").onclick=openMenu;
@@ -384,7 +391,7 @@ function renderDrafts(){
 $("#export").onclick=async()=>{
   const merged=(window.VIDEOS||[]).concat(loadDrafts());
   const lines=merged.map(v=>"  "+JSON.stringify({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group,note:v.note||""})+",");
-  const text=`// 쮸카이브 영상 목록 (관리자 화면에서 생성)\n// category: 무대 / 직캠 / 자컨 / 라이브 / 예능 / 라디오, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n`;
+  const text=`// 쮸카이브 영상 목록 (관리자 화면에서 생성)\n// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n`;
   const out=$("#out");out.value=text;out.hidden=false;
   try{await navigator.clipboard.writeText(text);msg("복사했어요. videos.js 파일 내용을 전부 바꾼 뒤 '미리보기 비우기'를 누르면 돼요.");}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
