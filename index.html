@@ -54,7 +54,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero{padding-block:clamp(12px,3vh,40px) 0}
 .hero-in{max-width:var(--stage,1180px);margin:0 auto}
 /* 메인: 상단 + MV + 최근 추가가 한 화면에 들어가도록 폭을 화면 높이에 맞춤 */
-body.is-home{--stage:min(1180px,calc((100svh - 262px) * 4 / 3))}
+body.is-home{--stage:min(1180px,calc((100svh - var(--hchrome,262px)) * 4 / 3))}
 body.is-home #videos{max-width:calc(var(--stage) + 2*var(--gut));padding-top:28px}
 body.is-home .row-title{font-size:clamp(18px,1.8vw,24px);margin-bottom:12px}
 #videos,#profile,#insta{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
@@ -109,7 +109,9 @@ body.is-home .vhead{margin-bottom:12px}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* 숏폼: 9:16 세로 카드 */
 #grid.vert{grid-template-columns:repeat(3,minmax(0,calc((100svh - var(--vchrome,300px)) * 9 / 16)));justify-content:center}
-html.shortsview,html.shortsview body{overflow:hidden}
+html{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}
+html.fitview,html.fitview body{overflow:hidden}
+html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .grid.vert .thumb{aspect-ratio:9/16}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
 @media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -475,12 +477,14 @@ function render(){
   $("#profile").hidden=!prof;
   $("#vclear").hidden=home;
   $("#csearch").hidden=true;
+  {const R=document.documentElement,lv=!home&&!prof&&!ins,vt=lv&&!state.q&&state.cat==="숏폼";
+   R.classList.toggle("shortsview",vt);R.classList.toggle("listfit",lv&&!vt&&!isAdmin());R.classList.toggle("fitview",home||(lv&&!isAdmin()));
+   if(prof||ins)fitPage();}
   if(ins){renderInsta();return;}
   if(prof)return;
   const g=$("#grid");
   const vert=!home&&!state.q&&state.cat==="숏폼";
   const per=vert?3:PER;
-  document.documentElement.classList.toggle("shortsview",vert);
   g.className=home?"shelf":(vert?"grid vert":"grid");
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
@@ -505,7 +509,7 @@ function render(){
   if(!home)v=v.slice((state.page-1)*per,state.page*per);
   renderPager(home?1:pages);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
-  g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);fitShorts();
+  g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);fitPage();
   requestAnimationFrame(arrows);
 }
 function arrows(){
@@ -517,8 +521,21 @@ function arrows(){
 $("#grid").addEventListener("scroll",()=>requestAnimationFrame(arrows),{passive:true});
 window.addEventListener("resize",arrows);
 /* 숏폼: 영상 3개가 스크롤 없이 한 화면에 들어오도록 카드 크기 맞추기 */
-function fitShorts(){const r=document.documentElement;if(!r.classList.contains("shortsview"))return;r.style.setProperty("--vchrome","160px");const over=r.scrollHeight-innerHeight;if(over>0)r.style.setProperty("--vchrome",(160+over+12)+"px");}
-window.addEventListener("resize",fitShorts);
+/* 스크롤 없이 한 화면에 들어오도록 크기 맞추기 (메인 / 카테고리 / 숏폼) */
+function fitPage(){
+  const r=document.documentElement,st=r.style;
+  st.removeProperty("--hchrome");st.removeProperty("--vchrome");st.removeProperty("--listw");
+  if(!r.classList.contains("fitview")||$("#videos").hidden&&$("#hero").hidden)return;
+  const fits=()=>r.scrollHeight<=innerHeight+1;
+  /* set(x): x가 클수록 내용이 커짐. 들어맞는 가장 큰 x를 찾음 */
+  const search=(set,lo,hi)=>{set(hi);if(fits())return;for(let i=0;i<14;i++){const m=(lo+hi)/2;set(m);if(fits())lo=m;else hi=m;}set(lo);};
+  if(document.body.classList.contains("is-home"))search(x=>st.setProperty("--hchrome",(2000-x)+"px"),0,2000-150);
+  else if(r.classList.contains("shortsview"))search(x=>st.setProperty("--vchrome",(2000-x)+"px"),0,2000-120);
+  else if(r.classList.contains("listfit"))search(x=>st.setProperty("--listw",x+"px"),320,innerWidth);
+}
+window.addEventListener("resize",fitPage);
+window.addEventListener("load",fitPage);
+if(document.fonts)document.fonts.ready.then(fitPage);
 function step(){const g=$("#grid"),c=g.querySelector(".card");return c?c.getBoundingClientRect().width+parseFloat(getComputedStyle(g).columnGap||0):g.clientWidth/3;}
 $("#prev").onclick=()=>{$("#grid").scrollBy({left:-step(),behavior:"smooth"});};
 $("#next").onclick=()=>{$("#grid").scrollBy({left:step(),behavior:"smooth"});};
