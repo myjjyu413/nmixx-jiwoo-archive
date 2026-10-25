@@ -137,13 +137,15 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 /* 재생창 */
 .modal{position:fixed;inset:0;background:rgba(18,14,32,.84);display:grid;place-items:center;z-index:70;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.player{width:min(1100px,100%);background:var(--surface);border-radius:12px;overflow:hidden}
+.player{width:min(1100px,100%);position:relative;padding-top:48px}
+.pbox{background:var(--surface);border-radius:12px;overflow:hidden}
 .player .frame{aspect-ratio:16/9;max-width:100%;background:#000}
 .player iframe{width:100%;height:100%;border:0;display:block}
-.player .info{padding:14px 16px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
-.player .info h3{margin:4px 0 0;font-size:17px;min-width:0;overflow-wrap:anywhere}
-.player .info a{color:var(--accent);font-size:13px;white-space:nowrap}
-.close{background:var(--fg);color:var(--bg);border:0;border-radius:8px;padding:6px 12px;cursor:pointer}
+.player .info{padding:14px 18px}
+.player .info h3{margin:0;font-size:17px;min-width:0;overflow-wrap:anywhere}
+.close{position:absolute;top:0;right:0;width:40px;height:40px;border:0;background:none;color:#fff;cursor:pointer;display:grid;place-items:center;opacity:.85}
+.close:hover{opacity:1}
+.close svg{width:28px;height:28px}
 
 /* 관리자 */
 .hidechk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-top:12px;cursor:pointer}
@@ -270,10 +272,10 @@ main{padding-bottom:40px}
 
 <div class="modal" id="modal" hidden>
   <div class="player" role="dialog" aria-modal="true" aria-labelledby="p-title">
-    <div class="frame" id="frame"></div>
-    <div class="info">
-      <div style="min-width:0;flex:1"><div class="meta" id="p-meta"></div><h3 id="p-title"></h3></div>
-      <div style="display:flex;gap:12px;align-items:center"><a id="p-link" target="_blank" rel="noopener">유튜브에서 보기 ↗</a><button class="close" id="close">닫기</button></div>
+    <button class="close" id="close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
+    <div class="pbox">
+      <div class="frame" id="frame"></div>
+      <div class="info"><h3 id="p-title"></h3></div>
     </div>
   </div>
 </div>
@@ -478,8 +480,6 @@ function openVideo(x){
   if(!id){window.open(x.url,"_blank","noopener");return;}
   $("#frame").innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=x.title;
-  $("#p-meta").innerHTML=`<span class="chip">${esc(x.category)}</span><span class="date">${esc(fmt(x.date))}</span>${x.note?`<span style="color:var(--muted)">${esc(x.note)}</span>`:""}`;
-  $("#p-link").href=`https://www.youtube.com/watch?v=${id}`;
   $("#modal").hidden=false;$("#close").focus();
 }
 function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";}
