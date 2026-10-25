@@ -158,6 +158,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .player iframe{width:100%;height:100%;border:0;display:block}
 .player.vertical{width:min(420px,100%,calc((100svh - 160px) * 9 / 16))}
 .player.vertical .frame{aspect-ratio:9/16;background:#000}
+.ttprev{position:absolute;inset:0;overflow:hidden;background:#111}.ttprev iframe{border:0;width:200%;height:200%;transform:scale(.5);transform-origin:0 0;pointer-events:none}
 .ptag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.02em}
 .igph{flex-direction:column;gap:2px;background:linear-gradient(135deg,#feda75,#d62976 50%,#4f5bd5);color:#fff!important;font-family:var(--latin)!important}
 .ttph{flex-direction:column;background:#111;color:#fff!important;font-family:var(--latin)!important}.ttph b{font-size:18px;text-shadow:2px 2px 0 #fe2c55,-2px -2px 0 #25f4ee}
@@ -437,7 +438,7 @@ function dispTitle(x){
 function cardHTML(x,i){
   const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
   const tag=pf==="tt"?'<span class="ptag">TikTok</span>':pf==="ig"?'<span class="ptag">Instagram</span>':"";
-  const img=pf==="tt"?`<img loading="lazy" data-tt="${esc(x.url)}" alt="">`+tag:pf==="ig"?`<div class="nothumb igph"><b>Instagram</b><small>릴스</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const img=pf==="tt"&&ttId(x.url)?`<span class="ttprev"><iframe loading="lazy" tabindex="-1" aria-hidden="true" title="" scrolling="no" src="https://www.tiktok.com/player/v1/${ttId(x.url)}?autoplay=0&muted=1&controls=0&progress_bar=0&play_button=0&volume_control=0&fullscreen_button=0&timestamp=0&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0"></iframe></span>`+tag:pf==="ig"?`<div class="nothumb igph"><b>Instagram</b><small>릴스</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
@@ -605,7 +606,7 @@ $("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").
 function openVideo(x){
   const pf=platOf(x.url);let src="";
   if(pf==="yt")src=`https://www.youtube.com/embed/${ytId(x.url)}?autoplay=1&rel=0&playsinline=1`;
-  else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/embed/v2/${ttId(x.url)}?lang=ko-KR`;
+  else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=1&rel=0`;
   else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
   if(!src){window.open(x.url,"_blank","noopener");return;}
   $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
