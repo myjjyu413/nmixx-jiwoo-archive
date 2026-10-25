@@ -5,20 +5,19 @@
 <meta name="theme-color" content="#CCC9DC">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>쮸카이브</title>
-<meta name="description" content="엔믹스 지우 영상 아카이브 — 무대, 직캠, 자컨, 라이브, 예능, 라디오">
+<meta name="description" content="엔믹스 지우 영상 아카이브">
 <meta property="og:title" content="쮸카이브">
 <meta property="og:description" content="엔믹스 지우 영상 아카이브">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@600;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: 좁은 상단 띠(이름+검색) → 카테고리 탭 → 날짜순 썸네일 그리드, 클릭하면 재생창 */
 /* ===== 컴백 테마: 컴백마다 이 블록의 색과 logo.svg 파일만 바꾸면 돼요 ===== */
 :root{
   --bg:#CCC9DC;        /* 배경색 */
   --logo:#F1F3E4;      /* 로고 색 */
   --logo-ratio:286/92; /* 로고 가로/세로 비율 (svg의 viewBox 숫자) */
-  --surface:#E4E2EC;   /* 입력칸·관리자 상자 */
+  --surface:#E4E2EC;   /* 입력칸·상자 */
   --fg:#2A2740;        /* 본문 글자 */
   --muted:#5C5873;     /* 흐린 글자 */
   --line:#B4B0C8;      /* 구분선 */
@@ -26,55 +25,62 @@
   --accent:#4E3F86;    /* 강조색 */
   --accent-ink:#F1F3E4;
   --butter:#F1F3E4;    /* '지우 단독' 태그 */
-  --display:"Hahmlet", "Noto Serif KR", Georgia, serif;
+  --latin:"Montserrat", "IBM Plex Sans KR", system-ui, sans-serif;
   --body:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --gut:clamp(16px,3.2vw,48px);
   color-scheme:light;
 }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
 html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-bottom:max(48px,env(safe-area-inset-bottom,0px))}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55;padding-bottom:env(safe-area-inset-bottom,0px)}
 img{max-width:100%;display:block}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:1180px;margin:0 auto}
+.gut{padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px))}
 
-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding-block:22px 16px;border-bottom:1px solid var(--line)}
-.brand h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,52px);line-height:1;margin:0;letter-spacing:-.02em}
-.brand .home{color:inherit;text-decoration:none}
-.brand .home{display:inline-block;line-height:0}
-.brand .logo{display:block;width:clamp(84px,8vw,104px);aspect-ratio:var(--logo-ratio);max-width:100%;background:var(--logo);-webkit-mask:url(logo.svg) no-repeat center/contain;mask:url(logo.svg) no-repeat center/contain;transition:opacity .2s}
-.brand .home:hover .logo{opacity:.75}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.brand p{margin:12px 0 0;color:var(--muted)}
-.search{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 auto;min-width:0}
-.search input{width:0;padding:11px 0;border:1px solid transparent;border-radius:999px;background:transparent;opacity:0;transition:width .25s,padding .25s,opacity .2s}
-.search.open input{width:min(320px,100%);padding:11px 16px;border-color:var(--line);background:var(--surface);opacity:1}
-.search-btn{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--fg)}
-.search-btn:hover{border-color:var(--fg)}
-.search-btn svg{width:20px;height:20px}
+/* 상단: 왼쪽 로고, 오른쪽 메뉴 */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding-block:calc(14px + env(safe-area-inset-top,0px)) 14px;background:var(--bg)}
+.home{display:block;line-height:0;text-decoration:none}
+.logo{display:block;width:clamp(84px,7vw,104px);aspect-ratio:var(--logo-ratio);background:var(--logo);-webkit-mask:url(logo.svg) no-repeat center/contain;mask:url(logo.svg) no-repeat center/contain;transition:opacity .2s}
+.home:hover .logo{opacity:.75}
+.burger{width:44px;height:44px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:var(--logo)}
+.burger svg{width:30px;height:30px}
 
-.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-block:18px}
-.tabs{display:flex;flex-wrap:wrap;gap:6px}
-.tab{border:1px solid var(--line);background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:500}
-.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.tab .n{font-family:var(--mono);font-size:12px;opacity:.6;margin-left:4px}
-.opts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.opts select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.count{font-size:13px;color:var(--muted);margin:0 0 14px}
-.count b{font-family:var(--mono);color:var(--fg)}
+/* 대표 영상 */
+.hero{padding-block:8px 0}
+.hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
+.hero-frame iframe{width:100%;height:100%;border:0;display:block}
+.hero-cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-top:14px}
+.hero-cap .album{font-family:var(--latin);font-weight:700;font-size:clamp(20px,2.4vw,30px);letter-spacing:-.01em;color:var(--logo)}
+.hero-cap .song{font-weight:600;color:var(--logo);font-size:clamp(15px,1.6vw,19px)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px 18px}
+main section{padding-block:48px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.sec-head h2{margin:0;font-family:var(--latin);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sec-head h2 b{font-family:var(--body);font-size:20px;letter-spacing:0;color:var(--fg);margin-left:10px;text-transform:none}
+.more{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:14px;padding:4px 0}
+
+/* 오늘의 지우 + 디데이 */
+.today{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:18px;align-items:start}
+.dday{display:flex;flex-direction:column;gap:10px}
+.dbox{background:var(--surface);border-radius:12px;padding:16px 18px}
+.dbox .k{font-size:13px;color:var(--muted)}
+.dbox .v{font-family:var(--latin);font-weight:700;font-size:30px;line-height:1.2;font-variant-numeric:tabular-nums}
+.dbox .d{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.soft{color:var(--muted);font-size:14px;margin:0;padding:22px 18px;background:var(--surface);border-radius:12px}
+
+/* 가로 줄 */
+.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(220px,22vw,300px);gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.shelf>*{scroll-snap-align:start}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px 18px}
 .card{background:none;border:0;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0}
-.thumb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:10px;overflow:hidden;background:var(--chip)}
+.thumb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:8px;overflow:hidden;background:var(--chip)}
 .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .card:hover .thumb img{transform:scale(1.04)}
-.thumb .play{position:absolute;inset:auto 10px 10px auto;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center}
-.thumb .play::after{content:"";border-left:11px solid #fff;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
 .thumb .nothumb{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:13px}
 .meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
 .chip{background:var(--chip);padding:2px 8px;border-radius:5px;font-weight:600}
@@ -82,17 +88,51 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .date{font-family:var(--mono);color:var(--muted)}
 .title{font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 
-.empty{border:1.5px dashed var(--line);border-radius:14px;padding:48px 20px;text-align:center;color:var(--muted)}
-.empty h2{font-family:var(--display);color:var(--fg);margin:0 0 6px;font-size:22px}
+/* 활동 시기 */
+.eras{display:flex;gap:10px;flex-wrap:wrap}
+.era{border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600}
+.era i{width:12px;height:12px;border-radius:50%;display:block}
+.era[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
-/* 메인 대표 영상: 일반 유튜브 플레이어, 누르면 그 자리에서 재생 */
-.hero{margin-top:22px;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9;max-width:100%}
-.hero iframe{width:100%;height:100%;border:0;display:block}
+/* 전체 영상 */
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{border:1px solid var(--line);background:transparent;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:500}
+.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tab .n{font-family:var(--mono);font-size:12px;opacity:.6;margin-left:4px}
+.opts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.opts select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.qtag{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
+.qtag button{border:0;background:var(--chip);border-radius:50%;width:22px;height:22px;cursor:pointer;line-height:1}
+.count{font-size:13px;color:var(--muted);margin:0 0 14px}
+.count b{font-family:var(--mono);color:var(--fg)}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:48px 20px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--fg);margin:0 0 6px;font-size:20px}
+
+/* 프로필 */
+.profile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;align-items:start}
+.pname{font-family:var(--latin);font-weight:700;font-size:clamp(40px,6vw,76px);line-height:1;letter-spacing:-.02em;color:var(--logo);margin:0}
+.pname small{display:block;font-family:var(--body);font-size:18px;color:var(--fg);letter-spacing:0;margin-top:10px;font-weight:600}
+dl.pinfo{margin:0;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 24px;font-size:15px}
+dl.pinfo dt{color:var(--muted);font-weight:500}
+dl.pinfo dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+
+/* 메뉴 (전체 화면) */
+.menu{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;overflow-y:auto}
+.menu .top{position:static;background:transparent}
+.menu-body{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:28px;padding-block:24px 60px}
+.msearch{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--fg);width:min(420px,100%);padding:6px 2px}
+.msearch svg{width:24px;height:24px;flex:none}
+.msearch input{flex:1;min-width:0;border:0;background:transparent;font-size:20px;font-weight:600;padding:6px 0;outline:none}
+.mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;width:min(420px,100%)}
+.mlist button{border:0;background:none;cursor:pointer;font-weight:700;font-size:clamp(28px,4.2vw,42px);letter-spacing:.04em;padding:4px 0;text-align:left;color:var(--fg);transition:color .15s,transform .15s}
+.mlist button:hover{color:var(--logo);transform:translateX(4px)}
+.mlist .en{font-family:var(--latin);font-size:12px;letter-spacing:.16em;color:var(--muted);margin-left:12px;vertical-align:middle;font-weight:600}
 
 /* 재생창 */
-.modal{position:fixed;inset:0;background:rgba(8,12,10,.82);display:grid;place-items:center;z-index:50;
+.modal{position:fixed;inset:0;background:rgba(18,14,32,.84);display:grid;place-items:center;z-index:70;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.player{width:min(960px,100%);background:var(--surface);border-radius:12px;overflow:hidden}
+.player{width:min(1100px,100%);background:var(--surface);border-radius:12px;overflow:hidden}
 .player .frame{aspect-ratio:16/9;max-width:100%;background:#000}
 .player iframe{width:100%;height:100%;border:0;display:block}
 .player .info{padding:14px 16px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
@@ -102,7 +142,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 
 /* 관리자 */
 .admin{margin-top:28px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:20px}
-.admin h2{font-family:var(--display);margin:0 0 4px;font-size:22px}
+.admin h2{margin:0 0 4px;font-size:20px}
 .admin .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
 .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 .form label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;min-width:0}
@@ -117,57 +157,104 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .draft span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .draft button{border:0;background:none;color:var(--muted);cursor:pointer;flex:none}
 textarea{width:100%;min-height:120px;margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--bg);font-family:var(--mono);font-size:12px}
-footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+footer{margin-top:72px;padding-block:24px 32px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media (max-width:760px){
+  .today,.profile{grid-template-columns:minmax(0,1fr)}
+  .dday{flex-direction:row;flex-wrap:wrap}.dday .dbox{flex:1 1 140px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <h1><a class="home" href="./" title="메인 화면으로"><span class="logo" role="img" aria-label="쮸카이브"></span></a></h1>
-    </div>
-    <div class="search" id="search"><input id="q" type="search" placeholder="제목·메모로 검색" aria-label="검색" tabindex="-1"><button class="search-btn" id="search-btn" aria-label="검색 열기" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg></button></div>
-  </header>
+<header class="top gut">
+  <a class="home" href="./" title="메인 화면으로"><span class="logo" role="img" aria-label="쮸카이브"></span></a>
+  <button class="burger" id="open-menu" aria-label="메뉴 열기" aria-expanded="false"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 9h24M3 15h24M3 21h24"/></svg></button>
+</header>
 
-  <section class="hero" id="hero" aria-label="대표 영상"><div id="hero-frame"></div></section>
-
-  <div class="bar">
-    <div class="tabs" id="tabs" role="group" aria-label="카테고리"></div>
-    <div class="opts">
-      <select id="group" aria-label="단독/단체">
-        <option value="">단독+단체</option><option value="단독">지우 단독</option><option value="단체">단체</option>
-      </select>
-      <select id="sort" aria-label="정렬">
-        <option value="new">최신순</option><option value="old">오래된순</option>
-      </select>
-    </div>
-  </div>
-  <p class="count" id="count"></p>
-  <div class="grid" id="grid"></div>
-
-  <section class="admin" id="admin" hidden>
-    <h2>영상 추가 (관리자)</h2>
-    <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>videos.js 내용 복사</b>를 눌러 videos.js 파일에 통째로 붙여넣고 다시 배포하면 모두에게 보여요.</p>
-    <div class="form">
-      <label class="wide">유튜브 링크<input id="f-url" placeholder="https://www.youtube.com/watch?v=… 또는 youtu.be/…"></label>
-      <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
-      <label>날짜<input id="f-date" type="date"></label>
-      <label>카테고리<select id="f-cat"></select></label>
-      <label>단독/단체<select id="f-group"><option>단독</option><option>단체</option></select></label>
-      <label>메모<input id="f-note" placeholder="예: 생일 라이브, 엔딩요정"></label>
-    </div>
-    <div class="btns">
-      <button class="btn primary" id="add">추가</button>
-      <button class="btn" id="export">videos.js 내용 복사</button>
-      <button class="btn" id="clear">미리보기 비우기</button>
-    </div>
-    <p class="msg" id="msg"></p>
-    <div class="drafts" id="drafts"></div>
-    <textarea id="out" readonly hidden aria-label="videos.js 내용"></textarea>
+<main>
+  <section class="hero gut" id="hero" aria-label="대표 영상">
+    <div class="hero-frame"><div id="hero-frame"></div></div>
+    <div class="hero-cap"><span class="album" id="hero-album"></span><span class="song" id="hero-song"></span></div>
   </section>
 
-  <footer>팬이 만든 비공식 아카이브입니다. 모든 영상은 원 게시처(유튜브)에서 재생됩니다.</footer>
+  <section class="gut" id="today-sec">
+    <div class="sec-head"><h2>Today<b>오늘의 지우</b></h2></div>
+    <div class="today">
+      <div id="today"></div>
+      <div class="dday" id="dday"></div>
+    </div>
+  </section>
+
+  <div id="shelves"></div>
+
+  <section class="gut" id="era-sec" hidden>
+    <div class="sec-head"><h2>Era<b>활동 시기별 보기</b></h2></div>
+    <div class="eras" id="eras"></div>
+  </section>
+
+  <section class="gut" id="videos">
+    <div class="sec-head"><h2>Video<b>전체 영상</b></h2></div>
+    <div class="bar">
+      <div class="tabs" id="tabs" role="group" aria-label="카테고리"></div>
+      <div class="opts">
+        <span class="qtag" id="qtag" hidden></span>
+        <select id="group" aria-label="단독/단체">
+          <option value="">단독+단체</option><option value="단독">지우 단독</option><option value="단체">단체</option>
+        </select>
+        <select id="sort" aria-label="정렬">
+          <option value="new">최신순</option><option value="old">오래된순</option>
+        </select>
+      </div>
+    </div>
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>
+
+    <section class="admin" id="admin" hidden>
+      <h2>영상 추가 (관리자)</h2>
+      <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>videos.js 내용 복사</b>를 눌러 videos.js 파일에 통째로 붙여넣으면 모두에게 보여요.</p>
+      <div class="form">
+        <label class="wide">유튜브 링크<input id="f-url" placeholder="https://www.youtube.com/watch?v=… 또는 youtu.be/…"></label>
+        <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
+        <label>날짜<input id="f-date" type="date"></label>
+        <label>카테고리<select id="f-cat"></select></label>
+        <label>단독/단체<select id="f-group"><option>단독</option><option>단체</option></select></label>
+        <label>메모<input id="f-note" placeholder="예: 생일 라이브, 엔딩요정"></label>
+      </div>
+      <div class="btns">
+        <button class="btn primary" id="add">추가</button>
+        <button class="btn" id="export">videos.js 내용 복사</button>
+        <button class="btn" id="clear">미리보기 비우기</button>
+      </div>
+      <p class="msg" id="msg"></p>
+      <div class="drafts" id="drafts"></div>
+      <textarea id="out" readonly hidden aria-label="videos.js 내용"></textarea>
+    </section>
+  </section>
+
+  <section class="gut" id="profile">
+    <div class="sec-head"><h2>Profile<b>프로필</b></h2></div>
+    <div class="profile">
+      <h3 class="pname" id="pname"></h3>
+      <dl class="pinfo" id="pinfo"></dl>
+    </div>
+  </section>
+</main>
+
+<footer class="gut"><span>팬이 만든 비공식 아카이브입니다. 모든 영상은 원 게시처(유튜브)에서 재생됩니다.</span><span>쮸카이브</span></footer>
+
+<div class="menu" id="menu" hidden role="dialog" aria-modal="true" aria-label="메뉴">
+  <div class="top gut">
+    <a class="home" href="./" title="메인 화면으로"><span class="logo" role="img" aria-label="쮸카이브"></span></a>
+    <button class="burger" id="close-menu" aria-label="메뉴 닫기" style="color:var(--fg)"><svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 6l18 18M24 6 6 24"/></svg></button>
+  </div>
+  <div class="menu-body gut">
+    <form class="msearch" id="msearch" role="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      <input id="mq" type="search" placeholder="영상 검색" aria-label="영상 검색" autocomplete="off">
+    </form>
+    <ul class="mlist" id="mlist"></ul>
+  </div>
 </div>
 
 <div class="modal" id="modal" hidden>
@@ -182,16 +269,38 @@ footer{margin-top:48px;color:var(--muted);font-size:12px;text-align:center}
 
 <script src="videos.js"></script>
 <script>
-// ===== 컴백 테마: 메인 대표 영상 (유튜브 링크와 이름만 바꾸면 돼요) =====
+// ===== 컴백 테마: 메인 대표 영상 =====
 const FEATURED={
   url:"https://youtu.be/roHWN9fL2SM",
-  title:"긴 소원 MV"
+  album:"Strange Muse",
+  song:"긴 소원 (Birthday Wish)"
 };
+
+// ===== 프로필 (빈 칸은 화면에 안 나와요. 채우고 싶은 항목만 적으세요) =====
+const PROFILE={
+  name:"JIWOO",
+  korean:"지우",
+  birthday:"2005-04-13",   // 생일 디데이에 쓰여요 (YYYY-MM-DD)
+  debut:"2022-02-22",      // 데뷔 기념일 디데이에 쓰여요
+  info:[
+    ["소속","NMIXX"],
+    ["생일","2005년 4월 13일"],
+    ["데뷔","2022년 2월 22일"],
+    ["포지션",""],
+    ["MBTI",""],
+    ["별명","쮸"]
+  ]
+};
+
+// ===== 활동 시기 (컴백마다 한 줄씩 추가. from 날짜부터 다음 시기 전까지의 영상이 묶여요) =====
+const ERAS=[
+  // {name:"Strange Muse", from:"2026-10-01", color:"#CCC9DC"},
+];
 
 const CATS=["무대","직캠","자컨","라이브","예능","라디오"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
-let state={cat:"전체",q:"",group:"",sort:"new"};
+let state={cat:"전체",q:"",group:"",sort:"new",era:""};
 
 function ytId(url){
   if(!url) return null;
@@ -200,14 +309,83 @@ function ytId(url){
 }
 function loadDrafts(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}}
 function saveDrafts(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+function isAdmin(){return location.hash==="#admin"}
 function all(){
   const base=(window.VIDEOS||[]).map(v=>({...v}));
   const drafts=isAdmin()?loadDrafts().map(v=>({...v,_draft:true})):[];
   return base.concat(drafts);
 }
-function isAdmin(){return location.hash==="#admin"}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const fmt=d=>String(d||"").replaceAll("-",".");
+function eraOf(date){
+  const list=[...ERAS].sort((a,b)=>a.from.localeCompare(b.from));
+  let e=null;for(const x of list){if(String(date)>=x.from)e=x.name}
+  return e;
+}
 
+function cardHTML(x,i){
+  const id=ytId(x.url);
+  const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  return `<button class="card" data-i="${i}">
+    <div class="thumb">${img}</div>
+    <div class="meta"><span class="chip">${esc(x.category)}</span>${x.group==="단독"?'<span class="chip solo">지우 단독</span>':''}${x._draft?'<span class="chip">미리보기</span>':''}<span class="date">${esc(fmt(x.date))}</span></div>
+    <div class="title">${esc(x.title)}</div></button>`;
+}
+function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]))}
+
+/* 대표 영상 */
+(function(){
+  const id=ytId(FEATURED.url);
+  if(!id){$("#hero").hidden=true;return;}
+  $("#hero-frame").outerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(FEATURED.song)}"></iframe>`;
+  $("#hero-album").textContent=FEATURED.album||"";
+  $("#hero-song").textContent=FEATURED.song||"";
+})();
+
+/* 오늘의 지우 + 디데이 */
+function renderToday(){
+  const now=new Date(),md=String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+  const list=all().filter(v=>String(v.date).slice(5)===md&&String(v.date).slice(0,4)<String(now.getFullYear()));
+  list.sort((a,b)=>String(b.date).localeCompare(a.date));
+  const el=$("#today");
+  if(!list.length){el.innerHTML=`<p class="soft">${now.getMonth()+1}월 ${now.getDate()}일에 올라온 지난 영상이 아직 없어요. 영상이 쌓이면 매일 이 자리에 '몇 년 전 오늘'의 지우가 나와요.</p>`;return;}
+  el.innerHTML=`<div class="shelf">${list.map(cardHTML).join("")}</div>`;bindCards(el,list);
+}
+function dday(md){
+  const now=new Date();now.setHours(0,0,0,0);
+  const [m,d]=md.split("-").map(Number);
+  let t=new Date(now.getFullYear(),m-1,d);if(t<now)t=new Date(now.getFullYear()+1,m-1,d);
+  return Math.round((t-now)/864e5);
+}
+function renderDday(){
+  const items=[];
+  if(PROFILE.birthday)items.push(["지우 생일",PROFILE.birthday]);
+  if(PROFILE.debut)items.push(["데뷔 기념일",PROFILE.debut]);
+  $("#dday").innerHTML=items.map(([k,date])=>{
+    const n=dday(date.slice(5));
+    return `<div class="dbox"><div class="k">${k}</div><div class="v">${n===0?"D-DAY":"D-"+n}</div><div class="d">${fmt(date.slice(5))}</div></div>`;
+  }).join("");
+}
+
+/* 카테고리별 가로 줄 */
+function renderShelves(){
+  const list=all().sort((a,b)=>String(b.date).localeCompare(a.date));
+  const rows=[["Latest","최신 영상",list.slice(0,12),"전체"]].concat(CATS.map(c=>[null,c,list.filter(v=>v.category===c).slice(0,12),c])).filter(r=>r[2].length);
+  const el=$("#shelves");
+  el.innerHTML=rows.map((r,ri)=>`<section class="gut"><div class="sec-head"><h2>${r[0]||""}<b>${esc(r[1])}</b></h2><button class="more" data-cat="${esc(r[3])}">전체 보기 →</button></div><div class="shelf" data-row="${ri}">${r[2].map(cardHTML).join("")}</div></section>`).join("");
+  el.querySelectorAll(".shelf").forEach(s=>bindCards(s,rows[+s.dataset.row][2]));
+  el.querySelectorAll(".more").forEach(b=>b.onclick=()=>goVideos({cat:b.dataset.cat}));
+}
+
+/* 활동 시기 */
+function renderEras(){
+  if(!ERAS.length){$("#era-sec").hidden=true;return;}
+  $("#era-sec").hidden=false;
+  $("#eras").innerHTML=ERAS.map(e=>`<button class="era" aria-pressed="${state.era===e.name}" data-e="${esc(e.name)}"><i style="background:${esc(e.color||"var(--chip)")}"></i>${esc(e.name)}</button>`).join("");
+  $("#eras").querySelectorAll(".era").forEach(b=>b.onclick=()=>{state.era=state.era===b.dataset.e?"":b.dataset.e;renderEras();goVideos({});});
+}
+
+/* 전체 영상 */
 function renderTabs(list){
   const counts={전체:list.length};CATS.forEach(c=>counts[c]=list.filter(v=>v.category===c).length);
   $("#tabs").innerHTML=["전체",...CATS].map(c=>`<button class="tab" aria-pressed="${state.cat===c}" data-c="${c}">${c}<span class="n">${counts[c]}</span></button>`).join("");
@@ -216,57 +394,62 @@ function render(){
   const list=all();
   renderTabs(list);
   const q=state.q.trim().toLowerCase();
+  const qt=$("#qtag");
+  if(state.q){qt.hidden=false;qt.innerHTML=`검색: ${esc(state.q)} <button aria-label="검색 지우기">×</button>`;qt.querySelector("button").onclick=()=>{state.q="";$("#mq").value="";render();};}
+  else qt.hidden=true;
   let v=list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!state.group||x.group===state.group)
+    &&(!state.era||eraOf(x.date)===state.era)
     &&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
   v.sort((a,b)=>state.sort==="new"?String(b.date).localeCompare(a.date):String(a.date).localeCompare(b.date));
-  $("#count").innerHTML=`<b>${v.length}</b>개의 영상`;
-  if(!list.length){
-    $("#grid").innerHTML=`<div class="empty" style="grid-column:1/-1"><h2>아직 올라온 영상이 없어요</h2><p>관리자가 영상을 추가하면 여기에 날짜순으로 쌓여요.</p></div>`;return;
-  }
-  if(!v.length){
-    $("#grid").innerHTML=`<div class="empty" style="grid-column:1/-1"><h2>조건에 맞는 영상이 없어요</h2><p>검색어나 카테고리를 바꿔 보세요.</p></div>`;return;
-  }
-  $("#grid").innerHTML=v.map((x,i)=>{
-    const id=ytId(x.url);
-    const img=id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="">`:`<div class="nothumb">외부 링크</div>`;
-    return `<button class="card" data-i="${i}">
-      <div class="thumb">${img}<span class="play"></span></div>
-      <div class="meta"><span class="chip">${esc(x.category)}</span>${x.group==="단독"?'<span class="chip solo">지우 단독</span>':''}${x._draft?'<span class="chip">미리보기</span>':''}<span class="date">${esc(String(x.date||"").replaceAll("-","."))}</span></div>
-      <div class="title">${esc(x.title)}</div></button>`;
-  }).join("");
-  $("#grid").querySelectorAll(".card").forEach(el=>el.onclick=()=>openVideo(v[+el.dataset.i]));
+  $("#count").innerHTML=`<b>${v.length}</b>개의 영상${state.era?` · ${esc(state.era)} 시기`:""}`;
+  const g=$("#grid");
+  if(!list.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1"><h3>아직 올라온 영상이 없어요</h3><p>영상이 추가되면 여기에 날짜순으로 쌓여요.</p></div>`;return;}
+  if(!v.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1"><h3>조건에 맞는 영상이 없어요</h3><p>검색어나 카테고리를 바꿔 보세요.</p></div>`;return;}
+  g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);
+}
+function renderAll(){renderToday();renderDday();renderShelves();renderEras();render();}
+function goVideos({cat,q}){
+  if(cat)state.cat=cat;
+  if(q!==undefined)state.q=q;
+  render();
+  $("#videos").scrollIntoView();
 }
 
+/* 프로필 */
+(function(){
+  $("#pname").innerHTML=`${esc(PROFILE.name)}<small>${esc(PROFILE.korean)}</small>`;
+  $("#pinfo").innerHTML=PROFILE.info.filter(r=>r[1]).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+})();
+
+/* 메뉴 */
+const EN={무대:"STAGE",직캠:"FANCAM",자컨:"ORIGINAL",라이브:"LIVE",예능:"VARIETY",라디오:"RADIO"};
+const MENU=[["프로필","PROFILE",()=>$("#profile").scrollIntoView()],
+  ...CATS.map(c=>[c,EN[c],()=>goVideos({cat:c})]),
+  ["전체 영상","ALL VIDEOS",()=>goVideos({cat:"전체"})]];
+$("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${m[0]}<span class="en">${m[1]}</span></button></li>`).join("");
+$("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][2]();});
+function openMenu(){$("#menu").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";$("#mq").focus();}
+function closeMenu(){$("#menu").hidden=true;$("#open-menu").setAttribute("aria-expanded","false");document.body.style.overflow="";}
+$("#open-menu").onclick=openMenu;
+$("#close-menu").onclick=closeMenu;
+$("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").value.trim();closeMenu();goVideos({cat:"전체",q});});
+
+/* 재생창 */
 function openVideo(x){
   const id=ytId(x.url);
   if(!id){window.open(x.url,"_blank","noopener");return;}
-  $("#frame").innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="${esc(x.title)}"></iframe>`;
+  $("#frame").innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=x.title;
-  $("#p-meta").innerHTML=`<span class="chip">${esc(x.category)}</span><span class="date">${esc(String(x.date||"").replaceAll("-","."))}</span>${x.note?`<span style="color:var(--muted)">${esc(x.note)}</span>`:""}`;
+  $("#p-meta").innerHTML=`<span class="chip">${esc(x.category)}</span><span class="date">${esc(fmt(x.date))}</span>${x.note?`<span style="color:var(--muted)">${esc(x.note)}</span>`:""}`;
   $("#p-link").href=`https://www.youtube.com/watch?v=${id}`;
   $("#modal").hidden=false;$("#close").focus();
 }
-function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML=""}
+function closeVideo(){$("#modal").hidden=true;$("#frame").innerHTML="";}
 $("#close").onclick=closeVideo;
 $("#modal").onclick=e=>{if(e.target.id==="modal")closeVideo()};
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeVideo()});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("#modal").hidden)closeVideo();else if(!$("#menu").hidden)closeMenu();});
 
 $("#tabs").onclick=e=>{const b=e.target.closest(".tab");if(b){state.cat=b.dataset.c;render();}};
-$("#q").oninput=e=>{state.q=e.target.value;render()};
-function setSearch(open){
-  $("#search").classList.toggle("open",open);
-  $("#search-btn").setAttribute("aria-expanded",String(open));
-  $("#search-btn").setAttribute("aria-label",open?"검색 닫기":"검색 열기");
-  $("#q").tabIndex=open?0:-1;
-  if(open){$("#q").focus()}
-}
-$("#search-btn").onclick=()=>{
-  const open=!$("#search").classList.contains("open");
-  if(!open&&state.q){$("#q").value="";state.q="";render();}
-  setSearch(open);
-};
-$("#q").addEventListener("keydown",e=>{if(e.key==="Escape"){$("#q").value="";state.q="";render();setSearch(false);$("#search-btn").focus();}});
-$("#q").addEventListener("blur",()=>{setTimeout(()=>{if(!state.q&&document.activeElement!==$("#search-btn"))setSearch(false)},150)});
 $("#group").onchange=e=>{state.group=e.target.value;render()};
 $("#sort").onchange=e=>{state.sort=e.target.value;render()};
 
@@ -294,31 +477,24 @@ $("#add").onclick=()=>{
   saveDrafts(d);
   $("#f-url").value="";$("#f-title").value="";$("#f-note").value="";
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
-  renderDrafts();render();
+  renderDrafts();renderAll();
 };
 function renderDrafts(){
   const d=loadDrafts();
   $("#drafts").innerHTML=d.map((x,i)=>`<div class="draft"><span>${esc(x.date)} · ${esc(x.category)} · ${esc(x.title)}</span><button data-i="${i}" aria-label="삭제">삭제</button></div>`).join("");
-  $("#drafts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const d=loadDrafts();d.splice(+b.dataset.i,1);saveDrafts(d);renderDrafts();render();});
+  $("#drafts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const d=loadDrafts();d.splice(+b.dataset.i,1);saveDrafts(d);renderDrafts();renderAll();});
 }
 $("#export").onclick=async()=>{
   const merged=(window.VIDEOS||[]).concat(loadDrafts());
   const lines=merged.map(v=>"  "+JSON.stringify({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group,note:v.note||""})+",");
   const text=`// 쮸카이브 영상 목록 (관리자 화면에서 생성)\n// category: 무대 / 직캠 / 자컨 / 라이브 / 예능 / 라디오, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n`;
   const out=$("#out");out.value=text;out.hidden=false;
-  try{await navigator.clipboard.writeText(text);msg("복사했어요. videos.js 파일 내용을 전부 지우고 붙여넣은 뒤 다시 배포하세요. 배포 후 '미리보기 비우기'를 누르면 돼요.");}
+  try{await navigator.clipboard.writeText(text);msg("복사했어요. videos.js 파일 내용을 전부 바꾼 뒤 '미리보기 비우기'를 누르면 돼요.");}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
 };
-$("#clear").onclick=()=>{saveDrafts([]);renderDrafts();render();msg("미리보기를 비웠어요.");};
+$("#clear").onclick=()=>{saveDrafts([]);renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
 
-/* 대표 영상 */
-(function(){
-  const id=ytId(FEATURED.url);
-  if(!id){$("#hero").hidden=true;return;}
-  $("#hero-frame").outerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(FEATURED.title)}"></iframe>`;
-})();
-
-function syncAdmin(){$("#admin").hidden=!isAdmin();if(isAdmin())renderDrafts();render();}
+function syncAdmin(){$("#admin").hidden=!isAdmin();if(isAdmin()){renderDrafts();$("#admin").scrollIntoView();}renderAll();}
 window.addEventListener("hashchange",syncAdmin);
 syncAdmin();
 </script>
