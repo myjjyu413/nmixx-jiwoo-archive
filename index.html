@@ -356,6 +356,7 @@ const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"�
 const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
 const SUBS={"무대":[["main","무대"],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["etc","기타"]],
+  "숏폼":[["nmixx","엔믹스"],["cover","커버"],["etc","기타"]],
   "라이브 방송":[["comeback","컴백"],["anniv","N주년"],["solo","개인"],["unit","유닛"],["group","단체"]]};
 function subOf(x){
   if(x.sub)return x.sub;
@@ -367,6 +368,7 @@ function subOf(x){
     if(/지우|쮸|jiwoo/i.test(t))return "solo";
     return "group";
   }
+  if(x.category==="숏폼")return /cover|커버/i.test(x.title||"")?"cover":"nmixx";
   if(x.category!=="무대")return "";
   const t=x.title;
   if(/교차편집|stage ?mix/i.test(t))return "etc";
