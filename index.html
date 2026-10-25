@@ -177,7 +177,7 @@ main{padding-bottom:40px}
   </section>
 
   <section class="gut" id="videos">
-    <div class="vhead"><h2 class="row-title" id="vtitle">최근 추가</h2><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div>
+    <div class="vhead"><h2 class="row-title" id="vtitle">NEW</h2><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div>
     <div class="shelf-wrap">
       <button class="arrow prev" id="prev" aria-label="이전" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2 4 8l7 6z" fill="currentColor"/></svg></button>
       <div class="shelf" id="grid"></div>
@@ -341,7 +341,7 @@ function render(){
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
   let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
-  $("#vtitle").textContent=home?"최근 추가":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
+  $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
   v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
   if(home)v=v.slice(0,20);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
@@ -355,8 +355,9 @@ function arrows(){
 }
 $("#grid").addEventListener("scroll",()=>requestAnimationFrame(arrows),{passive:true});
 window.addEventListener("resize",arrows);
-$("#prev").onclick=()=>{const g=$("#grid");g.scrollBy({left:-g.clientWidth,behavior:"smooth"});};
-$("#next").onclick=()=>{const g=$("#grid");g.scrollBy({left:g.clientWidth,behavior:"smooth"});};
+function step(){const g=$("#grid"),c=g.querySelector(".card");return c?c.getBoundingClientRect().width+parseFloat(getComputedStyle(g).columnGap||0):g.clientWidth/3;}
+$("#prev").onclick=()=>{$("#grid").scrollBy({left:-step(),behavior:"smooth"});};
+$("#next").onclick=()=>{$("#grid").scrollBy({left:step(),behavior:"smooth"});};
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
 const SLUG={"무대 & 직캠":"stage","자컨 & 예능":"variety","라디오":"radio","라이브 방송":"live"};
