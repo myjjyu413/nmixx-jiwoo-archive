@@ -6,6 +6,8 @@ window.VIDEOS = [
   {"url":"https://youtu.be/p4Mhynamnq0","title":"[#음중풀캠] NMIXX (엔믹스) – 긴 소원(Birthday Wish) FullCam | 쇼! 음악중심 | MBC261024","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/GUQxwaML-ts","title":"NMIXX (엔믹스) - Birthday Wish (긴 소원) | Show! MusicCore | MBC261024방송","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/ESkXaz8OvNA","title":"[K-Fancam] 엔믹스 지우 직캠 '긴 소원 (Birthday Wish)' (NMIXX JIWOO Fancam) @뮤직뱅크(Music Bank) 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
+  {"url":"https://youtu.be/jWh2gEdU3pM","title":"[K-Choreo 8K] 엔믹스 직캠 '긴 소원 (Birthday Wish)' (NMIXX Choreography) @MusicBank 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
+  {"url":"https://youtu.be/K_jRuAwEBS8","title":"긴 소원 (Birthday Wish) - NMIXX [뮤직뱅크/Music Bank] | KBS 261023 방송","date":"2026-10-23","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/2et9-4peX1M","title":"'최초 공개' NMIXX - 긴 소원 (Birthday Wish) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/6Ttct0xxxts","title":"'컴백 인터뷰' NMIXX (엔믹스) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/WQLBKLrgreU","title":"[MPD직캠] 엔믹스 지우 직캠 4K '긴 소원 (Birthday Wish)' (NMIXX JIWOO FanCam) | @MCOUNTDOWN_2026.10.22","date":"2026-10-22","category":"무대","group":"단독","note":""},
