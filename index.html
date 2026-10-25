@@ -81,7 +81,13 @@ main section{padding-block:44px 0}
 .arrow:disabled{opacity:0;pointer-events:none}
 @media (max-width:640px){.arrow.prev{left:-6px}.arrow.next{right:-6px}.arrow{width:36px;height:36px}}
 .shelf>*{scroll-snap-align:start}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(240px,24vw,340px),1fr));gap:clamp(12px,1.6vw,24px)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,24px)}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}}
+.pager{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:28px}
+.pager button{min-width:40px;height:40px;padding:0 10px;border:1px solid var(--line);background:transparent;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:14px;color:var(--fg)}
+.pager button[aria-current="page"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pager button:disabled{opacity:.35;cursor:default}
 .card{background:none;border:0;padding:0;cursor:pointer;display:block;min-width:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:16/9;max-width:100%;background-color:var(--chip)}
 .card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
 .card:hover img{transform:scale(1.05)}
@@ -183,6 +189,7 @@ main{padding-bottom:40px}
       <div class="shelf" id="grid"></div>
       <button class="arrow next" id="next" aria-label="다음" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2l7 6-7 6z" fill="currentColor"/></svg></button>
     </div>
+    <nav class="pager" id="pager" aria-label="페이지" hidden></nav>
 
     <section class="admin" id="admin" hidden>
       <h2>유튜브에서 찾기</h2>
@@ -292,7 +299,8 @@ const PROFILE={
 const CATS=["무대 & 직캠","자컨 & 예능","라디오","라이브 방송"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
-let state={view:"home",cat:"전체",q:""};
+let state={view:"home",cat:"전체",q:"",page:1};
+const PER=9;
 
 function ytId(url){
   if(!url) return null;
@@ -344,6 +352,10 @@ function render(){
   $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
   v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
   if(home)v=v.slice(0,20);
+  const pages=home?1:Math.max(1,Math.ceil(v.length/PER));
+  if(state.page>pages)state.page=pages;
+  if(!home)v=v.slice((state.page-1)*PER,state.page*PER);
+  renderPager(home?1:pages);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
   g.innerHTML=v.map(cardHTML).join("");bindCards(g,v);
   requestAnimationFrame(arrows);
@@ -358,6 +370,16 @@ window.addEventListener("resize",arrows);
 function step(){const g=$("#grid"),c=g.querySelector(".card");return c?c.getBoundingClientRect().width+parseFloat(getComputedStyle(g).columnGap||0):g.clientWidth/3;}
 $("#prev").onclick=()=>{$("#grid").scrollBy({left:-step(),behavior:"smooth"});};
 $("#next").onclick=()=>{$("#grid").scrollBy({left:step(),behavior:"smooth"});};
+function renderPager(pages){
+  const n=$("#pager");n.hidden=pages<=1;if(pages<=1){n.innerHTML="";return;}
+  const p=state.page;
+  let html=`<button data-p="${p-1}" aria-label="이전 페이지" ${p<=1?"disabled":""}>‹</button>`;
+  for(let i=1;i<=pages;i++)html+=`<button data-p="${i}"${i===p?' aria-current="page"':""}>${i}</button>`;
+  html+=`<button data-p="${p+1}" aria-label="다음 페이지" ${p>=pages?"disabled":""}>›</button>`;
+  n.innerHTML=html;
+}
+$("#pager").onclick=e=>{const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
+  const base=location.hash.slice(1).split("&p=")[0];const p=+b.dataset.p;go(p>1?base+"&p="+p:base);};
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
 const SLUG={"무대 & 직캠":"stage","자컨 & 예능":"variety","라디오":"radio","라이브 방송":"live"};
@@ -385,9 +407,9 @@ function renderInsta(){
 function goProfile(){go("profile");}
 function goHome(){$("#mq").value="";if(location.hash){history.pushState(null,"",location.pathname+location.search);}route();}
 function route(){
-  const h=location.hash.slice(1);
-  const prev=state.view+state.cat+state.q;
-  state.cat="전체";state.q="";
+  const [h,pg]=location.hash.slice(1).split("&p=");
+  const prev=state.view+state.cat+state.q+state.page;
+  state.cat="전체";state.q="";state.page=Math.max(1,parseInt(pg)||1);
   if(h==="profile")state.view="profile";
   else if(h==="sns")state.view="insta";
   else if(h==="all")state.view="list";
@@ -397,7 +419,7 @@ function route(){
   if(isAdmin())renderDrafts();
   render();
   if(isAdmin())$("#admin").scrollIntoView();
-  else if(prev!==state.view+state.cat+state.q)window.scrollTo(0,0);
+  else if(prev!==state.view+state.cat+state.q+state.page)window.scrollTo(0,0);
 }
 $("#vclear").onclick=goHome;
 $("#iclear").onclick=goHome;
