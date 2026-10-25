@@ -58,7 +58,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 body.is-home{--stage:min(1180px,calc((100svh - var(--hchrome,262px)) * 4 / 3))}
 body.is-home #videos{max-width:calc(var(--stage) + 2*var(--gut));padding-top:28px}
 body.is-home .row-title{font-size:clamp(18px,1.8vw,24px);margin-bottom:12px}
-#videos,#profile,#insta{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
+#videos,#profile,#insta,#board{max-width:calc(1180px + 2*var(--gut));margin-inline:auto}
 .hero-frame{aspect-ratio:16/9;max-width:100%;background:#000;overflow:hidden}
 .hero-frame iframe{width:100%;height:100%;border:0;display:block}
 .hero-cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-top:14px}
@@ -123,6 +123,25 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 .vnone{color:var(--muted);margin:0}
+/* 게시판 */
+.bform{background:var(--surface);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.bform input:not([type=checkbox]),.bform textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font:inherit;color:var(--fg)}
+.bform textarea{resize:vertical;min-height:72px}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px}
+.bbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bsecret{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer}.bsecret small{font-weight:400;color:var(--muted)}
+.bmsg{flex:1;font-size:13px;color:var(--muted);text-align:right}
+.bwall{columns:3 260px;column-gap:16px}
+.note{break-inside:avoid;background:var(--surface);border-radius:12px;padding:14px 16px;margin:0 0 16px;display:flex;flex-direction:column;gap:8px}
+.note.secret{background:var(--chip)}
+.note .nh{display:flex;align-items:baseline;gap:8px}.note .nn{font-weight:700}.note .nd{font-size:12px;color:var(--muted);flex:1}
+.note .nb{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14.5px}
+.note .nb.locked{color:var(--muted);font-style:italic}
+.note .na{display:flex;gap:10px;justify-content:flex-end}.note .na button{border:0;background:none;padding:0;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}.note .na button:hover{color:var(--fg);text-decoration:underline}
+.note .nx{display:flex;flex-direction:column;gap:8px}.note .nx input:not([type=checkbox]),.note .nx textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--fg)}
+.note .nx .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.note .nx .row .sp{flex:1;font-size:12px;color:#a33}
+.bmore{text-align:center;margin-top:8px}
+@media (max-width:520px){.brow{grid-template-columns:minmax(0,1fr)}}
 .igrid{columns:3 300px;column-gap:18px}
 .igrid>.sns{break-inside:avoid;margin:0 0 18px}
 .igrid .sns>*{min-width:0!important;max-width:100%!important;margin:0!important}
@@ -155,6 +174,88 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .mlist button,.mlist a{display:block;text-decoration:none;border:0;background:none;cursor:pointer;font-weight:600;font-size:17px;letter-spacing:.02em;padding:9px 0;text-align:left;width:100%;color:var(--fg);transition:color .15s,transform .15s}
 .mlist button:hover,.mlist a:hover{color:var(--logo);transform:translateX(4px)}
 .mlist .en{font-family:var(--latin);font-size:12px;letter-spacing:.16em;color:var(--muted);margin-left:12px;vertical-align:middle;font-weight:600}
+
+
+/* 게시판 (Supabase) — url/key 는 공개용 값이라 코드에 넣어도 괜찮아요 */
+const BOARD={url:"",key:""};
+const BAKEY="jiwoo-archive-boardadmin";
+function boardAdminPw(){if(!adminMode())return null;try{return localStorage.getItem(BAKEY)||null}catch(e){return null}}
+async function rpc(fn,args){
+  const h={"Content-Type":"application/json",apikey:BOARD.key};if(/^eyJ/.test(BOARD.key))h.Authorization="Bearer "+BOARD.key;
+  const r=await fetch(BOARD.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:h,body:JSON.stringify(args)});
+  const t=await r.text();let j=null;try{j=JSON.parse(t)}catch(e){}
+  if(!r.ok){const m=(j&&(j.message||j.hint))||("HTTP "+r.status);throw new Error(m);}
+  return j;
+}
+function bErr(e){const m=String(e&&e.message||e);
+  if(/WRONG_PW/.test(m))return "비밀번호가 맞지 않아요.";if(/SHORT_PW/.test(m))return "비밀번호는 4자 이상으로 해 주세요.";
+  if(/TOO_MANY/.test(m))return "글이 너무 많이 올라오고 있어요. 잠시 뒤에 다시 해 주세요.";if(/EMPTY/.test(m))return "내용을 적어 주세요.";
+  return "문제가 생겼어요: "+m;}
+const bState={posts:[],loaded:false,more:false,busy:false};
+function kdate(d){const t=new Date(d);const p=n=>String(n).padStart(2,"0");return `${t.getFullYear()}.${p(t.getMonth()+1)}.${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;}
+function noteHTML(p){
+  const locked=p.secret&&p.body==null;
+  return `<article class="note${p.secret?" secret":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
+    `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
+    `<div class="na"><button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
+}
+function drawBoard(){
+  const w=$("#bwall");
+  w.innerHTML=bState.posts.length?bState.posts.map(noteHTML).join(""):`<p class="vnone">아직 글이 없어요. 첫 글을 남겨 주세요!</p>`;
+  $("#bmore").hidden=!bState.more;
+}
+async function loadBoard(more){
+  if(!BOARD.url||!BOARD.key){$("#bwall").innerHTML=`<p class="vnone">게시판을 준비하고 있어요.</p>`;$("#bform").hidden=true;return;}
+  if(bState.busy)return;bState.busy=true;
+  try{
+    const before=more&&bState.posts.length?bState.posts[bState.posts.length-1].id:null;
+    const rows=await rpc("board_list",{p_admin:boardAdminPw(),p_before:before,p_limit:60})||[];
+    bState.posts=more?bState.posts.concat(rows):rows;bState.more=rows.length===60;bState.loaded=true;drawBoard();
+  }catch(e){$("#bwall").innerHTML=`<p class="vnone">${esc(bErr(e))}</p>`;}
+  finally{bState.busy=false;}
+}
+function renderBoard(){$("#bform").hidden=!(BOARD.url&&BOARD.key);loadBoard(false);}
+$("#bmore").onclick=()=>loadBoard(true);
+$("#bform").addEventListener("submit",async e=>{
+  e.preventDefault();const msg=$("#b-msg");
+  const name=$("#b-name").value.trim(),pw=$("#b-pw").value,body=$("#b-body").value.trim(),secret=$("#b-secret").checked;
+  if(!name||!body){msg.textContent="닉네임과 내용을 적어 주세요.";return;}
+  if(pw.length<4){msg.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
+  $("#b-send").disabled=true;msg.textContent="올리는 중…";
+  try{await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});
+    $("#b-body").value="";$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";
+    try{localStorage.setItem("jiwoo-archive-boardname",name)}catch(e){}
+    await loadBoard(false);
+  }catch(err){msg.textContent=bErr(err);}
+  finally{$("#b-send").disabled=false;}
+});
+try{const n=localStorage.getItem("jiwoo-archive-boardname");if(n)$("#b-name").value=n;}catch(e){}
+$("#bwall").addEventListener("click",async e=>{
+  const b=e.target.closest("button");if(!b)return;
+  const art=b.closest(".note"),id=+art.dataset.id,x=art.querySelector(".nx"),p=bState.posts.find(q=>q.id===id);
+  const a=b.dataset.a,apw=boardAdminPw();
+  const askPw=(label,next)=>{x.hidden=false;x.innerHTML=`<div class="row"><input type="password" class="xpw" placeholder="글 비밀번호"><button class="btn" data-a="${next}">${label}</button><button class="btn" data-a="cancel">취소</button></div><div class="row"><span class="sp"></span></div>`;x.querySelector(".xpw").focus();};
+  const err=m=>{const sp=x.querySelector(".sp");if(sp)sp.textContent=m;};
+  const openEdit=async pw=>{
+    try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];
+      x.hidden=false;x.dataset.pw=pw;
+      x.innerHTML=`<textarea class="xbody" maxlength="1000" rows="4">${esc(r.body)}</textarea><div class="row"><label class="bsecret"><input type="checkbox" class="xsec"${r.secret?" checked":""}> 비밀글</label><span class="sp"></span><button class="btn primary" data-a="save">저장</button><button class="btn" data-a="cancel">취소</button></div>`;
+    }catch(e2){err(bErr(e2));}
+  };
+  const doDel=async pw=>{if(!confirm("이 글을 지울까요?"))return;try{await rpc("board_delete",{p_id:id,p_pw:pw});bState.posts=bState.posts.filter(q=>q.id!==id);drawBoard();}catch(e2){err(bErr(e2));}};
+  if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
+  if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
+  if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
+  if(a==="edit-ok"){openEdit(x.querySelector(".xpw").value);return;}
+  if(a==="del-ok"){doDel(x.querySelector(".xpw").value);return;}
+  if(a==="save"){
+    const body=x.querySelector(".xbody").value.trim(),sec=x.querySelector(".xsec").checked;
+    try{await rpc("board_edit",{p_id:id,p_pw:x.dataset.pw,p_body:body,p_secret:sec});Object.assign(p,{body,secret:sec,updated_at:new Date().toISOString()});drawBoard();}catch(e2){err(bErr(e2));}
+  }
+});
+$("#bwall").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList.contains("xpw")){e.preventDefault();e.target.parentNode.querySelector("button").click();}});
+try{$("#b-admin").value=localStorage.getItem(BAKEY)||"";}catch(e){}
+$("#b-admin").addEventListener("change",()=>{try{const v=$("#b-admin").value;if(v)localStorage.setItem(BAKEY,v);else localStorage.removeItem(BAKEY);}catch(e){}});
 
 /* 재생창 */
 .modal{position:fixed;inset:0;background:rgba(18,14,32,.84);display:grid;place-items:center;z-index:70;
@@ -250,6 +351,9 @@ main{padding-bottom:40px}
     </div>
 
     <section class="admin" id="admin" hidden>
+      <h2>게시판 관리자</h2>
+      <p class="hint">Supabase에 설정한 관리자 비밀번호를 넣어 두면, 관리자 모드에서 비밀글이 보이고 모든 글을 고치거나 지울 수 있어요. 이 브라우저에만 저장돼요.</p>
+      <div class="form"><label class="wide">관리자 비밀번호<input id="b-admin" type="password" autocomplete="off"></label></div>
       <h2>유튜브에서 찾기</h2>
       <p class="hint">API 키는 이 브라우저에만 저장되고 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
@@ -291,6 +395,17 @@ main{padding-bottom:40px}
   <section class="gut" id="insta" hidden>
     <div class="vhead"><h2 class="row-title">SNS</h2><button class="vclear" id="iclear" aria-label="메인으로">×</button></div>
     <div class="igrid" id="igrid"></div>
+  </section>
+
+  <section class="gut" id="board" hidden>
+    <div class="vhead"><h2 class="row-title">게시판</h2><button class="vclear" id="bclear" aria-label="메인으로">×</button></div>
+    <form class="bform" id="bform" autocomplete="off">
+      <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" required><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required></div>
+      <textarea id="b-body" maxlength="1000" rows="3" placeholder="자유롭게 남겨 주세요" required></textarea>
+      <div class="bbar"><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label><span class="bmsg" id="b-msg" role="status"></span><button type="submit" class="btn primary" id="b-send">등록</button></div>
+    </form>
+    <div class="bwall" id="bwall"></div>
+    <div class="bmore"><button class="btn" id="bmore" hidden>더 보기</button></div>
   </section>
 
   <section class="gut" id="profile" hidden>
@@ -470,17 +585,19 @@ function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()
 /* 화면: home(대표 영상 + 최근 추가) / list(메뉴의 카테고리·검색) / profile */
 function render(){
   const list=all();
-  const home=state.view==="home",prof=state.view==="profile",ins=state.view==="insta";
+  const home=state.view==="home",prof=state.view==="profile",ins=state.view==="insta",brd=state.view==="board";
   $("#hero").hidden=!home;
   document.body.classList.toggle("is-home",home);
-  $("#videos").hidden=prof||ins;
+  $("#videos").hidden=prof||ins||brd;
   $("#insta").hidden=!ins;
+  $("#board").hidden=!brd;
   $("#profile").hidden=!prof;
   $("#vclear").hidden=home;
   $("#csearch").hidden=true;
-  {const R=document.documentElement,lv=!home&&!prof&&!ins,vt=lv&&!state.q&&state.cat==="숏폼";
+  {const R=document.documentElement,lv=!home&&!prof&&!ins&&!brd,vt=lv&&!state.q&&state.cat==="숏폼";
    R.classList.toggle("shortsview",vt);R.classList.toggle("listfit",lv&&!vt&&!isAdmin());R.classList.toggle("fitview",home||(lv&&!isAdmin()));
-   if(prof||ins)fitPage();}
+   if(prof||ins||brd)fitPage();}
+  if(brd){renderBoard();return;}
   if(ins){renderInsta();return;}
   if(prof)return;
   const g=$("#grid");
@@ -596,6 +713,7 @@ function route(){
   state.cat="전체";state.q="";state.cq=prm.q||"";state.sub=prm.s||"";state.page=Math.max(1,parseInt(prm.p)||1);
   if(h==="profile")state.view="profile";
   else if(h==="sns")state.view="insta";
+  else if(h==="board")state.view="board";
   else if(h==="all")state.view="list";
   else if(h.startsWith("search=")){state.view="list";try{state.q=decodeURIComponent(h.slice(7))}catch(e){state.q=h.slice(7)}}
   else{const c=Object.keys(SLUG).find(k=>SLUG[k]===h);state.view=c?"list":"home";if(c)state.cat=c;}
@@ -608,6 +726,7 @@ function route(){
 }
 $("#vclear").onclick=goHome;
 $("#iclear").onclick=goHome;
+$("#bclear").onclick=goHome;
 
 /* 프로필 */
 (function(){
@@ -626,7 +745,8 @@ $("#iclear").onclick=goHome;
 /* 메뉴 */
 const MENU=[["프로필",goProfile],
   ...CATS.map(c=>[c,()=>goVideos({cat:c})]),
-  ["SNS",goInsta]];
+  ["SNS",goInsta],
+  ["게시판",()=>go("board")]];
 $("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${esc(m[0])}</button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][1]();});
 function openMenu(){$("#menu").hidden=false;$("#mback").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";}
