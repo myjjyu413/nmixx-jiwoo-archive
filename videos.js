@@ -1,10 +1,11 @@
 // 쮸카이브 영상 목록
-// category: 무대 / 예능 / 라디오 / 숏폼 / 라이브 방송, group: 단독 / 단체
+// category: 무대 & 직캠 / 자컨 & 예능 / 라디오 / 라이브 방송, group: 단독 / 단체
 
 window.VIDEOS = [
   {"url":"https://youtu.be/a3nfknkbOcs","title":"긴 소원 (Birthday Wish) - NMIXX | SBS 261025 방송","date":"2026-10-25","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/p4Mhynamnq0","title":"[#음중풀캠] NMIXX (엔믹스) – 긴 소원(Birthday Wish) FullCam | 쇼! 음악중심 | MBC261024","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/GUQxwaML-ts","title":"NMIXX (엔믹스) - Birthday Wish (긴 소원) | Show! MusicCore | MBC261024방송","date":"2026-10-24","category":"무대","group":"단독","note":""},
+  {"url":"https://youtu.be/ESkXaz8OvNA","title":"[K-Fancam] 엔믹스 지우 직캠 '긴 소원 (Birthday Wish)' (NMIXX JIWOO Fancam) @뮤직뱅크(Music Bank) 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/2et9-4peX1M","title":"'최초 공개' NMIXX - 긴 소원 (Birthday Wish) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/6Ttct0xxxts","title":"'컴백 인터뷰' NMIXX (엔믹스) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/dqQWHxcGIt0","title":"[VLF] NMIXX - Blue Valentine | MBC 버추얼 라이브 페스티벌 with CoupangPlay","date":"2026-08-13","category":"무대","group":"단독","note":""},

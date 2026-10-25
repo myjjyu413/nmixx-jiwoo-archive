@@ -691,7 +691,7 @@ $("#add").onclick=()=>{
   const st=ytStatus(ytId(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const d=loadDrafts();
-  d.push({url,title,date:$("#f-date").value,category:$("#f-cat").value,group:$("#f-group").value,note:$("#f-note").value.trim()});
+  d.push({url:"https://youtu.be/"+ytId(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:$("#f-group").value,note:$("#f-note").value.trim()});
   saveDrafts(d);
   $("#f-url").value="";$("#f-title").value="";$("#f-note").value="";
   msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
