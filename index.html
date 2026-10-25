@@ -159,6 +159,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .player.vertical{width:min(420px,100%,calc((100svh - 250px) * 9 / 16))}
 .player.vertical .frame{aspect-ratio:9/16;background:#000}
 .ttprev{position:absolute;inset:0;overflow:hidden;background:#111}.ttprev::after{content:"";position:absolute;inset:0}.ttprev iframe{border:0;width:200%;height:200%;transform:scale(.5);transform-origin:0 0;pointer-events:none}
+.plink{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none}.plink:hover{text-decoration:underline}.ttph small{font-size:11px;opacity:.7;margin-top:4px}
 .ptag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.02em}
 .igph{flex-direction:column;gap:2px;background:linear-gradient(135deg,#feda75,#d62976 50%,#4f5bd5);color:#fff!important;font-family:var(--latin)!important}
 .ttph{flex-direction:column;background:#111;color:#fff!important;font-family:var(--latin)!important}.ttph b{font-size:18px;text-shadow:2px 2px 0 #fe2c55,-2px -2px 0 #25f4ee}
@@ -315,7 +316,7 @@ main{padding-bottom:40px}
     <button class="close" id="close" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
     <div class="pbox">
       <div class="frame" id="frame"></div>
-      <div class="info"><h3 id="p-title"></h3></div>
+      <div class="info"><h3 id="p-title"></h3><a id="p-link" class="plink" target="_blank" rel="noopener" hidden></a></div>
     </div>
   </div>
 </div>
@@ -403,6 +404,7 @@ async function ttInfo(url){
   }
   return {};
 }
+function ttFail(img){const ph=document.createElement("span");ph.className="nothumb ttph";ph.innerHTML="<b>TikTok</b><small>썸네일 준비 중</small>";img.replaceWith(ph);}
 function loadTTThumbs(root){
   root.querySelectorAll("img[data-tt]").forEach(async img=>{
     const u=img.dataset.tt,c=ttThumbs();
@@ -438,7 +440,7 @@ function dispTitle(x){
 function cardHTML(x,i){
   const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
   const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':"";
-  const img=pf==="tt"&&ttId(x.url)?`<span class="ttprev"><iframe loading="lazy" tabindex="-1" aria-hidden="true" title="" scrolling="no" src="https://www.tiktok.com/player/v1/${ttId(x.url)}?autoplay=0&muted=1&controls=0&progress_bar=0&play_button=0&volume_control=0&fullscreen_button=0&timestamp=0&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0"></iframe></span>`+tag:pf==="ig"?`<div class="nothumb igph"><b>Instagram</b><small>릴스</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<div class="nothumb igph"><b>Instagram</b><small>릴스</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
@@ -612,6 +614,7 @@ function openVideo(x){
   $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
   $("#frame").innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=dispTitle(x);
+  const pl=$("#p-link");pl.hidden=pf==="yt";if(pf!=="yt"){pl.href=x.url;pl.textContent=(pf==="tt"?"TikTok":"Instagram")+"에서 보기 ↗";}
   $("#modal").hidden=false;$("#close").focus();
 }
 
