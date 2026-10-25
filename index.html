@@ -96,6 +96,13 @@ main section{padding-block:44px 0}
 .card .ct{font-size:14px;font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;min-height:2.8em}
 .card:hover .ct{color:var(--accent)}
 .vhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vhead{margin-bottom:16px}
+.vhead .row-title{margin:0}
+body.is-home .vhead{margin-bottom:12px}
+.vtools{display:flex;align-items:center;gap:10px;min-width:0}
+.csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
+.csearch svg{width:18px;height:18px;flex:none;color:var(--muted)}
+.csearch input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:14px}
 .vclear{border:1px solid var(--line);background:transparent;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:20px;line-height:1;flex:none}
 .vnone{color:var(--muted);margin:0}
 .igrid{columns:3 300px;column-gap:18px}
@@ -186,7 +193,7 @@ main{padding-bottom:40px}
   </section>
 
   <section class="gut" id="videos">
-    <div class="vhead"><h2 class="row-title" id="vtitle">NEW</h2><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div>
+    <div class="vhead"><h2 class="row-title" id="vtitle">NEW</h2><div class="vtools"><form class="csearch" id="csearch" role="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><input id="cq" type="search" placeholder="이 카테고리에서 검색" aria-label="이 카테고리에서 검색" autocomplete="off"></form><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div></div>
     <div class="shelf-wrap">
       <button class="arrow prev" id="prev" aria-label="이전" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2 4 8l7 6z" fill="currentColor"/></svg></button>
       <div class="shelf" id="grid"></div>
@@ -303,7 +310,7 @@ const PROFILE={
 const CATS=["무대 & 직캠","자컨 & 예능","라디오","라이브 방송"];
 const KEY="jiwoo-archive-drafts";
 const $=s=>document.querySelector(s);
-let state={view:"home",cat:"전체",q:"",page:1};
+let state={view:"home",cat:"전체",q:"",cq:"",page:1};
 const PER=9;
 
 function ytId(url){
@@ -346,13 +353,18 @@ function render(){
   $("#insta").hidden=!ins;
   $("#profile").hidden=!prof;
   $("#vclear").hidden=home;
+  $("#csearch").hidden=true;
   if(ins){renderInsta();return;}
   if(prof)return;
   const g=$("#grid");
   g.className=home?"shelf":"grid";
   $("#prev").hidden=$("#next").hidden=!home;g.scrollLeft=0;
   const q=state.q.trim().toLowerCase();
-  let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q)));
+  const cq=state.cq.trim().toLowerCase();
+  const catView=!home&&!state.q;
+  $("#csearch").hidden=!catView;
+  if(catView&&$("#cq").value!==state.cq&&document.activeElement!==$("#cq"))$("#cq").value=state.cq;
+  let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q))&&(!catView||!cq||(x.title+" "+(x.note||"")).toLowerCase().includes(cq)));
   $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:(state.cat==="전체"?"전체 영상":state.cat));
   v=[...v].sort((a,b)=>String(b.date).localeCompare(a.date));
   if(home)v=v.slice(0,20);
@@ -384,7 +396,11 @@ function renderPager(pages){
   n.innerHTML=html;
 }
 $("#pager").onclick=e=>{const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
-  const base=location.hash.slice(1).split("&p=")[0];const p=+b.dataset.p;go(p>1?base+"&p="+p:base);};
+  const p=+b.dataset.p;go(hashFor(p));};
+function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
+let cqT;
+$("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
+$("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
 const SLUG={"무대 & 직캠":"stage","자컨 & 예능":"variety","라디오":"radio","라이브 방송":"live"};
@@ -412,9 +428,10 @@ function renderInsta(){
 function goProfile(){go("profile");}
 function goHome(){$("#mq").value="";if(location.hash){history.pushState(null,"",location.pathname+location.search);}route();}
 function route(){
-  const [h,pg]=location.hash.slice(1).split("&p=");
+  const parts=location.hash.slice(1).split("&");const h=parts[0];
+  const prm={};parts.slice(1).forEach(x=>{const i=x.indexOf("=");if(i>0){try{prm[x.slice(0,i)]=decodeURIComponent(x.slice(i+1))}catch(e){prm[x.slice(0,i)]=x.slice(i+1)}}});
   const prev=state.view+state.cat+state.q+state.page;
-  state.cat="전체";state.q="";state.page=Math.max(1,parseInt(pg)||1);
+  state.cat="전체";state.q="";state.cq=prm.q||"";state.page=Math.max(1,parseInt(prm.p)||1);
   if(h==="profile")state.view="profile";
   else if(h==="sns")state.view="insta";
   else if(h==="all")state.view="list";
