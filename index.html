@@ -159,6 +159,10 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 
 /* 관리자 */
 .cardw{display:flex;flex-direction:column;gap:6px;min-width:0}
+.erow{display:flex;gap:6px}
+.erow select{flex:1;min-width:0}
+.esub{padding:6px 8px;border:1px dashed var(--accent);border-radius:6px;background:var(--surface);font-size:13px;color:var(--fg)}
+.cardw.edited .esub{border-style:solid}
 .ecat{width:100%;padding:6px 8px;border:1px dashed var(--accent);border-radius:6px;background:var(--surface);font-size:13px;color:var(--fg)}
 .cardw.edited .ecat{border-style:solid;background:var(--butter)}
 .cardw.deleted .card{opacity:.35}
@@ -370,7 +374,7 @@ function loadEdits(){try{return JSON.parse(localStorage.getItem(EKEY))||{}}catch
 function saveEdits(o){try{localStorage.setItem(EKEY,JSON.stringify(o))}catch(e){}}
 function all(){
   const am=adminMode(),ed=am?loadEdits():{};
-  const base=(window.VIDEOS||[]).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.delete)return {...v,_del:true};return {...v,category:normCat(e.category)||v.category,_edited:true};});
+  const base=(window.VIDEOS||[]).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.delete)return {...v,_del:true};const o={...v,_edited:true};if(e.category)o.category=normCat(e.category);if(e.sub)o.sub=e.sub;return o;});
   const drafts=am?loadDrafts().map(v=>({...v,category:normCat(v.category),_draft:true})):[];
   return base.concat(drafts);
 }
@@ -383,7 +387,9 @@ function cardHTML(x,i){
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(x.title)}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
-  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<select class="ecat" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="카테고리 바꾸기">${opts}</select></div>`;
+  const sl=SUBS[x.category];
+  const subSel=sl&&!x._del?`<select class="esub" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===subOf(x)?" selected":""}>${esc(n)}</option>`).join("")}</select>`:"";
+  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]))}
 
@@ -743,7 +749,8 @@ function pruneDrafts(){
   const ed=loadEdits();let ch=false;
   for(const u of Object.keys(ed)){const v=(window.VIDEOS||[]).find(x=>x.url===u);
     if(!v&&!ed[u].delete){delete ed[u];ch=true;continue;}
-    if(v&&ed[u].category&&normCat(v.category)===normCat(ed[u].category)){delete ed[u];ch=true;}
+    if(v&&!ed[u].delete){const e={...ed[u]};if(e.category&&normCat(v.category)===normCat(e.category))delete e.category;if(e.sub&&v.sub===e.sub)delete e.sub;
+      if(JSON.stringify(e)!==JSON.stringify(ed[u])){ch=true;if(Object.keys(e).length)ed[u]=e;else delete ed[u];}}
     if(!v&&ed[u].delete){delete ed[u];ch=true;}}
   if(ch)saveEdits(ed);
   return d.length-keep.length;
@@ -759,7 +766,7 @@ $("#export").onclick=async()=>{
   const merged=loadDrafts().filter(v=>!have.has(v.url));
   const ed=loadEdits();const ekeys=Object.keys(ed).filter(u=>have.has(u));
   if(!merged.length&&!ekeys.length){msg("새로 추가하거나 고친 영상이 없어요.");return;}
-  const lines=merged.map(v=>"  "+JSON.stringify({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group,note:v.note||""})+",");
+  const lines=merged.map(v=>"  "+JSON.stringify(Object.assign({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group||"단독",note:v.note||""},v.sub?{sub:v.sub}:{}))+",");
   const elines=ekeys.map(u=>"  "+JSON.stringify(u)+": "+JSON.stringify(ed[u])+",");
   const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: 무대 / 예능 / 라디오 / 인터뷰 / 숏폼 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
   const out=$("#out");out.value=text;out.hidden=false;
@@ -770,11 +777,17 @@ $("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-date
 $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
 /* 카드 아래 카테고리 바꾸기 */
 document.addEventListener("change",e=>{
-  const sel=e.target.closest(".ecat");if(!sel)return;
-  const url=sel.dataset.url,val=sel.value;
-  if(sel.dataset.draft){const d=loadDrafts();const it=d.find(v=>v.url===url);if(it){if(val==="__del")d.splice(d.indexOf(it),1);else it.category=val;saveDrafts(d);}}
-  else{const ed=loadEdits();const orig=(window.VIDEOS||[]).find(v=>v.url===url);
-    if(val==="__del")ed[url]={delete:true};else if(orig&&orig.category===val)delete ed[url];else ed[url]={category:val};saveEdits(ed);}
+  const sel=e.target.closest(".ecat,.esub");if(!sel)return;
+  const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub");
+  if(sel.dataset.draft){const d=loadDrafts();const it=d.find(v=>v.url===url);
+    if(it){if(isSub)it.sub=val;else if(val==="__del")d.splice(d.indexOf(it),1);else{it.category=val;delete it.sub;}saveDrafts(d);}}
+  else{
+    const ed=loadEdits();const orig=(window.VIDEOS||[]).find(v=>v.url===url);const o0=orig?{...orig,category:normCat(orig.category)}:null;
+    let cur={...(ed[url]||{})};delete cur.delete;
+    if(!isSub&&val==="__del")cur={delete:true};
+    else if(!isSub){cur.category=val;delete cur.sub;if(o0&&o0.category===val)delete cur.category;}
+    else{cur.sub=val;const base={...o0,category:cur.category||o0.category};delete base.sub;if(!o0.sub&&subOf(base)===val)delete cur.sub;if(o0.sub===val)delete cur.sub;}
+    if(Object.keys(cur).length)ed[url]=cur;else delete ed[url];saveEdits(ed);}
   if(isAdmin())renderDrafts();render();updateBadge();
 });
 function updateBadge(){
