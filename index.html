@@ -514,7 +514,7 @@ function render(){
   $("#vclear").hidden=home;
   $("#csearch").hidden=true;
   {const R=document.documentElement,lv=!home&&!prof&&!ins&&!brd,vt=lv&&!state.q&&state.cat==="숏폼";
-   R.classList.toggle("shortsview",vt);R.classList.toggle("listfit",lv&&!vt&&!isAdmin());R.classList.toggle("fitview",home||(lv&&!isAdmin()));
+   R.classList.toggle("shortsview",vt);R.classList.toggle("listfit",lv&&!vt&&!isAdmin());R.classList.toggle("fitview",(home||lv)&&!isAdmin());
    if(prof||ins||brd)fitPage();}
   if(brd){renderBoard();return;}
   if(ins){renderInsta();return;}
