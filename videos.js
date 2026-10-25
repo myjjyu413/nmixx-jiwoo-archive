@@ -10,6 +10,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/jWh2gEdU3pM","title":"[K-Choreo 8K] 엔믹스 직캠 '긴 소원 (Birthday Wish)' (NMIXX Choreography) @MusicBank 261023","date":"2026-10-24","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/7Vw-3sCHFAU","title":"[SUB] 승부욕 폭발! 엔믹스의 철야 방석 퀴즈 🔥 | 아이돌 인간극장","date":"2026-10-24","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/LYr6-EQdmy0","title":"엔믹스 (NMIXX Interview) l @MusicBank KBS 261023","date":"2026-10-24","category":"인터뷰","group":"단독","note":""},
+  {"url":"https://www.tiktok.com/@nmixx_official/video/7700227996489190674","title":"#LIGHTSUM #JUHYEON 위한 긴 소원을 빌게🤍ᴍʏ ᴊᴊᴜ&ᴊᴊʏᴜ #NMIXX #JIWOO #긴소원_BirthdayWish","date":"2026-10-24","category":"숏폼","group":"단독","note":""},
   {"url":"https://youtu.be/K_jRuAwEBS8","title":"긴 소원 (Birthday Wish) - NMIXX [뮤직뱅크/Music Bank] | KBS 261023 방송","date":"2026-10-23","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/GuPHj8gOyLk","title":"스포티파이의 뮤즈를 찾습니다. 조건은 NMIXX(엔믹스)일 것 💍ㅣ스포티파이 K-Pop ON! RECORD","date":"2026-10-23","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/2et9-4peX1M","title":"'최초 공개' NMIXX - 긴 소원 (Birthday Wish) #엠카운트다운 EP.950 | Mnet 261022 방송","date":"2026-10-22","category":"무대","group":"단독","note":""},

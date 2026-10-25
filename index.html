@@ -760,6 +760,8 @@ $("#f-title").addEventListener("input",fSubHint);$("#f-cat").addEventListener("c
 $("#f-date").value=new Date().toISOString().slice(0,10);
 function msg(t){$("#msg").textContent=t}
 $("#f-url").addEventListener("change",async()=>{
+  /* 임베드 코드를 통째로 붙여넣어도 링크만 뽑아 써요 */
+  {const v=$("#f-url").value;if(/<blockquote|<iframe/i.test(v)){const m=v.match(/cite="([^"]+)"/i)||v.match(/data-instgrm-permalink="([^"]+)"/i)||v.match(/src="([^"]+)"/i);if(m)$("#f-url").value=m[1];}}
   const raw=$("#f-url").value.trim(),pf=platOf(raw),key0=vidKey(raw);
   if(/vm\.tiktok\.com|vt\.tiktok\.com|tiktok\.com\/t\//i.test(raw)){msg("틱톡 짧은 링크는 못 읽어요. 틱톡 앱이나 웹에서 영상을 연 뒤 주소창의 긴 주소(…/@계정/video/숫자)를 넣어 주세요.");return;}
   if(!key0){msg("유튜브·틱톡·인스타그램 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
