@@ -172,12 +172,14 @@ main{padding-bottom:72px}
       <p class="hint">API 키는 이 브라우저에만 저장되고 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
         <label class="wide">API 키<input id="yt-key" type="password" placeholder="AIza로 시작하는 키" autocomplete="off"></label>
-        <label class="wide">검색어<input id="yt-q" value="#지우 #NMIXX"></label>
-        <label>정렬<select id="yt-order"><option value="relevance">관련성</option><option value="date">최신순</option><option value="viewCount">조회수</option></select></label>
+        <label>찾는 방식<select id="yt-mode"><option value="search">유튜브 전체 검색</option><option value="channel">특정 채널 안에서</option></select></label>
+        <label class="wide" id="yt-ch-wrap" hidden>채널<input id="yt-ch" placeholder="채널 주소 또는 @아이디 (예: @NMIXX_official)"></label>
+        <label class="wide"><span id="yt-q-label">검색어</span><input id="yt-q" value="#지우 #NMIXX"></label>
+        <label id="yt-order-wrap">정렬<select id="yt-order"><option value="relevance">관련성</option><option value="date">최신순</option><option value="viewCount">조회수</option></select></label>
         <label>기간 시작<input id="yt-after" type="date"></label>
         <label>기간 끝<input id="yt-before" type="date"></label>
       </div>
-      <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button></div>
+      <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button></div>
       <p class="msg" id="yt-msg"></p>
       <div class="ytres" id="yt-res"></div>
 
@@ -412,47 +414,96 @@ document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("#modal
 
 
 /* 유튜브에서 찾기 (관리자) */
-const YTK="jiwoo-archive-ytkey";
+const YTK="jiwoo-archive-ytkey",YT="https://www.googleapis.com/youtube/v3/";
 try{$("#yt-key").value=localStorage.getItem(YTK)||""}catch(e){}
-let ytNext="",ytItems=[];
+let ytNext="",ytItems=[],ytStop=false;
 function ytMsg(t){$("#yt-msg").textContent=t}
 function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
+function ytKey(){const k=$("#yt-key").value.trim();if(k){try{localStorage.setItem(YTK,k)}catch(e){}}return k;}
+async function ytGet(path,params){
+  const r=await fetch(YT+path+"?"+new URLSearchParams({...params,key:ytKey()}));
+  const j=await r.json();
+  if(j.error)throw new Error(j.error.message||"요청이 거절됐어요.");
+  return j;
+}
+function syncMode(){
+  const ch=$("#yt-mode").value==="channel";
+  $("#yt-ch-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
+  $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (| 로 여러 개, 비우면 전부)":"검색어";
+  if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="지우|JIWOO|Jiwoo";
+  if(!ch&&$("#yt-q").value==="지우|JIWOO|Jiwoo")$("#yt-q").value="#지우 #NMIXX";
+  $("#yt-go").textContent=ch?"가져오기":"검색";
+}
+$("#yt-mode").onchange=syncMode;
+function ytShow(list,append){
+  if(!append){ytItems=[];$("#yt-res").innerHTML="";}
+  const have=new Set(all().map(v=>ytId(v.url)));
+  const start=ytItems.length;ytItems=ytItems.concat(list);
+  $("#yt-res").insertAdjacentHTML("beforeend",list.map((it,k)=>{
+    const dup=have.has(it.id);
+    return `<div class="yt"><a href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" alt=""></a>
+      <div class="t">${esc(it.title)}</div><div class="c">${esc(it.date.replaceAll("-","."))} · ${esc(it.channel)}</div>
+      <div class="row"><select aria-label="카테고리">${CATS.map(c=>`<option>${c}</option>`).join("")}</select><button data-k="${start+k}" ${dup?"disabled":""}>${dup?"추가됨":"추가"}</button></div></div>`;
+  }).join(""));
+}
+function inRange(date){
+  const a=$("#yt-after").value,b=$("#yt-before").value;
+  return (!a||date>=a)&&(!b||date<=b);
+}
 async function ytSearch(more){
-  const key=$("#yt-key").value.trim();
-  if(!key){ytMsg("API 키를 넣어 주세요.");return;}
-  try{localStorage.setItem(YTK,key)}catch(e){}
   const q=$("#yt-q").value.trim();
   if(!q){ytMsg("검색어를 넣어 주세요.");return;}
-  const ps=new URLSearchParams({part:"snippet",type:"video",maxResults:"24",q,order:$("#yt-order").value,key,regionCode:"KR",relevanceLanguage:"ko"});
-  if($("#yt-after").value)ps.set("publishedAfter",$("#yt-after").value+"T00:00:00Z");
-  if($("#yt-before").value)ps.set("publishedBefore",$("#yt-before").value+"T23:59:59Z");
-  if(more&&ytNext)ps.set("pageToken",ytNext);
+  const ps={part:"snippet",type:"video",maxResults:"24",q,order:$("#yt-order").value,regionCode:"KR",relevanceLanguage:"ko"};
+  if($("#yt-after").value)ps.publishedAfter=$("#yt-after").value+"T00:00:00Z";
+  if($("#yt-before").value)ps.publishedBefore=$("#yt-before").value+"T23:59:59Z";
+  if(more&&ytNext)ps.pageToken=ytNext;
   ytMsg("검색 중…");
-  try{
-    const r=await fetch("https://www.googleapis.com/youtube/v3/search?"+ps);
-    const j=await r.json();
-    if(j.error){ytMsg("검색이 안 됐어요: "+(j.error.message||"키나 사용량을 확인해 주세요."));return;}
-    if(!more){ytItems=[];$("#yt-res").innerHTML="";}
-    ytNext=j.nextPageToken||"";$("#yt-more").hidden=!ytNext;
-    const have=new Set(all().map(v=>ytId(v.url)));
-    const add=(j.items||[]).filter(it=>it.id&&it.id.videoId);
-    const start=ytItems.length;ytItems=ytItems.concat(add);
-    $("#yt-res").insertAdjacentHTML("beforeend",add.map((it,k)=>{
-      const sn=it.snippet,id=it.id.videoId,dup=have.has(id);
-      return `<div class="yt"><a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/${id}/mqdefault.jpg" alt=""></a>
-        <div class="t">${esc(decodeHTML(sn.title))}</div><div class="c">${esc(sn.publishedAt.slice(0,10).replaceAll("-","."))} · ${esc(decodeHTML(sn.channelTitle))}</div>
-        <div class="row"><select aria-label="카테고리">${CATS.map(c=>`<option>${c}</option>`).join("")}</select><button data-k="${start+k}" ${dup?"disabled":""}>${dup?"추가됨":"추가"}</button></div></div>`;
-    }).join(""));
-    ytMsg(`${ytItems.length}개 찾았어요. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
-  }catch(e){ytMsg("검색이 안 됐어요. 인터넷 연결이나 키 제한 설정을 확인해 주세요.");}
+  const j=await ytGet("search",ps);
+  ytNext=j.nextPageToken||"";$("#yt-more").hidden=!ytNext;
+  ytShow((j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,title:decodeHTML(it.snippet.title),date:it.snippet.publishedAt.slice(0,10),channel:decodeHTML(it.snippet.channelTitle)})),more);
+  ytMsg(`${ytItems.length}개 찾았어요. 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
-$("#yt-go").onclick=()=>ytSearch(false);
-$("#yt-more").onclick=()=>ytSearch(true);
+async function ytChannel(){
+  const raw=$("#yt-ch").value.trim();
+  if(!raw){ytMsg("채널 주소나 @아이디를 넣어 주세요.");return;}
+  ytMsg("채널 찾는 중…");
+  let ch=null;
+  const idm=raw.match(/(UC[\w-]{22})/),hm=raw.match(/@([\w.\-]+)/);
+  if(idm)ch=(await ytGet("channels",{part:"snippet,contentDetails",id:idm[1]})).items?.[0];
+  else if(hm)ch=(await ytGet("channels",{part:"snippet,contentDetails",forHandle:"@"+hm[1]})).items?.[0];
+  if(!ch){const sr=await ytGet("search",{part:"snippet",type:"channel",q:raw,maxResults:"1"});const cid=sr.items?.[0]?.id?.channelId;if(cid)ch=(await ytGet("channels",{part:"snippet,contentDetails",id:cid})).items?.[0];}
+  if(!ch){ytMsg("채널을 찾지 못했어요. 채널 주소를 그대로 붙여넣어 보세요.");return;}
+  const name=decodeHTML(ch.snippet.title),up=ch.contentDetails.relatedPlaylists.uploads;
+  const words=$("#yt-q").value.split("|").map(w=>w.trim().toLowerCase()).filter(Boolean);
+  ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
+  let token="",scanned=0,page=0;
+  do{
+    const j=await ytGet("playlistItems",{part:"snippet,contentDetails",playlistId:up,maxResults:"50",...(token?{pageToken:token}:{})});
+    token=j.nextPageToken||"";page++;
+    const list=(j.items||[]).map(it=>({id:it.contentDetails.videoId,title:decodeHTML(it.snippet.title),date:(it.contentDetails.videoPublishedAt||it.snippet.publishedAt||"").slice(0,10),channel:name}))
+      .filter(v=>v.id&&v.title!=="Private video"&&v.title!=="Deleted video");
+    scanned+=list.length;
+    const hit=list.filter(v=>inRange(v.date)&&(!words.length||words.some(w=>v.title.toLowerCase().includes(w))));
+    if(hit.length)ytShow(hit,true);
+    ytMsg(`${name}: 영상 ${scanned}개 훑는 중… 찾은 영상 ${ytItems.length}개`);
+    const a=$("#yt-after").value;
+    if(a&&list.length&&list[list.length-1].date<a)break;
+  }while(token&&!ytStop&&page<80);
+  $("#yt-stop").hidden=true;
+  ytMsg(`${name}: 영상 ${scanned}개 중 ${ytItems.length}개를 찾았어요.${ytStop?" (중간에 멈춤)":""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
+}
+$("#yt-go").onclick=async()=>{
+  if(!ytKey()){ytMsg("API 키를 넣어 주세요.");return;}
+  try{if($("#yt-mode").value==="channel")await ytChannel();else await ytSearch(false);}
+  catch(e){$("#yt-stop").hidden=true;ytMsg("안 됐어요: "+e.message);}
+};
+$("#yt-more").onclick=async()=>{try{await ytSearch(true)}catch(e){ytMsg("안 됐어요: "+e.message)}};
+$("#yt-stop").onclick=()=>{ytStop=true;};
 $("#yt-res").addEventListener("click",e=>{
   const b=e.target.closest("button[data-k]");if(!b||b.disabled)return;
-  const it=ytItems[+b.dataset.k],sn=it.snippet;
+  const it=ytItems[+b.dataset.k];
   const d=loadDrafts();
-  d.push({url:"https://youtu.be/"+it.id.videoId,title:decodeHTML(sn.title),date:sn.publishedAt.slice(0,10),category:b.previousElementSibling.value,group:"단독",note:""});
+  d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:b.previousElementSibling.value,group:"단독",note:""});
   saveDrafts(d);b.disabled=true;b.textContent="추가됨";
   renderDrafts();renderAll();
 });
