@@ -121,10 +121,11 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
 /* 휴대폰: 펼친 하위 세부 카테고리 목록 */
 .sidekids{display:none}
-@media (max-width:600px){.sidekids:not([hidden]){display:flex;flex-direction:column;gap:2px;max-height:184px;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;margin:-6px 0 0;padding:6px;border:1px dashed var(--line);border-radius:14px;background:var(--surface)}
-  .sidekids button{display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:10px;font:inherit;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+@media (max-width:600px){.vbody.has-side{position:relative}
+  .sidekids:not([hidden]){display:flex;flex-direction:column;gap:2px;position:absolute;z-index:30;width:max-content;max-width:calc(100vw - 2*var(--gut));max-height:212px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:5px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 12px 32px rgba(42,39,64,.22);box-sizing:border-box}
+  .sidekids button{display:flex;justify-content:space-between;align-items:baseline;gap:14px;width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:11px;font:inherit;font-size:14px;font-weight:500;color:var(--fg);white-space:nowrap;cursor:pointer}
   .sidekids button[aria-current="true"]{background:var(--fg);color:var(--bg)}
-  .sidekids .n{font-family:var(--mono);font-size:12px;opacity:.7}}
+  .sidekids .n{font-family:var(--mono);font-size:12px;opacity:.6}}
 /* 휴대폰: 세부 카테고리는 한 줄로, 옆으로 넘겨요 */
 @media (max-width:600px){.side{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 calc(-1*var(--gut));padding:2px var(--gut);scroll-padding:0 var(--gut);gap:6px}.side::-webkit-scrollbar{display:none}.side button{flex:0 0 auto}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
@@ -746,12 +747,13 @@ function render(){
     const kidsOf=ch=>ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join("");
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
       const open=ch&&!!sideOpen[state.cat+"|"+k];
-      return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span>${ch?`<span class="tog" role="button" aria-label="${open?"접기":"펼치기"}">›</span>`:""}</button>`+
+      const kidSel=phone&&ch&&ch.find(x=>x[0]===state.sub);
+      return `<button data-s="${k}" aria-current="${state.sub===k||!!kidSel}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}${kidSel?` · ${esc(kidSel[1])}`:""}<span class="n">${k?(kidSel?count(kidSel[0]):count(k)):v.length}</span>${ch?`<span class="tog" role="button" aria-label="${open?"접기":"펼치기"}">›</span>`:""}</button>`+
         (open&&!phone?kidsOf(ch):"");
     }).join("");
     /* 휴대폰: 펼친 하위 항목은 한 줄 아래에 세로 목록으로 (위아래로 넘겨요) */
     const op=phone&&subs.find(([k,n,ch])=>ch&&sideOpen[state.cat+"|"+k]);
-    $("#sidekids").innerHTML=op?kidsOf(op[2]):"";$("#sidekids").hidden=!op;
+    $("#sidekids").innerHTML=op?kidsOf(op[2]):"";$("#sidekids").hidden=!op;if(op)requestAnimationFrame(placeKids);
     sd.scrollLeft=sl;
     if(sd.scrollWidth>sd.clientWidth){const cur=sd.querySelector('[aria-current="true"]');if(cur){const l=cur.offsetLeft-sd.offsetLeft,r=l+cur.offsetWidth;if(l<sd.scrollLeft||r>sd.scrollLeft+sd.clientWidth)sd.scrollLeft=Math.max(0,l-24);}}
     if(state.sub)v=v.filter((x,i)=>subIn(ks[i],state.sub));
@@ -827,8 +829,17 @@ const sideOpen={};let sideCat="";try{localStorage.removeItem(SOKEY)}catch(e){}
 function saveSideOpen(){}
 function sideClick(e){const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
   /* › 표시를 눌렀을 때만 펼치기/접기 */
-  if(e.target.closest(".tog")){const id=state.cat+"|"+k;if(sideOpen[id])delete sideOpen[id];else sideOpen[id]=true;saveSideOpen();render();return;}
+  if(e.target.closest(".tog")){const id=state.cat+"|"+k;const was=!!sideOpen[id];if(isPhone())Object.keys(sideOpen).forEach(x=>delete sideOpen[x]);if(was)delete sideOpen[id];else sideOpen[id]=true;saveSideOpen();render();return;}
+  if(isPhone()&&b.classList.contains("child"))Object.keys(sideOpen).forEach(x=>delete sideOpen[x]);
   state.sub=k;go(hashFor(1));}
+const isPhone=()=>matchMedia("(max-width:600px)").matches;
+/* 휴대폰: 하위 목록을 펼친 버튼 바로 아래에 띄워요 (영상 위를 덮어요) */
+function placeKids(){const k=$("#sidekids");if(k.hidden)return;const chip=$("#side").querySelector("button.haschild.open");if(!chip){k.hidden=true;return;}
+  const vb=$("#vbody").getBoundingClientRect(),c=chip.getBoundingClientRect(),sd=$("#side").getBoundingClientRect();
+  k.style.minWidth=c.width+"px";k.style.top=(sd.bottom-vb.top+6)+"px";
+  let left=c.left-vb.left;const max=vb.width-k.offsetWidth;k.style.left=Math.max(0,Math.min(left,max))+"px";}
+$("#side").addEventListener("scroll",placeKids,{passive:true});window.addEventListener("resize",placeKids);
+document.addEventListener("click",e=>{if($("#sidekids").hidden||!isPhone()||!e.target.isConnected)return;if(e.target.closest("#sidekids,#side"))return;Object.keys(sideOpen).forEach(x=>delete sideOpen[x]);render();});
 $("#side").addEventListener("click",sideClick);$("#sidekids").addEventListener("click",sideClick);
 matchMedia("(max-width:600px)").addEventListener("change",()=>render());
 let cqT;
