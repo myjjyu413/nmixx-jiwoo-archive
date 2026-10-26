@@ -437,7 +437,7 @@ main{padding-bottom:40px}
   </section>
 
   <section class="gut" id="board" hidden>
-    <div class="vhead"><h2 class="row-title">게시판</h2><button class="vclear" id="bclear" aria-label="메인으로">×</button></div>
+    <div class="vhead"><h2 class="row-title">Board</h2><button class="vclear" id="bclear" aria-label="메인으로">×</button></div>
     <form class="bform" id="bform" autocomplete="off">
       <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" value="쮸랑단원"><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label></div>
       <div class="bwrite"><textarea id="b-body" maxlength="150" rows="2" placeholder="자유롭게 남겨 주세요" required></textarea><div class="bside"><span class="bcount" id="b-count">0/150</span><button type="submit" class="btn primary" id="b-send">등록</button></div></div>
@@ -512,6 +512,9 @@ const PROFILE={
   ]
 };
 
+/* 화면에 보이는 카테고리 이름 (안쪽 값은 그대로) */
+const CATLABEL={"무대":"Stage","자컨":"NMIXX Original Content","예능":"Variety","라디오":"Radio","인터뷰":"Interview","숏폼":"Shorts","라이브 방송":"Live"};
+const catName=c=>CATLABEL[c]||c;
 const CATS=["Official Video","무대","자컨","예능","라디오","인터뷰","숏폼","라이브 방송"];
 /* 예전 카테고리 이름도 새 이름으로 읽어요 */
 const OLDCAT={"MV & Track Video":"Official Video","무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","라이브":"라이브 방송"};
@@ -682,7 +685,7 @@ function cardHTML(x,i){
   const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<img loading="lazy" src="thumbs/x/b-${(x.url.match(/broadcasts\/(\w+)/)||[])[1]}.jpg" onerror="xFail(this,1)" alt="">`:id?`<img loading="lazy" decoding="async" src="thumbs/yt/${id}.webp" onerror="ytFail(this,'${id}')" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
-  const opts=CATS.map(c=>`<option${c===x.category?" selected":""}>${esc(c)}</option>`).join("")+(role()==="admin"?`<option value="__del">목록에서 빼기</option>`:"");
+  const opts=CATS.map(c=>`<option value="${esc(c)}"${c===x.category?" selected":""}>${esc(catName(c))}</option>`).join("")+(role()==="admin"?`<option value="__del">목록에서 빼기</option>`:"");
   const sl=SUBS[x.category],cur=subOf(x),top=subTopOf(cur),kids=subKids(x.category,top);
   const dd=`data-url="${esc(x.url)}" data-draft="${x._draft?1:""}"`;
   const subSel=sl&&!x._del?`<select class="esub" ${dd} aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===top?" selected":""}>${esc(n)}</option>`).join("")}</select>`+
@@ -882,10 +885,10 @@ $("#bclear").onclick=goHome;
 })();
 
 /* 메뉴 */
-const MENU=[["프로필",goProfile],
-  ...CATS.map(c=>[c,()=>goVideos({cat:c})]),
+const MENU=[["Profile",goProfile],
+  ...CATS.map(c=>[catName(c),()=>goVideos({cat:c})]),
   ["SNS",goInsta],
-  ["게시판",()=>go("board")]];
+  ["Board",()=>go("board")]];
 $("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${esc(m[0])}</button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][1]();});
 function openMenu(){$("#menu").hidden=false;$("#mback").hidden=false;$("#open-menu").setAttribute("aria-expanded","true");document.body.style.overflow="hidden";}
@@ -1105,7 +1108,7 @@ function ytShow(list,append){
     const st=ytStatus(it.id);
     return `<div class="yt${st?" have":""}" data-id="${it.id}"${st&&$("#yt-hide").checked?" hidden":""}><a href="https://www.youtube.com/watch?v=${it.id}" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/${it.id}/mqdefault.jpg" alt=""></a>
       <div class="t">${esc(it.title)}</div><div class="c">${esc(it.date.replaceAll("-","."))} · ${esc(it.channel)}</div>
-      <div class="row"><select aria-label="카테고리"${st?" disabled":""}>${CATS.map(c=>`<option>${c}</option>`).join("")}</select><button data-k="${start+k}" ${st?"disabled":""}>${st||"추가"}</button></div></div>`;
+      <div class="row"><select aria-label="카테고리"${st?" disabled":""}>${CATS.map(c=>`<option value="${c}">${catName(c)}</option>`).join("")}</select><button data-k="${start+k}" ${st?"disabled":""}>${st||"추가"}</button></div></div>`;
   }).join(""));
 }
 function ytHaveCount(){const n=ytItems.filter(it=>ytStatus(it.id)).length;return n?` (그중 ${n}개는 이미 목록에 있음)`:"";}
@@ -1219,12 +1222,12 @@ async function ytPlaylist(){
 function syncBulkSub(){const sl=SUBS[$("#yt-bulk-cat").value];$("#yt-bulk-sub").hidden=!sl;$("#yt-bulk-sub").innerHTML=sl?`<option value="">세부: 자동</option>`+sl.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join(""):"";syncBulkSub2();}
 function syncBulkSub2(){const kids=$("#yt-bulk-sub").value&&subKids($("#yt-bulk-cat").value,$("#yt-bulk-sub").value);$("#yt-bulk-sub2").hidden=!kids;$("#yt-bulk-sub2").innerHTML=kids?`<option value="">세부 없음</option>`+kids.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join(""):"";}
 $("#yt-bulk-sub").onchange=syncBulkSub2;
-$("#yt-bulk-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");$("#yt-bulk-cat").onchange=syncBulkSub;syncBulkSub();
+$("#yt-bulk-cat").innerHTML=CATS.map(c=>`<option value="${c}">${catName(c)}</option>`).join("");$("#yt-bulk-cat").onchange=syncBulkSub;syncBulkSub();
 $("#yt-bulk-add").onclick=()=>{
   const cat=$("#yt-bulk-cat").value,sub=$("#yt-bulk-sub").hidden?"":(($("#yt-bulk-sub2").hidden?"":$("#yt-bulk-sub2").value)||$("#yt-bulk-sub").value);
   const btns=[...$("#yt-res").querySelectorAll(".yt:not([hidden]) button[data-k]:not(:disabled)")];
   if(!btns.length){ytMsg("추가할 영상이 없어요.");return;}
-  if(!confirm(`보이는 영상 ${btns.length}개를 '${cat}'에 추가할까요?`))return;
+  if(!confirm(`보이는 영상 ${btns.length}개를 '${catName(cat)}'에 추가할까요?`))return;
   if(localMode()){let n=0;for(const b of btns){const it=ytItems[+b.dataset.k];const d=loadDrafts();if(d.some(v=>vidKey(v.url)===it.id)||ytStatus(it.id))continue;d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:cat,group:"단독",note:"",...(sub?{sub}:{})});saveDrafts(d);n++;b.disabled=true;b.textContent="추가됨";}
     renderDrafts();renderAll();ytMsg(`${n}개를 미리보기에 넣었어요. 다 넣은 뒤 '추가·수정 내용 복사'를 눌러 Claude에게 보내 주세요.`);return;}
   (async()=>{let n=0,err="";
@@ -1252,7 +1255,7 @@ $("#yt-res").addEventListener("click",e=>{
 });
 
 /* 관리자 */
-$("#f-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+$("#f-cat").innerHTML=CATS.map(c=>`<option value="${c}">${catName(c)}</option>`).join("");
 function syncFSub(){const sl=SUBS[$("#f-cat").value];$("#f-sub-wrap").hidden=!sl;$("#f-sub").innerHTML=sl?`<option value="">자동 (제목 보고 분류)</option>`+sl.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""):"";syncFSub2();}
 function syncFSub2(){const cat=$("#f-cat").value,top=$("#f-sub").value,kids=top&&subKids(cat,top);$("#f-sub2-wrap").hidden=!kids;
   if(kids){$("#f-sub2-label").textContent=(SUBS[cat].find(e=>e[0]===top)||[])[1]+" 세부";$("#f-sub2").innerHTML=`<option value="">세부 없음</option>`+kids.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join("");}else $("#f-sub2").innerHTML="";}
