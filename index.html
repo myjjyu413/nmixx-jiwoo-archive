@@ -446,8 +446,8 @@ function subOf(x){
     if(/mixx ?log/i.test(t))return "jc-log";
     if(/day ?mixx/i.test(t))return "jc-day";
     if(/쮸뀨미|jjyukyumi/i.test(t))return "jc-jjk";
-    if(/nmixx on air|nmixx_official|엔믹스 자컨|nswer|break ?time|mixx ?(tv|fit|lab)/i.test(t))return "jc";
-    return "etc";}
+    /* 세부를 안 고르면 자컨으로 (외부 예능은 '기타'를 직접 골라 주세요) */
+    return "jc";}
   if(x.category==="라이브 방송"){
     const t=x.title;
     if(/anniversar|anniver|주년|1000일|1st anniversary/i.test(t))return "anniv";
