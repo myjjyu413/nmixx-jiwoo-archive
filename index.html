@@ -155,7 +155,10 @@ html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidde
 .note{background:var(--surface);border-radius:12px;padding:14px 16px;margin:0;display:flex;flex-direction:column;gap:8px}
 .note.secret{background:var(--chip)}
 .note .nh{display:flex;align-items:baseline;gap:8px}.note .nn{font-weight:700}.note .nd{font-size:12px;color:var(--muted);flex:1}
-.note .nb{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14.5px}
+.note .nb{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14.5px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;min-height:3.2em}
+.note.full .nb{display:block;-webkit-line-clamp:unset;overflow:visible}
+.note .na .nmore{margin-right:auto;font-weight:700;color:var(--accent)!important}
+.note:not(.cmopen) .ncm{display:none!important}
 .note .nb.locked{color:var(--muted);font-style:italic}
 .note .na{display:flex;gap:10px;justify-content:flex-end}.note .na button{border:0;background:none;padding:0;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}.note .na button:hover{color:var(--fg);text-decoration:underline}
 .note .nx{display:flex;flex-direction:column;gap:8px}.note .nx input:not([type=checkbox]),.note .nx textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--fg)}
@@ -772,7 +775,7 @@ function bErr(e){const m=String(e&&e.message||e);
   if(/WRONG_PW/.test(m))return "비밀번호가 맞지 않아요.";if(/SHORT_PW/.test(m))return "비밀번호는 4자 이상으로 해 주세요.";
   if(/TOO_MANY/.test(m))return "글이 너무 많이 올라오고 있어요. 잠시 뒤에 다시 해 주세요.";if(/EMPTY/.test(m))return "내용을 적어 주세요.";
   return "문제가 생겼어요: "+m;}
-const bState={posts:[],loaded:false,more:false,busy:false};
+const bState={posts:[],loaded:false,more:false,busy:false,full:new Set(),cmOpen:new Set()};
 /* 내가 쓴 글(또는 비밀번호로 연 글)의 비밀번호를 이 브라우저에 기억 → 비밀글도 쓴 사람에게는 보여요 */
 const BMKEY="jiwoo-archive-boardmine",BCKEY="jiwoo-archive-boardcm",DEFNAME="쮸랑단원";
 function bCm(){try{return JSON.parse(localStorage.getItem(BCKEY))||{}}catch(e){return {}}}
@@ -784,11 +787,11 @@ function cmOrder(list){const tops=list.filter(c=>!c.parent_id),out=[];tops.forEa
 function kdate(d){const t=new Date(d);const p=n=>String(n).padStart(2,"0");return `${t.getFullYear()}.${p(t.getMonth()+1)}.${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;}
 function noteHTML(p){
   const locked=p.secret&&p.body==null;
-  return `<article class="note${p.secret?" secret":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
+  return `<article class="note${p.secret?" secret":""}${bState.full.has(p.id)?" full":""}${bState.cmOpen.has(p.id)?" cmopen":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
     (Array.isArray(p.comments)?`<div class="ncm">${cmOrder(p.comments).map(c=>`<div class="cm${c.parent_id?" re":""}" data-cid="${c.id}" data-name="${esc(c.name)}">${c.parent_id?`<i>↳</i>`:""}<b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span>${"parent_id" in c?`<button data-a="creply1" class="crep">답글</button>`:""}<button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
-      `<div class="cf" hidden><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
-    `<div class="na">${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
+      `<div class="cf"${bState.cmOpen.has(p.id)?"":" hidden"}><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
+    `<div class="na"><button class="nmore" data-a="more" hidden>${bState.full.has(p.id)?"접기":"더보기"}</button>${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
 /* 게시판: 최신순, 한 페이지에 9개 */
 const BPER=9;
@@ -797,6 +800,8 @@ function drawBoard(){
   bState.page=Math.min(Math.max(1,bState.page||1),pages);
   const list=bState.posts.slice((bState.page-1)*BPER,bState.page*BPER);
   w.innerHTML=n?list.map(noteHTML).join(""):`<p class="vnone">아직 글이 없어요. 첫 글을 남겨 주세요!</p>`;
+  /* 두 줄을 넘는 글에만 '더보기' */
+  w.querySelectorAll(".note").forEach(el=>{const nb=el.querySelector(".nb"),bt=el.querySelector(".nmore");if(el.classList.contains("full")){bt.hidden=false;return;}bt.hidden=!(nb.scrollHeight>nb.clientHeight+2);});
   const pg=$("#bpager");pg.hidden=pages<=1;if(pages<=1){pg.innerHTML="";return;}
   const p=bState.page,st=Math.floor((p-1)/5)*5+1,en=Math.min(pages,st+4);
   const btn=(t,to,dis,cur)=>`<button data-bp="${to}"${dis?" disabled":""}${cur?' aria-current="page"':""}>${t}</button>`;
@@ -849,7 +854,8 @@ $("#bwall").addEventListener("click",async e=>{
   if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
   if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
   if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
-  if(a==="creply"){const f=art.querySelector(".cf");f.hidden=!f.hidden;delete f.dataset.parent;f.querySelector(".cto").hidden=true;if(!f.hidden)f.querySelector(".cbody").focus();return;}
+  if(a==="more"){if(bState.full.has(id))bState.full.delete(id);else bState.full.add(id);art.classList.toggle("full");b.textContent=art.classList.contains("full")?"접기":"더보기";return;}
+  if(a==="creply"){const f=art.querySelector(".cf"),open=!art.classList.contains("cmopen");art.classList.toggle("cmopen",open);if(open)bState.cmOpen.add(id);else bState.cmOpen.delete(id);f.hidden=!open;delete f.dataset.parent;f.querySelector(".cto").hidden=true;if(open)f.querySelector(".cbody").focus();return;}
   if(a==="creply1"){const cm=b.closest(".cm"),f=art.querySelector(".cf"),to=f.querySelector(".cto");f.hidden=false;f.dataset.parent=cm.dataset.cid;to.hidden=false;to.innerHTML=`↳ <b>${esc(cm.dataset.name)}</b> 님에게 답글 <button data-a="cto-x" aria-label="답글 취소">×</button>`;f.querySelector(".cbody").focus();return;}
   if(a==="cto-x"){const f=art.querySelector(".cf");delete f.dataset.parent;f.querySelector(".cto").hidden=true;return;}
   if(a==="csend"){
@@ -858,7 +864,7 @@ $("#bwall").addEventListener("click",async e=>{
     b.disabled=true;
     const par=f.dataset.parent?+f.dataset.parent:null;const parC=par&&(p.comments||[]).find(c=>c.id===par);
     try{const args={p_post:id,p_name:cn,p_body:cb,p_pw:cp};if(par)args.p_parent=par;const cid=await rpc("board_comment_add",args);bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,parent_id:par?(parC&&parC.parent_id||par):null,name:cn,body:cb,created_at:new Date().toISOString()});drawBoard();
-      const nf=$("#bwall").querySelector(`.note[data-id="${id}"] .cf`);if(nf)nf.hidden=false;}
+      bState.cmOpen.add(id);const nf=$("#bwall").querySelector(`.note[data-id="${id}"] .cf`);if(nf)nf.hidden=false;}
     catch(e2){sp.textContent=bErr(e2);b.disabled=false;}
     return;}
   if(a==="cdel"||a==="cdel-ok"){
