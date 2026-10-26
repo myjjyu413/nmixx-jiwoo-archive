@@ -1,6 +1,6 @@
 // videos.js 안의 인스타그램 게시물 대표 이미지(링크 미리보기용)를 thumbs/ig/<코드>.jpg 로 저장합니다 (GitHub Actions에서 실행)
 import fs from "fs";
-const src = fs.readFileSync("videos.js", "utf8");
+const src = fs.readFileSync("videos.js", "utf8") + "\n" + (fs.existsSync("remote.txt") ? fs.readFileSync("remote.txt", "utf8") : "");
 const codes = [...new Set([...src.matchAll(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/gi)].map(m => m[1]))];
 const LOG = [];
 for (const code of codes) {

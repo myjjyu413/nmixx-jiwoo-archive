@@ -1,6 +1,6 @@
 // videos.js 안의 틱톡 영상 표지 이미지를 thumbs/tt/<영상ID>.jpg 로 저장합니다 (GitHub Actions에서 실행)
 import fs from "fs";
-const src = fs.readFileSync("videos.js", "utf8");
+const src = fs.readFileSync("videos.js", "utf8") + "\n" + (fs.existsSync("remote.txt") ? fs.readFileSync("remote.txt", "utf8") : "");
 const ids = [...new Set([...src.matchAll(/tiktok\.com\/@[\w.\-]+\/video\/(\d+)/g)].map(m => m[1]))];
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 async function coverUrl(id, url) {

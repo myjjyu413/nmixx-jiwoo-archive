@@ -2,6 +2,8 @@ name: TikTok thumbnails
 on:
   push:
     paths: ["videos.js"]
+  schedule:
+    - cron: "23 * * * *"
   workflow_dispatch:
     inputs:
       xtest:
@@ -16,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
+      - run: node tools/remote.mjs
       - run: node tools/tt-thumbs.mjs
       - run: node tools/ig-thumbs.mjs
       - run: node tools/x-thumbs.mjs

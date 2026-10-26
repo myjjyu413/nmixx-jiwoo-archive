@@ -1,6 +1,6 @@
 // videos.js 안의 X(트위터) 게시물 영상 표지를 thumbs/x/<글번호>.jpg 로 저장합니다 (GitHub Actions에서 실행)
 import fs from "fs";
-const src = fs.readFileSync("videos.js", "utf8");
+const src = fs.readFileSync("videos.js", "utf8") + "\n" + (fs.existsSync("remote.txt") ? fs.readFileSync("remote.txt", "utf8") : "");
 const ids = [...new Set([...src.matchAll(/(?:x|twitter)\.com\/[\w]+\/status\/(\d+)/gi)].map(m => m[1]))];
 if (process.env.XTEST) ids.push(...process.env.XTEST.split(","));
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";

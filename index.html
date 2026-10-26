@@ -140,6 +140,7 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
+.arole{display:flex;align-items:center;gap:10px;margin:0 0 6px}.arole .btn{padding:5px 12px;font-size:13px}
 html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidden;pointer-events:none}.grid.vert .ghost-a .thumb{aspect-ratio:9/16}
 .ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
 /* 게시판 */
@@ -306,11 +307,17 @@ main{padding-bottom:40px}
     </div>
 
     <section class="admin" id="admin" hidden>
-      <h2>게시판 관리자</h2>
-      <p class="hint">Supabase에 설정한 관리자 비밀번호를 넣어 두면, 관리자 모드에서 비밀글이 보이고 모든 글을 고치거나 지울 수 있어요. 이 브라우저에만 저장돼요.</p>
-      <div class="form"><label class="wide">관리자 비밀번호<input id="b-admin" type="password" autocomplete="off"></label></div>
+      <div id="alogin">
+        <h2>관리자 잠금</h2>
+        <p class="hint">편집자 또는 관리자 비밀번호를 넣으면 영상을 추가하고 고칠 수 있어요. 영상 이동·삭제와 게시글 삭제는 관리자 비밀번호로만 돼요. 탭을 닫으면 다시 잠겨요.</p>
+        <form class="form" id="a-form"><label class="wide">비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label></form>
+        <div class="btns"><button class="btn primary" id="a-login">잠금 풀기</button></div>
+        <p class="msg" id="a-msg"></p>
+      </div>
+      <div id="apanel" hidden>
+      <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">잠그기</button></p>
       <h2>유튜브에서 찾기</h2>
-      <p class="hint">API 키는 이 브라우저에만 저장되고 사이트 코드에는 들어가지 않아요.</p>
+      <p class="hint">API 키는 잠금 비밀번호로 암호화해서 이 브라우저에만 저장돼요. 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
         <label class="wide">API 키<input id="yt-key" type="password" placeholder="AIza로 시작하는 키" autocomplete="off"></label>
         <label>찾는 방식<select id="yt-mode"><option value="search">유튜브 전체 검색</option><option value="channel">특정 채널 안에서</option><option value="playlist">재생목록 가져오기</option></select></label>
@@ -328,8 +335,8 @@ main{padding-bottom:40px}
       <div class="ytbulk" id="yt-bulk" hidden><span>보이는 영상 전부</span><select id="yt-bulk-cat" aria-label="카테고리"></select><select id="yt-bulk-sub" aria-label="세부 카테고리"></select><select id="yt-bulk-sub2" aria-label="하위 세부 카테고리" hidden></select><button class="btn primary" id="yt-bulk-add">한꺼번에 추가</button></div>
       <div class="ytres" id="yt-res"></div>
 
-      <h2 style="margin-top:28px">영상 추가 (관리자)</h2>
-      <p class="hint">여기서 추가한 영상은 이 브라우저에만 미리 보입니다. 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.</p>
+      <h2 style="margin-top:28px">영상 추가</h2>
+      <p class="hint">추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (카테고리 이동·삭제는 관리자만)</p>
       <div class="form">
         <label class="wide">영상 링크<input id="f-url" placeholder="유튜브·틱톡·인스타그램 링크"></label>
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
@@ -340,13 +347,14 @@ main{padding-bottom:40px}
       </div>
       <div class="btns">
         <button class="btn primary" id="add">추가</button>
-        <button class="btn" id="export">추가·수정 내용 복사</button>
-        <button class="btn" id="clear">미리보기 비우기</button>
+        <button class="btn" id="export" hidden>추가·수정 내용 복사</button>
+        <button class="btn" id="clear" hidden>미리보기 비우기</button>
         <button class="btn" id="fclear">입력 내용 지우기</button>
       </div>
       <p class="msg" id="msg"></p>
       <div class="drafts" id="drafts"></div>
       <textarea id="out" readonly hidden aria-label="videos.js 내용"></textarea>
+      </div>
     </section>
   </section>
 
@@ -550,15 +558,26 @@ function saveDrafts(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){
 function isAdmin(){return location.hash==="#admin"}
 /* 관리자 모드: #admin 에 한 번 들어오면 이 브라우저에서 켜져 있고, 어느 화면에서든 카테고리를 고칠 수 있어요 */
 const AKEY="jiwoo-archive-admin",EKEY="jiwoo-archive-edits";
-function adminMode(){if(isAdmin()){try{localStorage.setItem(AKEY,"1")}catch(e){}return true;}try{return localStorage.getItem(AKEY)==="1"}catch(e){return false}}
+/* 관리자 잠금: 비밀번호를 서버(Supabase)에서 확인하고, 이 탭에서만 기억해요 */
+const SKEY="jiwoo-archive-sess";
+let SESS=(()=>{try{return JSON.parse(sessionStorage.getItem(SKEY))}catch(e){return null}})();
+function role(){return SESS&&SESS.role||null}
+function sessPw(){return SESS&&SESS.pw||null}
+function adminMode(){return !!role()}
+/* 예전 방식으로 남은 값 정리 (평문 저장 X) */
+try{["jiwoo-archive-admin","jiwoo-archive-boardadmin","jiwoo-archive-edits","jiwoo-archive-drafts"].forEach(k=>localStorage.removeItem(k))}catch(e){}
 function loadEdits(){try{return JSON.parse(localStorage.getItem(EKEY))||{}}catch(e){return {}}}
 function saveEdits(o){try{localStorage.setItem(EKEY,JSON.stringify(o))}catch(e){}}
+/* 사이트에서 추가·수정한 내용 (Supabase) */
+let REMOTE={adds:[],edits:{}};
+async function loadRemote(){if(!BOARD.url||!BOARD.key)return;try{const j=await rpc("vid_list",{});REMOTE={adds:(j&&j.adds)||[],edits:Object.fromEntries(((j&&j.edits)||[]).map(e=>[e.url,e]))};}catch(e){}}
 function all(){
-  const am=adminMode(),ed=am?loadEdits():{};
-  const base=(window.VIDEOS||[]).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.delete)return {...v,_del:true};const o={...v,_edited:true};if(e.category)o.category=normCat(e.category);if(e.sub)o.sub=e.sub;return o;});
-  const drafts=am?loadDrafts().map(v=>({...v,category:normCat(v.category),_draft:true})):[];
-  return base.concat(drafts);
+  const ed=REMOTE.edits,base=window.VIDEOS||[],have=new Set(base.map(v=>vidKey(v.url)));
+  const adds=REMOTE.adds.filter(a=>{const k=vidKey(a.url);if(!k||have.has(k))return false;have.add(k);return true;}).map(a=>({url:a.url,title:a.title,date:a.date||"",category:a.category,group:"단독",note:"",...(a.sub?{sub:a.sub}:{})}));
+  return base.concat(adds).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.deleted)return null;
+    const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
 }
+function siteErr(e){const m=String(e&&e.message||e);if(/ADMIN_ONLY/.test(m))return "관리자 비밀번호로 잠금을 풀어야 할 수 있어요.";if(/NO_AUTH/.test(m))return "잠금이 풀려 있지 않아요. 관리자 화면에서 비밀번호를 넣어 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const fmt=d=>String(d||"").replaceAll("-",".");
 
@@ -573,12 +592,12 @@ function cardHTML(x,i){
   const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<img loading="lazy" src="thumbs/x/b-${(x.url.match(/broadcasts\/(\w+)/)||[])[1]}.jpg" onerror="xFail(this,1)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
-  const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
+  const opts=CATS.map(c=>`<option${c===x.category?" selected":""}>${esc(c)}</option>`).join("")+(role()==="admin"?`<option value="__del">목록에서 빼기</option>`:"");
   const sl=SUBS[x.category],cur=subOf(x),top=subTopOf(cur),kids=subKids(x.category,top);
   const dd=`data-url="${esc(x.url)}" data-draft="${x._draft?1:""}"`;
   const subSel=sl&&!x._del?`<select class="esub" ${dd} aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===top?" selected":""}>${esc(n)}</option>`).join("")}</select>`+
     (kids?`<select class="esub" ${dd} aria-label="${esc(sl.find(e=>e[0]===top)[1])} 세부">${[[top,"세부 없음"],...kids].map(([k,n])=>`<option value="${k}"${k===cur?" selected":""}>${esc(n)}</option>`).join("")}</select>`:""):"";
-  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
+  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" aria-label="카테고리 바꾸기"${role()==="admin"?"":` disabled title="카테고리 이동은 관리자만 할 수 있어요"`}>${opts}</select>${subSel}</div></div>`;
 }
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]));loadTTThumbs(el);}
 
@@ -784,7 +803,7 @@ $("#msearch").addEventListener("submit",e=>{e.preventDefault();const q=$("#mq").
 /* 게시판 (Supabase) — url/key 는 공개용 값이라 코드에 넣어도 괜찮아요 */
 const BOARD={url:"https://hzcsaitzhzmwlhtrcsad.supabase.co",key:"sb_publishable_sMVbjoFS0VwINLiA0lH29A_i4wjCANG"};
 const BAKEY="jiwoo-archive-boardadmin";
-function boardAdminPw(){if(!adminMode())return null;try{return localStorage.getItem(BAKEY)||null}catch(e){return null}}
+function boardAdminPw(){return role()==="admin"?sessPw():null}
 async function rpc(fn,args){
   const h={"Content-Type":"application/json",apikey:BOARD.key};if(/^eyJ/.test(BOARD.key))h.Authorization="Bearer "+BOARD.key;
   const r=await fetch(BOARD.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:h,body:JSON.stringify(args)});
@@ -812,7 +831,7 @@ function noteHTML(p){
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
     (Array.isArray(p.comments)?`<div class="ncm">${cmOrder(p.comments).map(c=>`<div class="cm${c.parent_id?" re":""}" data-cid="${c.id}" data-name="${esc(c.name)}">${c.parent_id?`<i>↳</i>`:""}<b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span>${"parent_id" in c?`<button data-a="creply1" class="crep">답글</button>`:""}<button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
       (p.comments.length>=CMAX?`<p class="cfull">댓글은 글 하나에 ${CMAX}개까지예요.</p>`:"")+`<div class="cf"${bState.cmOpen.has(p.id)&&p.comments.length<CMAX?"":" hidden"}><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="50" placeholder="댓글을 남겨 주세요 (50자까지)" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
-    `<div class="na"><button class="nmore" data-a="more" hidden>${bState.full.has(p.id)?"접기":"더보기"}</button>${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
+    `<div class="na"><button class="nmore" data-a="more" hidden>${bState.full.has(p.id)?"접기":"더보기"}</button>${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button>${role()==="admin"?`<button data-a="del">삭제</button>`:""}</div><div class="nx" hidden></div></article>`;
 }
 /* 펼친 칸이 화면 아래로 넘치면 위로 올려서 스크롤 없이 보이게 */
 function noteFit(el){el.style.transform="";if(!el.classList.contains("full")&&!el.classList.contains("cmopen"))return;const top=($(".top")?$(".top").getBoundingClientRect().bottom:0)+8;const r=el.getBoundingClientRect(),over=r.bottom-(innerHeight-12);if(over>0)el.style.transform=`translateY(${-Math.min(over,Math.max(0,r.top-top))}px)`;}
@@ -913,8 +932,6 @@ $("#bwall").addEventListener("click",async e=>{
   }
 });
 $("#bwall").addEventListener("keydown",e=>{if(e.key!=="Enter"||e.isComposing)return;if(e.target.classList.contains("xpw")){e.preventDefault();e.target.parentNode.querySelector("button").click();}else if(e.target.classList.contains("cbody")){e.preventDefault();e.target.parentNode.querySelector("[data-a=csend]").click();}});
-try{$("#b-admin").value=localStorage.getItem(BAKEY)||"";}catch(e){}
-$("#b-admin").addEventListener("change",()=>{try{const v=$("#b-admin").value;if(v)localStorage.setItem(BAKEY,v);else localStorage.removeItem(BAKEY);}catch(e){}});
 
 
 /* 재생창 */
@@ -940,7 +957,16 @@ document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("#modal
 
 /* 유튜브에서 찾기 (관리자) */
 const YTK="jiwoo-archive-ytkey",YT="https://www.googleapis.com/youtube/v3/";
-try{$("#yt-key").value=localStorage.getItem(YTK)||""}catch(e){}
+/* API 키는 잠금 비밀번호로 암호화(AES-GCM)해서 저장해요 */
+const YKE="jiwoo-archive-ytkey-enc";
+const b64=a=>btoa(String.fromCharCode(...a)),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function deriveKey(pw,salt){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
+let ytSaved="";
+async function saveKeyEnc(k){if(!sessPw()||!k||k===ytSaved)return;ytSaved=k;try{const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const key=await deriveKey(sessPw(),salt);const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(k)));localStorage.setItem(YKE,JSON.stringify({s:b64(salt),i:b64(iv),c:b64(ct)}));}catch(e){}}
+async function unlockKey(){
+  try{const plain=localStorage.getItem(YTK);if(plain&&sessPw()){await saveKeyEnc(plain);localStorage.removeItem(YTK);$("#yt-key").value=plain;return;}}catch(e){}
+  try{const o=JSON.parse(localStorage.getItem(YKE));if(!o||!sessPw())return;const key=await deriveKey(sessPw(),ub64(o.s));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(o.i)},key,ub64(o.c));ytSaved=new TextDecoder().decode(pt);$("#yt-key").value=ytSaved;}catch(e){}
+}
 let ytNext="",ytItems=[],ytStop=false;
 function ytMsg(t){$("#yt-msg").textContent=t}
 /* 제목에 적힌 날짜 찾기: 250324 / 2025.03.24 / 20250324 / 2025-03-24 */
@@ -949,7 +975,7 @@ function titleDate(t){t=String(t||"");let m=t.match(/(?:^|[^\d])(20\d{2})[.\-/ ]
   return m?`${m[1]}-${m[2]}-${m[3]}`:"";}
 function kst(t){if(!t)return "";const d=new Date(new Date(t).getTime()+9*3600e3);return isNaN(d)?String(t).slice(0,10):d.toISOString().slice(0,10);}
 function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
-function ytKey(){const k=$("#yt-key").value.trim();if(k){try{localStorage.setItem(YTK,k)}catch(e){}}return k;}
+function ytKey(){const k=$("#yt-key").value.trim();if(k)saveKeyEnc(k);return k;}
 async function ytGet(path,params){
   const r=await fetch(YT+path+"?"+new URLSearchParams({...params,key:ytKey()}));
   const j=await r.json();
@@ -968,8 +994,7 @@ function syncMode(){
 }
 $("#yt-mode").onchange=syncMode;
 function ytStatus(id){
-  if((window.VIDEOS||[]).some(v=>vidKey(v.url)===id))return "목록에 있음";
-  if(loadDrafts().some(v=>vidKey(v.url)===id))return "추가됨";
+  if(all().some(v=>vidKey(v.url)===id))return "목록에 있음";
   return "";
 }
 function ytShow(list,append){
@@ -1100,9 +1125,11 @@ $("#yt-bulk-add").onclick=()=>{
   const btns=[...$("#yt-res").querySelectorAll(".yt:not([hidden]) button[data-k]:not(:disabled)")];
   if(!btns.length){ytMsg("추가할 영상이 없어요.");return;}
   if(!confirm(`보이는 영상 ${btns.length}개를 '${cat}'에 추가할까요?`))return;
-  const d=loadDrafts();
-  btns.forEach(b=>{const it=ytItems[+b.dataset.k];if(ytStatus(it.id))return;d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:cat,group:"단독",note:"",...(sub?{sub}:{})});b.disabled=true;b.textContent="추가됨";});
-  saveDrafts(d);renderDrafts();renderAll();ytMsg(`${btns.length}개를 미리보기에 추가했어요. 다 넣은 뒤 '추가·수정 내용 복사'를 눌러 보내 주세요.`);
+  (async()=>{let n=0,err="";
+    for(const b of btns){const it=ytItems[+b.dataset.k];if(ytStatus(it.id))continue;
+      try{await rpc("vid_add_one",{p_pw:sessPw(),p_url:"https://youtu.be/"+it.id,p_title:it.title,p_date:it.date,p_category:cat,p_sub:sub||null});n++;b.disabled=true;b.textContent="추가됨";ytMsg(`추가하는 중… ${n}/${btns.length}`);}
+      catch(e){err=siteErr(e);break;}}
+    await loadRemote();render();ytMsg(err?`${n}개 추가하고 멈췄어요. ${err}`:`${n}개를 사이트에 바로 올렸어요.`);})();
 };
 $("#yt-go").onclick=async()=>{
   if(!ytKey()){ytMsg("API 키를 넣어 주세요.");return;}
@@ -1115,11 +1142,10 @@ $("#yt-stop").onclick=()=>{ytStop=true;};
 $("#yt-clear").onclick=()=>{ytStop=true;["#yt-ch","#yt-pl","#yt-after","#yt-before"].forEach(s=>{const el=$(s);if(el)el.value="";});$("#yt-q").value=$("#yt-mode").value==="search"?"#지우 #NMIXX":"";if($("#yt-full"))$("#yt-full").checked=false;ytShow([],false);$("#yt-bulk").hidden=true;$("#yt-more").hidden=true;$("#yt-stop").hidden=true;ytNext="";ytMsg("");};
 $("#yt-res").addEventListener("click",e=>{
   const b=e.target.closest("button[data-k]");if(!b||b.disabled)return;
-  const it=ytItems[+b.dataset.k];
-  const d=loadDrafts();
-  d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:b.previousElementSibling.value,group:"단독",note:""});
-  saveDrafts(d);b.disabled=true;b.textContent="추가됨";
-  renderDrafts();renderAll();
+  const it=ytItems[+b.dataset.k];b.disabled=true;
+  rpc("vid_add_one",{p_pw:sessPw(),p_url:"https://youtu.be/"+it.id,p_title:it.title,p_date:it.date,p_category:b.previousElementSibling.value,p_sub:null})
+    .then(async()=>{b.textContent="추가됨";await loadRemote();render();})
+    .catch(e=>{b.disabled=false;ytMsg(siteErr(e));});
 });
 
 /* 관리자 */
@@ -1163,7 +1189,7 @@ $("#f-url").addEventListener("change",async()=>{
   {const st=ytStatus(id);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
   msg("영상 정보 가져오는 중…");
   /* API 키가 있으면 제목과 업로드 날짜를 함께 가져와요 (영상 1개당 1점, 검색 한도와 별개) */
-  const key=($("#yt-key")&&$("#yt-key").value.trim())||(()=>{try{return localStorage.getItem("jiwoo-archive-ytkey")||""}catch(e){return ""}})();
+  const key=($("#yt-key")&&$("#yt-key").value.trim())||"";
   let apiErr="";
   if(key){
     try{
@@ -1190,16 +1216,15 @@ $("#f-url").addEventListener("change",async()=>{
 });
 $("#add").onclick=()=>{
   const url=$("#f-url").value.trim(),title=$("#f-title").value.trim();
-  if(!vidKey(url)){msg("유튜브·틱톡·인스타그램 링크를 넣어 주세요.");return;}
+  if(!vidKey(url)){msg("유튜브·틱톡·인스타그램·X 링크를 넣어 주세요.");return;}
   if(!title){msg("제목을 입력해 주세요.");return;}
   const st=ytStatus(vidKey(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
-  const d=loadDrafts();
-  d.push({url:cleanUrl(url),title,date:$("#f-date").value,category:$("#f-cat").value,group:"단독",note:"",...(fSubVal()&&SUBS[$("#f-cat").value]?{sub:fSubVal()}:{})});
-  saveDrafts(d);
-  $("#f-url").value="";$("#f-title").value="";
-  msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요.`);
-  renderDrafts();renderAll();
+  const sub=fSubVal()&&SUBS[$("#f-cat").value]?fSubVal():null;
+  $("#add").disabled=true;msg("올리는 중…");
+  rpc("vid_add_one",{p_pw:sessPw(),p_url:cleanUrl(url),p_title:title,p_date:$("#f-date").value,p_category:$("#f-cat").value,p_sub:sub})
+    .then(async()=>{$("#f-url").value="";$("#f-title").value="";await loadRemote();render();msg(`"${title}" 을(를) 사이트에 바로 올렸어요.`);})
+    .catch(e=>msg(siteErr(e))).finally(()=>{$("#add").disabled=false;});
 };
 /* 이미 사이트에 올라간 영상은 미리보기 목록에서 자동으로 빼요 */
 function pruneDrafts(){
@@ -1235,32 +1260,41 @@ $("#export").onclick=async()=>{
 };
 $("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-sub").value="";syncFSub2();fSubHint();$("#f-date").value=new Date().toISOString().slice(0,10);msg("");$("#f-url").focus();};
 $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
-/* 카드 아래 카테고리 바꾸기 */
-document.addEventListener("change",e=>{
+/* 카드 아래 카테고리 바꾸기: 세부 카테고리는 편집자도, 카테고리 이동·삭제는 관리자만 */
+document.addEventListener("change",async e=>{
   const sel=e.target.closest(".ecat,.esub");if(!sel)return;
   const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub");
-  if(sel.dataset.draft){const d=loadDrafts();const it=d.find(v=>v.url===url);
-    if(it){if(isSub)it.sub=val;else if(val==="__del")d.splice(d.indexOf(it),1);else{it.category=val;delete it.sub;}saveDrafts(d);}}
-  else{
-    const ed=loadEdits();const orig=(window.VIDEOS||[]).find(v=>v.url===url);const o0=orig?{...orig,category:normCat(orig.category)}:null;
-    let cur={...(ed[url]||{})};delete cur.delete;
-    if(!isSub&&val==="__del")cur={delete:true};
-    else if(!isSub){cur.category=val;delete cur.sub;if(o0&&o0.category===val)delete cur.category;}
-    else{cur.sub=val;const base={...o0,category:cur.category||o0.category};delete base.sub;if(!o0.sub&&subOf(base)===val)delete cur.sub;if(o0.sub===val)delete cur.sub;}
-    if(Object.keys(cur).length)ed[url]=cur;else delete ed[url];saveEdits(ed);}
-  if(isAdmin())renderDrafts();render();updateBadge();
+  try{
+    if(!isSub){
+      if(role()!=="admin"){alert("카테고리 이동과 삭제는 관리자만 할 수 있어요.");render();return;}
+      if(val==="__del"){if(!confirm("이 영상을 사이트에서 지울까요?")){render();return;}await rpc("vid_delete",{p_pw:sessPw(),p_url:url});}
+      else await rpc("vid_move",{p_pw:sessPw(),p_url:url,p_category:val,p_sub:null});
+    }else await rpc("vid_set_sub",{p_pw:sessPw(),p_url:url,p_sub:val});
+    await loadRemote();
+  }catch(err){alert(siteErr(err));}
+  render();updateBadge();
 });
 function updateBadge(){
-  const on=adminMode();$("#abadge").hidden=!on;if(!on)return;
-  const n=Object.keys(loadEdits()).length+loadDrafts().length;
-  $("#abadge-t").textContent=n?`관리자 모드 · 바뀐 것 ${n}개`:"관리자 모드";
+  const r=role();$("#abadge").hidden=!r;if(!r)return;
+  $("#abadge-t").textContent=r==="admin"?"관리자 모드":"편집자 모드";
 }
-$("#aoff").onclick=()=>{try{localStorage.removeItem(AKEY)}catch(e){}if(isAdmin())goHome();else{render();}updateBadge();};
+function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r==="admin"?"관리자로 잠금 해제됨":r==="editor"?"편집자로 잠금 해제됨 (이동·삭제는 관리자만)":"";}
+function lockNow(){SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
+$("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
+async function doLogin(){const pw=$("#a-pw").value;if(!pw){$("#a-msg").textContent="비밀번호를 넣어 주세요.";return;}
+  $("#a-msg").textContent="확인하는 중…";
+  try{const r=await rpc("site_role",{p_pw:pw});if(!r){$("#a-msg").textContent="비밀번호가 맞지 않아요.";return;}
+    SESS={role:r,pw};try{sessionStorage.setItem(SKEY,JSON.stringify(SESS))}catch(e){}
+    $("#a-pw").value="";$("#a-msg").textContent="";await unlockKey();syncAdminUI();render();updateBadge();}
+  catch(e){$("#a-msg").textContent=siteErr(e);}}
+$("#a-login").onclick=doLogin;$("#a-form").addEventListener("submit",e=>{e.preventDefault();doLogin();});
 
-try{pruneDrafts()}catch(e){}
 window.addEventListener("hashchange",route);
 window.addEventListener("popstate",route);
+syncAdminUI();
 route();
+loadRemote().then(()=>{render();if(isAdmin())renderDrafts();});
+if(SESS)unlockKey();
 </script>
 </body>
 </html>
