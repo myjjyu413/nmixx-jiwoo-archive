@@ -515,7 +515,7 @@ const CATS=["MV & Track Video","무대","자컨","예능","라디오","인터뷰
 const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
-const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식 & 연말무대"],["main-concert","콘서트"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["radio","라디오"],["etc","기타"]],
+const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식 & 연말무대"],["main-concert","쇼케 & 콘서트 & 팬미팅"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["radio","라디오"],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["idol","타아이돌"],["cover","커버"],["mag","매거진"],["etc","기타"]],
   "라이브 방송":[["solo","개인"],["unit","유닛"],["group","단체"],["comeback","컴백"],["anniv","N주년"],["etc","기타"]],
   "라디오":[["full","본편"],["hl","하이라이트"],["etc","기타"]],
@@ -670,10 +670,10 @@ function cardHTML(x,i){
   const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<img loading="lazy" src="thumbs/x/b-${(x.url.match(/broadcasts\/(\w+)/)||[])[1]}.jpg" onerror="xFail(this,1)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
-  const opts=CATS.map(c=>`<option${c===x.category?" selected":""}>${esc(c)}</option>`).join("")+(role()==="admin"?`<option disabled>──────</option><option value="__del">목록에서 빼기</option>`:"");
+  const opts=CATS.map(c=>`<option${c===x.category?" selected":""}>${esc(c)}</option>`).join("")+(role()==="admin"?`<option value="__del">목록에서 빼기</option>`:"");
   const sl=SUBS[x.category],cur=subOf(x),top=subTopOf(cur),kids=subKids(x.category,top);
   const dd=`data-url="${esc(x.url)}" data-draft="${x._draft?1:""}"`;
-  const subSel=sl&&!x._del?`<select class="esub" ${dd} aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===top?" selected":""}>${esc(n)}</option>`).join("")}${role()==="admin"?`<option disabled>──────</option><option value="__del">목록에서 빼기</option>`:""}</select>`+
+  const subSel=sl&&!x._del?`<select class="esub" ${dd} aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===top?" selected":""}>${esc(n)}</option>`).join("")}</select>`+
     (kids?`<select class="esub" ${dd} aria-label="${esc(sl.find(e=>e[0]===top)[1])} 세부">${[[top,"세부 없음"],...kids].map(([k,n])=>`<option value="${k}"${k===cur?" selected":""}>${esc(n)}</option>`).join("")}</select>`:""):"";
   return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
@@ -1353,7 +1353,7 @@ $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll()
 /* 카드 아래 카테고리 바꾸기: 카테고리 이동·세부 카테고리는 편집자도, 삭제는 관리자만 */
 document.addEventListener("change",async e=>{
   const sel=e.target.closest(".ecat,.esub");if(!sel)return;
-  const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub")&&val!=="__del";
+  const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub");
   if(localMode()){const ed=loadEdits();
     if(isSub){ed[url]={...(ed[url]||{}),sub:val};}
     else if(val==="__del"){if(!confirm("이 영상을 목록에서 뺄까요? (복사해서 보내면 사이트에서도 빠져요)")){render();return;}ed[url]={delete:true};}
