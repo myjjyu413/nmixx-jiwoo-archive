@@ -266,7 +266,6 @@ window.VIDEOS = [
   {"url":"https://youtu.be/13fRDW--7Jo","title":"어디로 튈지 모르는 엔믹스💥 파워MAX #매점가요 접수기🤩 #인기가요끝나면매점가요 EP.4 #NMIXX | SUB","date":"2025-04-25","category":"예능","group":"단독","note":""},
   {"url":"https://youtu.be/TrDwuuHQ0qU","title":"[초고화질 8K] 엔믹스 'KNOW ABOUT ME' (NMIXX FullCam) @SBS Inkigayo 250330","date":"2025-04-24","category":"무대","group":"단독","note":""},
   {"url":"https://www.instagram.com/reel/DIy96pDzMJ-/","title":"갑자기 쮸라방?","date":"2025-04-24","category":"라이브 방송","group":"단독","note":""},
-  {"url":"https://youtu.be/pWUgyGqGm_Y","title":"혹시 컨디션 안 필요해요?🔋 | 해원 컨디션 광고 비하인드 | Day MIXX","date":"2025-04-18","category":"자컨","group":"단독","note":"","sub":"day"},
   {"url":"https://youtu.be/Dr3gbd4pXg0","title":"섞어봐요 동물의 숲🌳🌙","date":"2025-04-16","category":"라이브 방송","group":"단독","note":""},
   {"url":"https://youtu.be/uZPgeHOZakc","title":"슬플 때 웃어야지 일류야 😭 'Fe3O4: FORWARD' 음악방송 3주차 비하인드 | Day MIXX","date":"2025-04-16","category":"자컨","group":"단독","note":"","sub":"day"},
   {"url":"https://youtu.be/IW5rz6WDeQg","title":"[🐶] HAPPY JIWOO DAY","date":"2025-04-12","category":"라이브 방송","group":"단독","note":""},
