@@ -6,6 +6,8 @@ on:
         description: "category"
         required: false
         default: "숏폼"
+permissions:
+  contents: write
 jobs:
   dur:
     runs-on: ubuntu-latest
@@ -13,6 +15,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: node tools/yt-durations.mjs
+      - run: node tools/yt-durations.mjs > /tmp/dur.txt
         env:
           CAT: ${{ github.event.inputs.cat }}
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan durations
+          git rm -rq --cached .
+          cp /tmp/dur.txt durations.txt
+          git add durations.txt
+          git commit -qm "durations"
+          git push -f origin durations
