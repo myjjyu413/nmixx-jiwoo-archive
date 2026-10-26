@@ -506,7 +506,7 @@ function ytId(url){
   const m=url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);
   return m?m[1]:null;
 }/* 유튜브 말고 틱톡·인스타그램 링크도 받아요 */
-function platOf(url){url=String(url||"");if(/(?:^|\/\/|\.)(x|twitter)\.com\/\w+\/status\/\d+/i.test(url))return "x";if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
+function platOf(url){url=String(url||"");if(/(x|twitter)\.com\/i\/broadcasts\/\w+/i.test(url))return "xb";if(/(?:^|\/\/|\.)(x|twitter)\.com\/\w+\/status\/\d+/i.test(url))return "x";if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
 function xId(url){const m=String(url).match(/\/status\/(\d+)/);return m?m[1]:null;}
 /* X 글번호 안에 올린 시각이 들어 있어요 */
 function xDate(id){try{return kst(new Date(Number((BigInt(id)>>22n)+1288834974657n)).toISOString())}catch(e){return ""}}
@@ -514,10 +514,11 @@ function ttId(url){const m=String(url).match(/\/video\/(\d+)/);return m?m[1]:nul
 /* 인스타그램 게시물 주소의 코드 안에 올린 시각이 들어 있어요 */
 function igDate(code){if(!code||code.length>11)return "";const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";let id=0n;for(const ch of code){const i=A.indexOf(ch);if(i<0)return "";id=id*64n+BigInt(i);}const ms=Number(id>>23n)+1314220021721;if(ms<1.3e12||ms>Date.now()+864e5)return "";return kst(new Date(ms).toISOString());}
 function igCode(url){const m=String(url).match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/i);return m?m[1]:null;}
-function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}if(p==="x"){const i=xId(url);return i?"x:"+i:null;}return null;}
+function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}if(p==="x"){const i=xId(url);return i?"x:"+i:null;}if(p==="xb"){const m=url.match(/broadcasts\/(\w+)/);return m?"xb:"+m[1]:null;}return null;}
 function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/"+ytId(url);
   if(p==="tt"){const m=String(url).match(/tiktok\.com\/@([\w.\-]+)\/video\/(\d+)/i);return m?`https://www.tiktok.com/@${m[1]}/video/${m[2]}`:String(url).split("?")[0];}
   if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;
+  if(p==="xb"){const m=String(url).match(/broadcasts\/(\w+)/);return m?`https://x.com/i/broadcasts/${m[1]}`:url;}
   if(p==="x"){const m=String(url).match(/(?:x|twitter)\.com\/(\w+)\/status\/(\d+)/i);return m?`https://x.com/${m[1]}/status/${m[2]}`:url;}return url;}
 const TTK="jiwoo-archive-ttthumb";
 function ttThumbs(){try{return JSON.parse(sessionStorage.getItem(TTK))||{}}catch(e){return {}}}
@@ -565,8 +566,8 @@ function dispTitle(x){
 }
 function cardHTML(x,i){
   const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
-  const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':pf==="x"?'<span class="ptag">X</span>':"";
-  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':pf==="x"||pf==="xb"?'<span class="ptag">X</span>':"";
+  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<div class="nothumb xph"><b>X</b><small>라이브 다시보기</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
@@ -1141,6 +1142,7 @@ $("#f-url").addEventListener("change",async()=>{
     catch(e){msg("날짜는 가져왔어요. 제목은 직접 입력해 주세요.");}
     return;
   }
+  if(pf==="xb"){$("#f-cat").value="라이브 방송";syncFSub();msg("X 라이브 다시보기 링크예요. X가 이런 영상은 다른 사이트에 넣는 걸 막아 둬서, 사이트에서는 누르면 X로 이동해요. 제목과 날짜는 직접 입력해 주세요.");$("#f-title").focus();return;}
   if(pf==="x"){const id=xId(raw),d=xDate(id);if(d)$("#f-date").value=d;msg("X 글 가져오는 중…");
     try{const tk=((Number(id)/1e15)*Math.PI).toString(36).replace(/(0+|\.)/g,"");const j=await (await fetch(`https://cdn.syndication.twimg.com/tweet-result?id=${id}&token=${tk}&lang=ko`)).json();
       const t=String(j.text||"").replace(/https:\/\/t\.co\/\w+/g,"").replace(/\s+/g," ").trim();if(t&&!$("#f-title").value)$("#f-title").value=t;fSubHint();
