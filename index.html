@@ -106,6 +106,7 @@ body.is-home .vhead{margin-bottom:12px}
 .side button{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:9px 12px 9px 14px;white-space:nowrap;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted);font-size:15px}
 .side button:hover{color:var(--fg);background:var(--surface)}
 .side button[aria-current="true"]{color:var(--fg);background:var(--surface)}
+.side button.child{padding-left:28px;font-size:14px;font-weight:500}.side button.haschild::after{content:"›";margin-left:auto;order:3;opacity:.5;transition:transform .2s}.side button.haschild.open::after{transform:rotate(90deg)}.side button.haschild .n{margin-left:auto}
 .side button[aria-current="true"]::before{content:"";position:absolute;left:4px;top:9px;bottom:9px;width:3px;background:var(--accent);border-radius:2px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -116,7 +117,7 @@ html.fitview:not(.fitfail),html.fitview:not(.fitfail) body{overflow:hidden}
 html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .grid.vert .thumb{aspect-ratio:9/16}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
-@media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.side button.child{padding:6px 12px;font-size:13px;border-style:dashed}.side button.haschild::after{display:none}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
 .csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
@@ -423,9 +424,27 @@ const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
 const SUBS={"무대":[["main","무대"],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["cover","커버"],["etc","기타"]],
-  "라이브 방송":[["comeback","컴백"],["anniv","N주년"],["solo","개인"],["unit","유닛"],["group","단체"]]};
+  "라이브 방송":[["comeback","컴백"],["anniv","N주년"],["solo","개인"],["unit","유닛"],["group","단체"]],
+  "라디오":[["full","본편"],["hl","하이라이트"],["etc","기타"]],
+  /* 자컨은 고르면 그 아래 세부 카테고리가 펼쳐져요 */
+  "예능":[["jc","자컨",[["jc-making","Making MIXX"],["jc-pick","PICK NMIXX"],["jc-log","MIXX Log"],["jc-day","Day MIXX"],["jc-jjk","쮸뀨미"]]],["etc","기타"]]};
+/* 관리자 선택칸용: 하위 카테고리까지 펼친 목록 */
+function subFlat(cat){const sl=SUBS[cat];if(!sl)return null;const out=[];sl.forEach(([k,n,ch])=>{out.push([k,n]);(ch||[]).forEach(([k2,n2])=>out.push([k2,n+" › "+n2]));});return out;}
+function subIn(k,sel){return k===sel||String(k).startsWith(sel+"-");}
 function subOf(x){
   if(x.sub)return x.sub;
+  if(x.category==="라디오"){const t=x.title||"";
+    if(/하이라이트|highlight|\bcut\b|클립|clip|쿨룩|live ?▷/i.test(t))return "hl";
+    if(/\[full\]|full ?ver|풀버전|보는 ?라디오|with ?(nmixx|엔믹스)|초대석|방송$|full\.ver/i.test(t))return "full";
+    return "etc";}
+  if(x.category==="예능"){const t=x.title||"";
+    if(/making ?mixx/i.test(t))return "jc-making";
+    if(/pick ?nmixx/i.test(t))return "jc-pick";
+    if(/mixx ?log/i.test(t))return "jc-log";
+    if(/day ?mixx/i.test(t))return "jc-day";
+    if(/쮸뀨미|jjyukyumi/i.test(t))return "jc-jjk";
+    if(/nmixx on air|nmixx_official|엔믹스 자컨|nswer|break ?time|mixx ?(tv|fit|lab)/i.test(t))return "jc";
+    return "etc";}
   if(x.category==="라이브 방송"){
     const t=x.title;
     if(/anniversar|anniver|주년|1000일|1st anniversary/i.test(t))return "anniv";
@@ -514,7 +533,7 @@ function cardHTML(x,i){
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
-  const sl=SUBS[x.category];
+  const sl=subFlat(x.category);
   const subSel=sl&&!x._del?`<select class="esub" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===subOf(x)?" selected":""}>${esc(n)}</option>`).join("")}</select>`:"";
   return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" data-draft="${x._draft?1:""}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
@@ -559,9 +578,13 @@ function render(){
   const subs=catView&&SUBS[state.cat];
   $("#vbody").classList.toggle("has-side",!!subs);$("#side").hidden=!subs;
   if(subs){
-    const cnt={};v.forEach(x=>{const k=subOf(x);cnt[k]=(cnt[k]||0)+1;});
-    $("#side").innerHTML=[["","전체"],...subs].map(([k,n])=>`<button data-s="${k}" aria-current="${state.sub===k}">${esc(n)}<span class="n">${k?(cnt[k]||0):v.length}</span></button>`).join("");
-    if(state.sub)v=v.filter(x=>subOf(x)===state.sub);
+    const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
+    $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
+      const open=ch&&state.sub&&subIn(state.sub,k);
+      return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span></button>`+
+        (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
+    }).join("");
+    if(state.sub)v=v.filter((x,i)=>subIn(ks[i],state.sub));
   }
   $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:"");
   $("#vtitle").hidden=catView;
@@ -983,10 +1006,10 @@ $("#yt-res").addEventListener("click",e=>{
 
 /* 관리자 */
 $("#f-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
-function syncFSub(){const sl=SUBS[$("#f-cat").value];$("#f-sub-wrap").hidden=!sl;$("#f-sub").innerHTML=sl?`<option value="">자동 (제목 보고 분류)</option>`+sl.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""):"";}
+function syncFSub(){const sl=subFlat($("#f-cat").value);$("#f-sub-wrap").hidden=!sl;$("#f-sub").innerHTML=sl?`<option value="">자동 (제목 보고 분류)</option>`+sl.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""):"";}
 $("#f-cat").addEventListener("change",syncFSub);syncFSub();
 /* 제목이 바뀌면 자동 분류 결과를 안내 */
-function fSubHint(){const o=$("#f-sub").options[0];if(!o||o.value)return;const sl=SUBS[$("#f-cat").value];if(!sl)return;const k=subOf({title:$("#f-title").value,category:$("#f-cat").value});const n=(sl.find(x=>x[0]===k)||[])[1];o.textContent=n?`자동 (${n})`:"자동 (제목 보고 분류)";}
+function fSubHint(){const o=$("#f-sub").options[0];if(!o||o.value)return;const sl=subFlat($("#f-cat").value);if(!sl)return;const k=subOf({title:$("#f-title").value,category:$("#f-cat").value});const n=(sl.find(x=>x[0]===k)||[])[1];o.textContent=n?`자동 (${n})`:"자동 (제목 보고 분류)";}
 $("#f-title").addEventListener("input",fSubHint);$("#f-cat").addEventListener("change",fSubHint);
 $("#f-date").value=new Date().toISOString().slice(0,10);
 function msg(t){$("#msg").textContent=t}
