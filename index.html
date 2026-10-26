@@ -408,7 +408,7 @@ main{padding-bottom:40px}
       <div class="ytres" id="yt-res"></div>
 
       <h2 style="margin-top:28px">영상 추가</h2>
-      <p class="hint">추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)</p>
+      <p class="hint" id="add-hint">추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)</p>
       <div class="form">
         <label class="wide">영상 링크<input id="f-url" placeholder="유튜브·틱톡·인스타그램 링크"></label>
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
@@ -636,8 +636,10 @@ let SESS=(()=>{try{const o=JSON.parse(sessionStorage.getItem(SKEY));return o&&/^
 function role(){return SESS&&SESS.role||null}
 function sessPw(){return SESS&&SESS.pw||null}
 function adminMode(){return !!role()}
+/* 관리자는 예전처럼: 추가·수정은 이 브라우저에만 미리 보이고, 복사해서 Claude에게 보내면 반영돼요 */
+function localMode(){return role()==="admin"}
 /* 예전 방식으로 남은 값 정리 (평문 저장 X) */
-try{["jiwoo-archive-admin","jiwoo-archive-boardadmin","jiwoo-archive-edits","jiwoo-archive-drafts"].forEach(k=>localStorage.removeItem(k))}catch(e){}
+try{["jiwoo-archive-admin","jiwoo-archive-boardadmin"].forEach(k=>localStorage.removeItem(k))}catch(e){}
 function loadEdits(){try{return JSON.parse(localStorage.getItem(EKEY))||{}}catch(e){return {}}}
 function saveEdits(o){try{localStorage.setItem(EKEY,JSON.stringify(o))}catch(e){}}
 /* 사이트에서 추가·수정한 내용 (Supabase) */
@@ -646,8 +648,13 @@ async function loadRemote(){if(!BOARD.url||!BOARD.key)return;try{const j=await r
 function all(){
   const ed=REMOTE.edits,base=window.VIDEOS||[],have=new Set(base.map(v=>vidKey(v.url)));
   const adds=REMOTE.adds.filter(a=>{const k=vidKey(a.url);if(!k||have.has(k))return false;have.add(k);return true;}).map(a=>({url:a.url,title:a.title,date:a.date||"",category:a.category,group:"단독",note:"",...(a.sub?{sub:a.sub}:{})}));
-  return base.concat(adds).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.deleted)return null;
+  const list=base.concat(adds).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.deleted)return null;
     const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
+  if(!localMode())return list;
+  const led=loadEdits(),seen=new Set(list.map(v=>vidKey(v.url)));
+  const out=list.map(v=>{const e=led[v.url];if(!e)return v;if(e.delete)return null;const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
+  for(const d of loadDrafts()){const k=vidKey(d.url);if(!k||seen.has(k))continue;seen.add(k);const e=led[d.url]||{};if(e.delete)continue;const o={...d,category:normCat(e.category||d.category),_draft:true};if(e.category)delete o.sub;if(e.sub)o.sub=e.sub;out.push(o);}
+  return out;
 }
 function siteErr(e){const m=String(e&&e.message||e);if(/NO_AUTH/.test(m)&&SESS){setTimeout(lockNow,0);return "로그인이 끝났어요. 다시 로그인해 주세요.";}if(/ADMIN_ONLY/.test(m))return "관리자만 할 수 있어요.";if(/NO_AUTH/.test(m))return "로그인이 필요해요. 주소 뒤에 #admin 을 붙여 로그인해 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -1069,6 +1076,7 @@ function syncMode(){
 }
 $("#yt-mode").onchange=syncMode;
 function ytStatus(id){
+  if(localMode()&&loadDrafts().some(v=>vidKey(v.url)===id))return "미리보기에 있음";
   if(all().some(v=>vidKey(v.url)===id))return "목록에 있음";
   return "";
 }
@@ -1200,6 +1208,8 @@ $("#yt-bulk-add").onclick=()=>{
   const btns=[...$("#yt-res").querySelectorAll(".yt:not([hidden]) button[data-k]:not(:disabled)")];
   if(!btns.length){ytMsg("추가할 영상이 없어요.");return;}
   if(!confirm(`보이는 영상 ${btns.length}개를 '${cat}'에 추가할까요?`))return;
+  if(localMode()){let n=0;for(const b of btns){const it=ytItems[+b.dataset.k];const d=loadDrafts();if(d.some(v=>vidKey(v.url)===it.id)||ytStatus(it.id))continue;d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:cat,group:"단독",note:"",...(sub?{sub}:{})});saveDrafts(d);n++;b.disabled=true;b.textContent="추가됨";}
+    renderDrafts();renderAll();ytMsg(`${n}개를 미리보기에 넣었어요. 다 넣은 뒤 '추가·수정 내용 복사'를 눌러 Claude에게 보내 주세요.`);return;}
   (async()=>{let n=0,err="";
     for(const b of btns){const it=ytItems[+b.dataset.k];if(ytStatus(it.id))continue;
       try{await rpc("vid_add_one",{p_pw:sessPw(),p_url:"https://youtu.be/"+it.id,p_title:it.title,p_date:it.date,p_category:cat,p_sub:sub||null});n++;b.disabled=true;b.textContent="추가됨";ytMsg(`추가하는 중… ${n}/${btns.length}`);}
@@ -1218,6 +1228,7 @@ $("#yt-clear").onclick=()=>{ytStop=true;["#yt-ch","#yt-pl","#yt-after","#yt-befo
 $("#yt-res").addEventListener("click",e=>{
   const b=e.target.closest("button[data-k]");if(!b||b.disabled)return;
   const it=ytItems[+b.dataset.k];b.disabled=true;
+  if(localMode()){addDraft({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:b.previousElementSibling.value});b.textContent="추가됨";return;}
   rpc("vid_add_one",{p_pw:sessPw(),p_url:"https://youtu.be/"+it.id,p_title:it.title,p_date:it.date,p_category:b.previousElementSibling.value,p_sub:null})
     .then(async()=>{b.textContent="추가됨";await loadRemote();render();})
     .catch(e=>{b.disabled=false;ytMsg(siteErr(e));});
@@ -1296,22 +1307,25 @@ $("#add").onclick=()=>{
   const st=ytStatus(vidKey(url));
   if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요.":"이미 미리보기 목록에 추가한 영상이에요.");return;}
   const sub=fSubVal()&&SUBS[$("#f-cat").value]?fSubVal():null;
+  if(localMode()){addDraft({url:cleanUrl(url),title,date:$("#f-date").value,category:$("#f-cat").value,sub});$("#f-url").value="";$("#f-title").value="";msg(`"${title}" 추가됨. 아직 이 브라우저에서만 보여요. 다 넣은 뒤 '추가·수정 내용 복사'를 눌러 Claude에게 보내 주세요.`);return;}
   $("#add").disabled=true;msg("올리는 중…");
   rpc("vid_add_one",{p_pw:sessPw(),p_url:cleanUrl(url),p_title:title,p_date:$("#f-date").value,p_category:$("#f-cat").value,p_sub:sub})
     .then(async()=>{$("#f-url").value="";$("#f-title").value="";await loadRemote();render();msg(`"${title}" 을(를) 사이트에 바로 올렸어요.`);})
     .catch(e=>msg(siteErr(e))).finally(()=>{$("#add").disabled=false;});
 };
+function addDraft({url,title,date,category,sub}){const d=loadDrafts();if(d.some(v=>vidKey(v.url)===vidKey(url)))return false;d.push({url,title,date:date||"",category,group:"단독",note:"",...(sub?{sub}:{})});saveDrafts(d);renderDrafts();renderAll();return true;}
 /* 이미 사이트에 올라간 영상은 미리보기 목록에서 자동으로 빼요 */
 function pruneDrafts(){
-  const have=new Set((window.VIDEOS||[]).map(v=>vidKey(v.url)));
+  const base=window.VIDEOS||[],have=new Set(base.map(v=>vidKey(v.url)));
   const d=loadDrafts(),keep=d.filter(v=>!have.has(vidKey(v.url)));
   if(keep.length!==d.length)saveDrafts(keep);
+  const known=new Set([...base.map(v=>v.url),...REMOTE.adds.map(a=>a.url),...keep.map(v=>v.url)]);
   const ed=loadEdits();let ch=false;
-  for(const u of Object.keys(ed)){const v=(window.VIDEOS||[]).find(x=>x.url===u);
-    if(!v&&!ed[u].delete){delete ed[u];ch=true;continue;}
+  for(const u of Object.keys(ed)){
+    if(!known.has(u)){delete ed[u];ch=true;continue;}
+    const v=base.find(x=>x.url===u);
     if(v&&!ed[u].delete){const e={...ed[u]};if(e.category&&normCat(v.category)===normCat(e.category))delete e.category;if(e.sub&&v.sub===e.sub)delete e.sub;
-      if(JSON.stringify(e)!==JSON.stringify(ed[u])){ch=true;if(Object.keys(e).length)ed[u]=e;else delete ed[u];}}
-    if(!v&&ed[u].delete){delete ed[u];ch=true;}}
+      if(JSON.stringify(e)!==JSON.stringify(ed[u])){ch=true;if(Object.keys(e).length)ed[u]=e;else delete ed[u];}}}
   if(ch)saveEdits(ed);
   return d.length-keep.length;
 }
@@ -1321,10 +1335,12 @@ function renderDrafts(){
   $("#drafts").innerHTML=d.map((x,i)=>`<div class="draft"><span>${esc(x.date)} · ${esc(x.category)} · ${esc(x.title)}</span><button data-i="${i}" aria-label="삭제">삭제</button></div>`).join("");
   $("#drafts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const d=loadDrafts();d.splice(+b.dataset.i,1);saveDrafts(d);renderDrafts();renderAll();});
 }
-$("#export").onclick=async()=>{
+$("#export").onclick=async()=>{const ed0=loadEdits();
   const have=new Set((window.VIDEOS||[]).map(v=>v.url));
-  const merged=loadDrafts().filter(v=>!have.has(v.url));
-  const ed=loadEdits();const ekeys=Object.keys(ed).filter(u=>have.has(u));
+  const merged=loadDrafts().filter(v=>!have.has(v.url)&&!(ed0[v.url]&&ed0[v.url].delete));
+  const ed=loadEdits();const ekeys=Object.keys(ed).filter(u=>have.has(u)||(ed[u].delete&&REMOTE.adds.some(a=>a.url===u)));
+  REMOTE.adds.forEach(a=>{const e=ed[a.url];if(!e||e.delete||have.has(a.url))return;const v={url:a.url,title:a.title,date:a.date||"",category:a.category,group:"단독",note:"",...(a.sub?{sub:a.sub}:{})};merged.push(v);});
+  merged.forEach(v=>{const e=ed[v.url];if(e&&!e.delete){if(e.category){v.category=e.category;delete v.sub;}if(e.sub)v.sub=e.sub;}});
   if(!merged.length&&!ekeys.length){msg("새로 추가하거나 고친 영상이 없어요.");return;}
   const lines=merged.map(v=>"  "+JSON.stringify(Object.assign({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group||"단독",note:v.note||""},v.sub?{sub:v.sub}:{}))+",");
   const elines=ekeys.map(u=>"  "+JSON.stringify(u)+": "+JSON.stringify(ed[u])+",");
@@ -1339,6 +1355,11 @@ $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll()
 document.addEventListener("change",async e=>{
   const sel=e.target.closest(".ecat,.esub");if(!sel)return;
   const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub");
+  if(localMode()){const ed=loadEdits();
+    if(isSub){ed[url]={...(ed[url]||{}),sub:val};}
+    else if(val==="__del"){if(!confirm("이 영상을 목록에서 뺄까요? (복사해서 보내면 사이트에서도 빠져요)")){render();return;}ed[url]={delete:true};}
+    else ed[url]={category:val};
+    saveEdits(ed);renderDrafts();render();updateBadge();return;}
   try{
     if(!isSub){
       if(val==="__del"){if(role()!=="admin"){alert("삭제는 관리자만 할 수 있어요.");render();return;}if(!confirm("이 영상을 사이트에서 지울까요?")){render();return;}await rpc("vid_delete",{p_pw:sessPw(),p_url:url});}
@@ -1352,7 +1373,7 @@ function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
   $("#abadge-t").textContent=`${SESS.handle||""} · ${r==="admin"?"관리자":"편집 모드"}`;
 }
-function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
+function syncAdminUI(){const r=role();$("#export").hidden=$("#clear").hidden=r!=="admin";$("#add-hint").innerHTML=r==="admin"?"여기서 추가하거나 고친 영상은 <b>이 브라우저에만 미리 보여요.</b> 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내 주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.":"추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)";$("#drafts").hidden=r!=="admin";if(r==="admin")renderDrafts();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
 function lockNow(){const t=sessPw();if(t)rpc("acct_logout",{p_token:t}).catch(()=>{});SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
 const amsg=t=>{$("#a-msg").textContent=t};
@@ -1389,7 +1410,7 @@ window.addEventListener("hashchange",route);
 window.addEventListener("popstate",route);
 syncAdminUI();
 route();
-loadRemote().then(()=>{render();if(isAdmin())renderDrafts();});
+loadRemote().then(()=>{if(localMode())pruneDrafts();render();if(isAdmin())renderDrafts();});
 if(SESS)unlockKey();
 </script>
 </body>
