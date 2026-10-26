@@ -1042,6 +1042,14 @@ async function unlockKey(){
   try{const plain=localStorage.getItem(YTK);if(plain&&SESS&&SESS.kp){await saveKeyEnc(plain);localStorage.removeItem(YTK);localStorage.removeItem(YKE);$("#yt-key").value=plain;return;}}catch(e){}
   try{const o=JSON.parse(localStorage.getItem(ykeName()));const key=await aesKey();if(!o||!key)return;const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(o.i)},key,ub64(o.c));ytSaved=new TextDecoder().decode(pt);$("#yt-key").value=ytSaved;}catch(e){}
 }
+let ytNext="",ytItems=[],ytStop=false;
+function ytMsg(t){$("#yt-msg").textContent=t}
+/* 제목에 적힌 날짜 찾기: 250324 / 2025.03.24 / 20250324 / 2025-03-24 */
+function titleDate(t){t=String(t||"");let m=t.match(/(?:^|[^\d])(20\d{2})[.\-/ ]?(0[1-9]|1[0-2])[.\-/ ]?(0[1-9]|[12]\d|3[01])(?!\d)/);
+  if(!m){const k=t.match(/(?:^|[^\d])(\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/);if(k&&+k[1]>=15&&+k[1]<=40)m=[0,"20"+k[1],k[2],k[3]];}
+  return m?`${m[1]}-${m[2]}-${m[3]}`:"";}
+function kst(t){if(!t)return "";const d=new Date(new Date(t).getTime()+9*3600e3);return isNaN(d)?String(t).slice(0,10):d.toISOString().slice(0,10);}
+function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
 function ytKey(){const k=$("#yt-key").value.trim();if(k)saveKeyEnc(k);return k;}
 async function ytGet(path,params){
   const r=await fetch(YT+path+"?"+new URLSearchParams({...params,key:ytKey()}));
