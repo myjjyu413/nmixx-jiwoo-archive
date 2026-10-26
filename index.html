@@ -236,6 +236,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .abadge a,.abadge button{color:var(--bg);background:transparent;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;text-decoration:none}
 .hidechk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-top:12px;cursor:pointer}
 .yt.have{opacity:.55}
+.ytbulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-weight:600;font-size:14px}.ytbulk select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 8px;font:inherit;font-weight:500}
 .ytres{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:12px}
 .yt{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:8px;min-width:0}
 .yt img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px}
@@ -302,7 +303,8 @@ main{padding-bottom:40px}
       <p class="hint">API 키는 이 브라우저에만 저장되고 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
         <label class="wide">API 키<input id="yt-key" type="password" placeholder="AIza로 시작하는 키" autocomplete="off"></label>
-        <label>찾는 방식<select id="yt-mode"><option value="search">유튜브 전체 검색</option><option value="channel">특정 채널 안에서</option></select></label>
+        <label>찾는 방식<select id="yt-mode"><option value="search">유튜브 전체 검색</option><option value="channel">특정 채널 안에서</option><option value="playlist">재생목록 가져오기</option></select></label>
+        <label class="wide" id="yt-pl-wrap" hidden>재생목록<input id="yt-pl" placeholder="재생목록 주소 (…list=PL로 시작하는 부분이 들어간 주소)"></label>
         <label class="wide" id="yt-ch-wrap" hidden>채널<input id="yt-ch" placeholder="채널 주소 또는 @아이디 (예: @NMIXX_official)"></label>
         <label class="wide"><span id="yt-q-label">검색어</span><input id="yt-q" value="#지우 #NMIXX"></label>
         <label id="yt-order-wrap">정렬<select id="yt-order"><option value="relevance">관련성</option><option value="date">최신순</option><option value="viewCount">조회수</option></select></label>
@@ -313,6 +315,7 @@ main{padding-bottom:40px}
       <label class="hidechk"><input type="checkbox" id="yt-hide" checked> 이미 목록에 있는 영상 숨기기</label>
       <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button></div>
       <p class="msg" id="yt-msg"></p>
+      <div class="ytbulk" id="yt-bulk" hidden><span>보이는 영상 전부</span><select id="yt-bulk-cat" aria-label="카테고리"></select><select id="yt-bulk-sub" aria-label="세부 카테고리"></select><button class="btn primary" id="yt-bulk-add">한꺼번에 추가</button></div>
       <div class="ytres" id="yt-res"></div>
 
       <h2 style="margin-top:28px">영상 추가 (관리자)</h2>
@@ -880,8 +883,9 @@ async function ytGet(path,params){
   return j;
 }
 function syncMode(){
-  const ch=$("#yt-mode").value==="channel";
-  $("#yt-ch-wrap").hidden=!ch;$("#yt-full-wrap").hidden=!ch;$("#yt-order-wrap").hidden=ch;
+  const pl=$("#yt-mode").value==="playlist",ch=$("#yt-mode").value==="channel"||pl;
+  $("#yt-pl-wrap").hidden=!pl;
+  $("#yt-ch-wrap").hidden=!ch||pl;$("#yt-full-wrap").hidden=!ch||pl;$("#yt-order-wrap").hidden=ch;
   $("#yt-q-label").textContent=ch?"제목에 들어간 단어 (선택)":"검색어";
   $("#yt-q").placeholder=ch?"비워두면 전부 가져와요. 예: 지우, JIWOO":"";
   if(ch&&$("#yt-q").value==="#지우 #NMIXX")$("#yt-q").value="";
@@ -896,6 +900,7 @@ function ytStatus(id){
 }
 function ytShow(list,append){
   if(!append){ytItems=[];$("#yt-res").innerHTML="";}
+  $("#yt-bulk").hidden=!(ytItems.length+list.length);
   const start=ytItems.length;ytItems=ytItems.concat(list);
   $("#yt-res").insertAdjacentHTML("beforeend",list.map((it,k)=>{
     const st=ytStatus(it.id);
@@ -988,9 +993,44 @@ async function ytChannel(){
   const capped=!reached&&token&&!ytStop;
   ytMsg(`${name}: 영상 ${scanned.toLocaleString()}개 중 ${ytItems.length}개를 찾았어요${ytHaveCount()}.${ytStop?" (중간에 멈춤)":""}${capped?` 한 번에 훑을 수 있는 양을 넘어서 ${oldest.replaceAll("-",".")}까지만 봤어요. 기간 끝을 그 날짜로 바꿔서 한 번 더 가져오면 이어서 볼 수 있어요.`:""} 넣고 싶은 영상의 카테고리를 고르고 추가를 누르세요.`);
 }
+/* 재생목록: 목록 안의 영상을 전부 가져와요 (50개당 1점) */
+async function ytPlaylist(){
+  const raw=$("#yt-pl").value.trim();
+  const id=(raw.match(/[?&]list=([\w-]+)/)||raw.match(/^((?:PL|UU|OL|FL|LL)[\w-]{10,})$/)||[])[1];
+  if(!id){ytMsg("재생목록 주소를 넣어 주세요. 주소에 list=… 부분이 있어야 해요.");return;}
+  ytMsg("재생목록 찾는 중…");
+  const info=(await ytGet("playlists",{part:"snippet",id})).items?.[0];
+  const name=info?decodeHTML(info.snippet.title):"재생목록";
+  const words=$("#yt-q").value.split(/[,|]/).map(w=>w.trim().toLowerCase()).filter(Boolean);
+  ytShow([],false);ytStop=false;$("#yt-stop").hidden=false;$("#yt-more").hidden=true;
+  let token="",scanned=0,page=0;
+  do{
+    const j=await ytGet("playlistItems",{part:"snippet,contentDetails",playlistId:id,maxResults:"50",...(token?{pageToken:token}:{})});
+    token=j.nextPageToken||"";page++;
+    const list=(j.items||[]).map(it=>({id:it.contentDetails.videoId,title:decodeHTML(it.snippet.title),date:kst(it.contentDetails.videoPublishedAt||it.snippet.publishedAt||""),channel:decodeHTML(it.snippet.videoOwnerChannelTitle||"")}))
+      .filter(v=>v.id&&v.title!=="Private video"&&v.title!=="Deleted video"&&v.date);
+    scanned+=list.length;
+    const hit=list.filter(v=>inRange(v.date)&&(!words.length||words.some(w=>v.title.toLowerCase().includes(w))));
+    if(hit.length)ytShow(hit,true);
+    ytMsg(`'${name}' 가져오는 중… ${scanned}개`);
+  }while(token&&!ytStop&&page<100);
+  $("#yt-stop").hidden=true;
+  ytMsg(`'${name}'에서 ${ytItems.length}개를 가져왔어요${ytHaveCount()}. 하나씩 추가하거나, 아래 '한꺼번에 추가'로 보이는 영상을 전부 넣을 수 있어요.`);
+}
+function syncBulkSub(){const sl=subFlat($("#yt-bulk-cat").value);$("#yt-bulk-sub").hidden=!sl;$("#yt-bulk-sub").innerHTML=sl?`<option value="">세부: 자동</option>`+sl.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join(""):"";}
+$("#yt-bulk-cat").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");$("#yt-bulk-cat").onchange=syncBulkSub;syncBulkSub();
+$("#yt-bulk-add").onclick=()=>{
+  const cat=$("#yt-bulk-cat").value,sub=$("#yt-bulk-sub").hidden?"":$("#yt-bulk-sub").value;
+  const btns=[...$("#yt-res").querySelectorAll(".yt:not([hidden]) button[data-k]:not(:disabled)")];
+  if(!btns.length){ytMsg("추가할 영상이 없어요.");return;}
+  if(!confirm(`보이는 영상 ${btns.length}개를 '${cat}'에 추가할까요?`))return;
+  const d=loadDrafts();
+  btns.forEach(b=>{const it=ytItems[+b.dataset.k];if(ytStatus(it.id))return;d.push({url:"https://youtu.be/"+it.id,title:it.title,date:it.date,category:cat,group:"단독",note:"",...(sub?{sub}:{})});b.disabled=true;b.textContent="추가됨";});
+  saveDrafts(d);renderDrafts();renderAll();ytMsg(`${btns.length}개를 미리보기에 추가했어요. 다 넣은 뒤 '추가·수정 내용 복사'를 눌러 보내 주세요.`);
+};
 $("#yt-go").onclick=async()=>{
   if(!ytKey()){ytMsg("API 키를 넣어 주세요.");return;}
-  try{if($("#yt-mode").value==="channel")await ytChannel();else await ytSearch(false);}
+  try{if($("#yt-mode").value==="playlist")await ytPlaylist();else if($("#yt-mode").value==="channel")await ytChannel();else await ytSearch(false);}
   catch(e){$("#yt-stop").hidden=true;ytMsg("안 됐어요: "+e.message);}
 };
 $("#yt-more").onclick=async()=>{try{await ytSearch(true)}catch(e){ytMsg("안 됐어요: "+e.message)}};
