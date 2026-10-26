@@ -23,4 +23,3 @@ for (const code of codes) {
   if (r.ok) { fs.writeFileSync(out, Buffer.from(await r.arrayBuffer())); LOG.push(`saved ${out}`); } else LOG.push(`${code} img ${r.status}`);
 }
 console.log(LOG.join("\n"));
-fs.writeFileSync("thumbs/ig/_log.txt", LOG.join("\n"));
