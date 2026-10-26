@@ -141,7 +141,8 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 }
 .vnone{color:var(--muted);margin:0}
 /* 관리자 화면(#admin): 메인 화면과 메뉴는 숨기고 로그인·편집 칸만 */
-body.adminview #hero,body.adminview #videos>.vhead,body.adminview #vbody,body.adminview #abadge{display:none!important}
+body.adminview #hero,body.adminview #videos>.vhead,body.adminview #vbody{display:none!important}
+body.adminview #abadge a{display:none}
 body.adminview main{padding-bottom:0}
 body.adminview #videos{max-width:none;padding-top:0}
 body.adminview #admin:not([hidden]){max-width:960px;margin:0 auto;padding:8px 0 56px;border:0;background:none;border-radius:0}
@@ -468,7 +469,7 @@ main{padding-bottom:40px}
   </div>
 </div>
 
-<div class="abadge" id="abadge" hidden><span id="abadge-t">편집 모드</span><a href="#admin">관리 화면</a><button id="aoff">끄기</button></div>
+<div class="abadge" id="abadge" hidden><span id="abadge-t">편집 모드</span><a href="#admin" id="abadge-a">편집 화면</a><button id="aoff">끄기</button></div>
 
 <div class="modal" id="modal" hidden>
   <div class="player" role="dialog" aria-modal="true" aria-labelledby="p-title">
@@ -1369,9 +1370,9 @@ document.addEventListener("change",async e=>{
 });
 function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
-  $("#abadge-t").textContent=`${SESS.handle||""} · ${r==="admin"?"관리자":"편집 모드"}`;
+  const ad=r==="admin";$("#abadge-t").textContent=`${SESS.handle||""} · ${ad?"관리자 모드":"편집 모드"}`;$("#abadge-a").textContent=ad?"관리 화면":"편집 화면";$("#aoff").textContent=ad?"관리자 모드 끄기":"편집 모드 끄기";
 }
-function syncAdminUI(){const r=role();$("#export").hidden=$("#clear").hidden=r!=="admin";$("#add-hint").innerHTML=r==="admin"?"여기서 추가하거나 고친 영상은 <b>이 브라우저에만 미리 보여요.</b> 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내 주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.":"추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)";$("#drafts").hidden=r!=="admin";if(r==="admin")renderDrafts();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
+function syncAdminUI(){const r=role();$("#export").hidden=$("#clear").hidden=r!=="admin";$("#add-hint").innerHTML=r==="admin"?"여기서 추가하거나 고친 영상은 <b>이 브라우저에만 미리 보여요.</b> 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내 주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.":"추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)";$("#drafts").hidden=r!=="admin";if(r==="admin")renderDrafts();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${r==="admin"?"관리자 화면":"편집자 화면"} · ${SESS.handle||""}${r==="admin"?"":" (삭제는 관리자만)"}`:"";}
 function lockNow(){const t=sessPw();if(t)rpc("acct_logout",{p_token:t}).catch(()=>{});SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
 const amsg=t=>{$("#a-msg").textContent=t};
