@@ -21,5 +21,23 @@ for (const id of ids) {
     LOG.push(`saved ${out}`);
   } catch (e) { LOG.push(`${id} fail ${e.message}`); }
 }
+/* X 라이브 다시보기: 링크 미리보기용 대표 이미지(og:image)를 받아 와요 */
+const bids = [...new Set([...src.matchAll(/(?:x|twitter)\.com\/i\/broadcasts\/(\w+)/gi)].map(m => m[1]))];
+for (const id of bids) {
+  const out = `thumbs/x/b-${id}.jpg`;
+  if (fs.existsSync(out)) continue;
+  let img = null;
+  for (const ua of ["facebookexternalhit/1.1", "Twitterbot/1.0", "Slackbot-LinkExpanding 1.0", UA]) {
+    try {
+      const h = await (await fetch(`https://x.com/i/broadcasts/${id}`, { headers: { "User-Agent": ua } })).text();
+      const m = h.match(/property="og:image" content="([^"]+)"/) || h.match(/name="twitter:image" content="([^"]+)"/) || h.match(/content="([^"]+)" property="og:image"/);
+      LOG.push(`b ${id} ua=${ua.slice(0,12)} len=${h.length} img=${m ? m[1] : "-"}`);
+      if (m && !/abs\.twimg\.com\/(responsive-web|errors)/.test(m[1])) { img = m[1].replace(/&amp;/g, "&"); break; }
+    } catch (e) { LOG.push(`b ${id} fail ${e.message}`); }
+  }
+  if (!img) continue;
+  const r = await fetch(img, { headers: { "User-Agent": UA } });
+  if (r.ok) { fs.writeFileSync(out, Buffer.from(await r.arrayBuffer())); LOG.push(`saved ${out}`); }
+}
 console.log(LOG.join("\n"));
-if (process.env.XTEST) fs.writeFileSync("thumbs/x/_log.txt", LOG.join("\n"));
+fs.writeFileSync("thumbs/x/_log.txt", LOG.join("\n"));
