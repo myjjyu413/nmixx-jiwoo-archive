@@ -588,6 +588,7 @@ function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()
 
 /* 화면: home(대표 영상 + 최근 추가) / list(메뉴의 카테고리·검색) / profile */
 function render(){
+  {const ck=state.view+"|"+state.cat+"|"+state.q;if(typeof sideOpen!=="undefined"&&sideCat!==ck){for(const z in sideOpen)delete sideOpen[z];sideCat=ck;}}
   const list=all();
   const home=state.view==="home",prof=state.view==="profile",ins=state.view==="insta",brd=state.view==="board";
   $("#hero").hidden=!home;
@@ -690,7 +691,8 @@ function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h
 /* 상위 항목(자컨·무대 등): 누르면 펼쳐지고, 다른 항목을 눌러도 펼친 채로 두고, 펼쳐진 걸 고른 상태에서 다시 누르면 접혀요 */
 const SOKEY="jiwoo-archive-sideopen";
 /* 처음 들어오면 항상 접힌 상태 (펼친 상태는 새로고침하면 초기화) */
-const sideOpen={};try{localStorage.removeItem(SOKEY)}catch(e){}
+/* 다른 카테고리에 갔다 오면 다시 접혀요 */
+const sideOpen={};let sideCat="";try{localStorage.removeItem(SOKEY)}catch(e){}
 function saveSideOpen(){}
 $("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
   /* › 표시를 눌렀을 때만 펼치기/접기 */
