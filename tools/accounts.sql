@@ -3,13 +3,18 @@
 
 create table if not exists public.site_users (
   id bigint generated always as identity primary key,
-  handle text not null unique check (handle ~ '^@[a-z0-9_]{1,15}$'),
+  handle text not null unique,
   pw_hash text not null,
   role text not null default 'editor' check (role in ('editor', 'admin')),
-  q text not null check (char_length(q) between 1 and 100),
-  a_hash text not null,
+  q text check (char_length(q) between 1 and 100),
+  a_hash text,
   created_at timestamptz not null default now()
 );
+-- 편집자 아이디는 @트위터아이디, 관리자 아이디는 @ 없이도 돼요. 관리자는 비밀번호 찾기 질문이 없어도 돼요.
+alter table public.site_users drop constraint if exists site_users_handle_check;
+alter table public.site_users add constraint site_users_handle_check check (handle ~ '^@[a-z0-9_]{1,15}$' or handle ~ '^[a-z0-9_]{2,20}$');
+alter table public.site_users alter column q drop not null;
+alter table public.site_users alter column a_hash drop not null;
 alter table public.site_users enable row level security;
 revoke all on public.site_users from anon, authenticated;
 
@@ -77,17 +82,22 @@ create or replace function public.acct_signup(p_handle text, p_pw text, p_q text
 language plpgsql volatile security definer set search_path = public, extensions as $$
 declare h text := public.acct_norm(p_handle); uid bigint; r text := 'editor';
 begin
-  if h !~ '^@[a-z0-9_]{1,15}$' then raise exception 'BAD_HANDLE'; end if;
-  if char_length(coalesce(p_pw, '')) < 6 then raise exception 'SHORT_PW'; end if;
-  if char_length(trim(coalesce(p_q, ''))) = 0 or char_length(trim(coalesce(p_a, ''))) = 0 then raise exception 'NO_Q'; end if;
   if coalesce(p_admin, '') <> '' then
     if p_admin like 'tok_%' or public.board_is_admin(p_admin) is not true then raise exception 'WRONG_ADMIN'; end if;
     r := 'admin';
   end if;
+  if r = 'admin' then
+    if h !~ '^@[a-z0-9_]{1,15}$' and h !~ '^[a-z0-9_]{2,20}$' then raise exception 'BAD_ADMIN_ID'; end if;
+  else
+    if h !~ '^@[a-z0-9_]{1,15}$' then raise exception 'BAD_HANDLE'; end if;
+    if char_length(trim(coalesce(p_q, ''))) = 0 or char_length(trim(coalesce(p_a, ''))) = 0 then raise exception 'NO_Q'; end if;
+  end if;
+  if char_length(coalesce(p_pw, '')) < 6 then raise exception 'SHORT_PW'; end if;
   if (select count(*) from public.site_users u where u.created_at > now() - interval '1 hour') >= 30 then raise exception 'TOO_MANY'; end if;
   if exists (select 1 from public.site_users u where u.handle = h) then raise exception 'TAKEN'; end if;
   insert into public.site_users (handle, pw_hash, role, q, a_hash)
-  values (h, crypt(p_pw, gen_salt('bf')), r, trim(p_q), crypt(public.acct_norm(p_a), gen_salt('bf')))
+  values (h, crypt(p_pw, gen_salt('bf')), r, nullif(trim(coalesce(p_q, '')), ''),
+          case when trim(coalesce(p_a, '')) = '' then null else crypt(public.acct_norm(p_a), gen_salt('bf')) end)
   returning id into uid;
   return jsonb_build_object('token', public.acct_new_token(uid), 'handle', h, 'role', r);
 end $$;
@@ -111,6 +121,7 @@ declare h text := public.acct_norm(p_handle); u public.site_users;
 begin
   if (select count(*) from public.site_fails f where f.handle = h and f.at > now() - interval '10 minutes') >= 8 then raise exception 'LOCKED'; end if;
   select * into u from public.site_users x where x.handle = h;
+  if u.id is null and h !~ '^@' then select * into u from public.site_users x where x.handle = '@' || h; end if;
   if u.id is null or u.pw_hash <> crypt(coalesce(p_pw, ''), u.pw_hash) then
     insert into public.site_fails (handle) values (h);
     return jsonb_build_object('error', 'WRONG_LOGIN');
@@ -144,7 +155,7 @@ begin
   if char_length(coalesce(p_newpw, '')) < 6 then raise exception 'SHORT_PW'; end if;
   if (select count(*) from public.site_fails f where f.handle = h and f.at > now() - interval '10 minutes') >= 8 then raise exception 'LOCKED'; end if;
   select * into u from public.site_users x where x.handle = h;
-  if u.id is null or u.a_hash <> crypt(public.acct_norm(p_a), u.a_hash) then
+  if u.id is null or u.a_hash is null or u.a_hash <> crypt(public.acct_norm(p_a), u.a_hash) then
     insert into public.site_fails (handle) values (h);
     return jsonb_build_object('error', 'WRONG_ANSWER');
   end if;
