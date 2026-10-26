@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: node tools/tt-thumbs.mjs
+      - run: node tools/ig-thumbs.mjs
       - run: node tools/x-thumbs.mjs
         env:
           XTEST: ${{ github.event.inputs.xtest }}
