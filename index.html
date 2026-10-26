@@ -801,7 +801,7 @@ function noteHTML(p){
 /* 펼친 칸이 화면 아래로 넘치면 위로 올려서 스크롤 없이 보이게 */
 function noteFit(el){el.style.transform="";if(!el.classList.contains("full")&&!el.classList.contains("cmopen"))return;const top=($(".top")?$(".top").getBoundingClientRect().bottom:0)+8;const r=el.getBoundingClientRect(),over=r.bottom-(innerHeight-12);if(over>0)el.style.transform=`translateY(${-Math.min(over,Math.max(0,r.top-top))}px)`;}
 /* 게시판: 최신순, 한 페이지에 9개 */
-const BPER=9,CMAX=5;
+const BPER=9,CMAX=Infinity;
 function drawBoard(){
   const w=$("#bwall"),n=bState.posts.length,pages=Math.max(1,Math.ceil(n/BPER));
   bState.page=Math.min(Math.max(1,bState.page||1),pages);
