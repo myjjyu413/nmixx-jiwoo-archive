@@ -689,8 +689,9 @@ $("#pager").onclick=e=>{
 function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.sub)h+="&s="+state.sub;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
 /* 상위 항목(자컨·무대 등): 누르면 펼쳐지고, 다른 항목을 눌러도 펼친 채로 두고, 펼쳐진 걸 고른 상태에서 다시 누르면 접혀요 */
 const SOKEY="jiwoo-archive-sideopen";
-const sideOpen=(()=>{try{return JSON.parse(localStorage.getItem(SOKEY))||{}}catch(e){return {}}})();
-function saveSideOpen(){try{localStorage.setItem(SOKEY,JSON.stringify(sideOpen))}catch(e){}}
+/* 처음 들어오면 항상 접힌 상태 (펼친 상태는 새로고침하면 초기화) */
+const sideOpen={};try{localStorage.removeItem(SOKEY)}catch(e){}
+function saveSideOpen(){}
 $("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
   /* › 표시를 눌렀을 때만 펼치기/접기 */
   if(e.target.closest(".tog")){const id=state.cat+"|"+k;if(sideOpen[id])delete sideOpen[id];else sideOpen[id]=true;saveSideOpen();render();return;}
