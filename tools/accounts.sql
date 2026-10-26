@@ -39,10 +39,10 @@ revoke execute on function public.tok_role(text) from public, anon, authenticate
 -- 관리자 확인: 관리자 비밀번호 또는 관리자 계정의 로그인 토큰
 create or replace function public.board_is_admin(p_pw text) returns boolean
 language sql stable security definer set search_path = public, extensions as $$
-  select coalesce(p_pw, '') <> '' and (
-    public.tok_role(p_pw) = 'admin'
+  select coalesce(coalesce(p_pw, '') <> '' and (
+    coalesce(public.tok_role(p_pw), '') = 'admin'
     or (p_pw not like 'tok_%' and exists (select 1 from public.board_admin a where a.pw_hash = crypt(p_pw, a.pw_hash)))
-  );
+  ), false);
 $$;
 revoke execute on function public.board_is_admin(text) from public, anon, authenticated;
 
@@ -71,20 +71,37 @@ revoke execute on function public.acct_new_token(bigint) from public, anon, auth
 create or replace function public.acct_norm(p text) returns text
 language sql immutable as $$ select lower(trim(coalesce(p, ''))) $$;
 
--- 가입 (바로 로그인)
-create or replace function public.acct_signup(p_handle text, p_pw text, p_q text, p_a text) returns jsonb
+-- 가입 (바로 로그인). 관리자 비밀번호(board_admin)를 함께 넣으면 관리자 아이디로 만들어져요.
+drop function if exists public.acct_signup(text, text, text, text);
+create or replace function public.acct_signup(p_handle text, p_pw text, p_q text, p_a text, p_admin text default null) returns jsonb
 language plpgsql volatile security definer set search_path = public, extensions as $$
-declare h text := public.acct_norm(p_handle); uid bigint;
+declare h text := public.acct_norm(p_handle); uid bigint; r text := 'editor';
 begin
   if h !~ '^@[a-z0-9_]{1,15}$' then raise exception 'BAD_HANDLE'; end if;
   if char_length(coalesce(p_pw, '')) < 6 then raise exception 'SHORT_PW'; end if;
   if char_length(trim(coalesce(p_q, ''))) = 0 or char_length(trim(coalesce(p_a, ''))) = 0 then raise exception 'NO_Q'; end if;
+  if coalesce(p_admin, '') <> '' then
+    if p_admin like 'tok_%' or public.board_is_admin(p_admin) is not true then raise exception 'WRONG_ADMIN'; end if;
+    r := 'admin';
+  end if;
   if (select count(*) from public.site_users u where u.created_at > now() - interval '1 hour') >= 30 then raise exception 'TOO_MANY'; end if;
   if exists (select 1 from public.site_users u where u.handle = h) then raise exception 'TAKEN'; end if;
-  insert into public.site_users (handle, pw_hash, q, a_hash)
-  values (h, crypt(p_pw, gen_salt('bf')), trim(p_q), crypt(public.acct_norm(p_a), gen_salt('bf')))
+  insert into public.site_users (handle, pw_hash, role, q, a_hash)
+  values (h, crypt(p_pw, gen_salt('bf')), r, trim(p_q), crypt(public.acct_norm(p_a), gen_salt('bf')))
   returning id into uid;
-  return jsonb_build_object('token', public.acct_new_token(uid), 'handle', h, 'role', 'editor');
+  return jsonb_build_object('token', public.acct_new_token(uid), 'handle', h, 'role', r);
+end $$;
+
+-- 이미 만든 아이디를 관리자로: 로그인한 상태에서 관리자 비밀번호(board_admin)를 넣으면
+create or replace function public.acct_promote(p_token text, p_admin text) returns jsonb
+language plpgsql volatile security definer set search_path = public, extensions as $$
+declare uid bigint; h text;
+begin
+  select s.user_id into uid from public.site_sessions s where s.token_hash = encode(digest(coalesce(p_token, ''), 'sha256'), 'hex') and s.expires_at > now();
+  if uid is null then raise exception 'NO_AUTH'; end if;
+  if coalesce(p_admin, '') = '' or p_admin like 'tok_%' or public.board_is_admin(p_admin) is not true then raise exception 'WRONG_ADMIN'; end if;
+  update public.site_users u set role = 'admin' where u.id = uid returning u.handle into h;
+  return jsonb_build_object('token', p_token, 'handle', h, 'role', 'admin');
 end $$;
 
 -- 로그인 (틀리면 오류 대신 error 를 돌려줘요: 실패 횟수 기록이 지워지지 않게)
@@ -136,7 +153,8 @@ begin
   return jsonb_build_object('token', public.acct_new_token(u.id), 'handle', u.handle, 'role', u.role);
 end $$;
 
-grant execute on function public.acct_signup(text, text, text, text) to anon, authenticated;
+grant execute on function public.acct_signup(text, text, text, text, text) to anon, authenticated;
+grant execute on function public.acct_promote(text, text) to anon, authenticated;
 grant execute on function public.acct_login(text, text) to anon, authenticated;
 grant execute on function public.acct_me(text) to anon, authenticated;
 grant execute on function public.acct_logout(text) to anon, authenticated;
@@ -146,5 +164,6 @@ grant execute on function public.site_role(text) to anon, authenticated;
 
 notify pgrst, 'reload schema';
 
--- ▼ 사이트에서 본인 트위터 아이디로 가입한 다음, 아래 줄의 앞 '--' 를 지우고 @아이디를 본인 것으로 바꿔서 그 줄만 Run 하면 관리자가 돼요.
+-- ▼ 관리자 되기: 사이트에서 아이디를 만들 때 '관리자 비밀번호' 칸에 board.sql 때 정한 관리자 비밀번호를 넣으면 돼요.
+--   (이미 만든 아이디라면 로그인한 뒤 화면 위쪽 '관리자 되기'에 넣거나, 아래 줄을 고쳐서 Run)
 -- update public.site_users set role = 'admin' where handle = lower('@본인트위터아이디');
