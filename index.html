@@ -309,7 +309,7 @@ main{padding-bottom:40px}
     <section class="admin" id="admin" hidden>
       <div id="alogin">
         <h2>관리자 잠금</h2>
-        <p class="hint">편집자 또는 관리자 비밀번호를 넣으면 영상을 추가하고 고칠 수 있어요. 영상 이동·삭제와 게시글 삭제는 관리자 비밀번호로만 돼요. 탭을 닫으면 다시 잠겨요.</p>
+        <p class="hint">편집자 또는 관리자 비밀번호를 넣으면 영상을 추가하고 고칠 수 있어요. 영상 삭제와 게시글 삭제는 관리자 비밀번호로만 돼요. 탭을 닫으면 다시 잠겨요.</p>
         <form class="form" id="a-form"><label class="wide">비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label></form>
         <div class="btns"><button class="btn primary" id="a-login">잠금 풀기</button></div>
         <p class="msg" id="a-msg"></p>
@@ -336,7 +336,7 @@ main{padding-bottom:40px}
       <div class="ytres" id="yt-res"></div>
 
       <h2 style="margin-top:28px">영상 추가</h2>
-      <p class="hint">추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (카테고리 이동·삭제는 관리자만)</p>
+      <p class="hint">추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)</p>
       <div class="form">
         <label class="wide">영상 링크<input id="f-url" placeholder="유튜브·틱톡·인스타그램 링크"></label>
         <label class="wide">제목 <small style="font-weight:400;color:var(--muted)">(링크를 넣으면 자동으로 채워져요)</small><input id="f-title"></label>
@@ -597,7 +597,7 @@ function cardHTML(x,i){
   const dd=`data-url="${esc(x.url)}" data-draft="${x._draft?1:""}"`;
   const subSel=sl&&!x._del?`<select class="esub" ${dd} aria-label="세부 카테고리 바꾸기">${sl.map(([k,n])=>`<option value="${k}"${k===top?" selected":""}>${esc(n)}</option>`).join("")}</select>`+
     (kids?`<select class="esub" ${dd} aria-label="${esc(sl.find(e=>e[0]===top)[1])} 세부">${[[top,"세부 없음"],...kids].map(([k,n])=>`<option value="${k}"${k===cur?" selected":""}>${esc(n)}</option>`).join("")}</select>`:""):"";
-  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" aria-label="카테고리 바꾸기"${role()==="admin"?"":` disabled title="카테고리 이동은 관리자만 할 수 있어요"`}>${opts}</select>${subSel}</div></div>`;
+  return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]));loadTTThumbs(el);}
 
@@ -1260,14 +1260,13 @@ $("#export").onclick=async()=>{
 };
 $("#fclear").onclick=()=>{$("#f-url").value="";$("#f-title").value="";$("#f-sub").value="";syncFSub2();fSubHint();$("#f-date").value=new Date().toISOString().slice(0,10);msg("");$("#f-url").focus();};
 $("#clear").onclick=()=>{saveDrafts([]);saveEdits({});renderDrafts();renderAll();msg("미리보기를 비웠어요.");};
-/* 카드 아래 카테고리 바꾸기: 세부 카테고리는 편집자도, 카테고리 이동·삭제는 관리자만 */
+/* 카드 아래 카테고리 바꾸기: 카테고리 이동·세부 카테고리는 편집자도, 삭제는 관리자만 */
 document.addEventListener("change",async e=>{
   const sel=e.target.closest(".ecat,.esub");if(!sel)return;
   const url=sel.dataset.url,val=sel.value,isSub=sel.classList.contains("esub");
   try{
     if(!isSub){
-      if(role()!=="admin"){alert("카테고리 이동과 삭제는 관리자만 할 수 있어요.");render();return;}
-      if(val==="__del"){if(!confirm("이 영상을 사이트에서 지울까요?")){render();return;}await rpc("vid_delete",{p_pw:sessPw(),p_url:url});}
+      if(val==="__del"){if(role()!=="admin"){alert("삭제는 관리자만 할 수 있어요.");render();return;}if(!confirm("이 영상을 사이트에서 지울까요?")){render();return;}await rpc("vid_delete",{p_pw:sessPw(),p_url:url});}
       else await rpc("vid_move",{p_pw:sessPw(),p_url:url,p_category:val,p_sub:null});
     }else await rpc("vid_set_sub",{p_pw:sessPw(),p_url:url,p_sub:val});
     await loadRemote();
@@ -1278,7 +1277,7 @@ function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
   $("#abadge-t").textContent=r==="admin"?"관리자 모드":"편집자 모드";
 }
-function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r==="admin"?"관리자로 잠금 해제됨":r==="editor"?"편집자로 잠금 해제됨 (이동·삭제는 관리자만)":"";}
+function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r==="admin"?"관리자로 잠금 해제됨":r==="editor"?"편집자로 잠금 해제됨 (삭제는 관리자만)":"";}
 function lockNow(){SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
 async function doLogin(){const pw=$("#a-pw").value;if(!pw){$("#a-msg").textContent="비밀번호를 넣어 주세요.";return;}
