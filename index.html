@@ -106,7 +106,7 @@ body.is-home .vhead{margin-bottom:12px}
 .side button{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:9px 12px 9px 14px;white-space:nowrap;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted);font-size:15px}
 .side button:hover{color:var(--fg);background:var(--surface)}
 .side button[aria-current="true"]{color:var(--fg);background:var(--surface)}
-.side button.child{padding-left:28px;font-size:14px;font-weight:500}.side button.haschild::after{content:"›";margin-left:auto;order:3;opacity:.5;transition:transform .2s}.side button.haschild.open::after{transform:rotate(90deg)}.side button.haschild .n{margin-left:auto}
+.side button.child{padding-left:28px;font-size:14px;font-weight:500}.side button.haschild{justify-content:flex-start}.side button.haschild::after{content:"›";margin-left:8px;order:3;opacity:.5;transition:transform .2s}.side button.haschild.open::after{transform:rotate(90deg)}.side button.haschild .n{margin-left:auto}
 .side button[aria-current="true"]::before{content:"";position:absolute;left:4px;top:9px;bottom:9px;width:3px;background:var(--accent);border-radius:2px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
