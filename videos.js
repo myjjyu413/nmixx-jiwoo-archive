@@ -606,6 +606,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/NwRBYuslzSo","title":"[NMIXX - COOL (Your rainbow)] Comeback Stage | #엠카운트다운 EP.771 | Mnet 220922 방송","date":"2022-09-22","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/8UOEW3czU6U","title":"[BE ORIGINAL] NMIXX(엔믹스) 'DICE' (4K)","date":"2022-09-21","category":"무대","group":"단독","note":"","sub":"ytc"},
   {"url":"https://youtu.be/bEOgUxpwskI","title":"[KCON 2022 LA] NMIXX - VERY NICE (원곡  SEVENTEEN) | Mnet 220915 방송","date":"2022-09-15","category":"무대","group":"단독","note":"","sub":"cover"},
+  {"url":"https://youtu.be/kY-ddytDzdI","title":"(ENG) [주간아이돌] 기습 라이브 with NMIXX & 밸런스게임 챔피언 지니, 지우👑👑","date":"2022-09-12","category":"라이브 방송","group":"단독","note":"","sub":"etc"},
   {"url":"https://youtu.be/QrR68R1ja5Q","title":"NMIXX IN LA","date":"2022-08-22","category":"라이브 방송","group":"단독","note":""},
   {"url":"https://youtu.be/zOBNWory188","title":"O.O - 엔믹스(NMIXX) [서울 페스타 2022 개막공연 ＜K-POP SUPER LIVE＞] | KBS 220812 방송","date":"2022-08-12","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/-jBJWa7PRds","title":"한림즈의 방학 체험기","date":"2022-07-26","category":"라이브 방송","group":"단독","note":""},
