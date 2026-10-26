@@ -3,6 +3,10 @@ on:
   push:
     paths: ["videos.js"]
   workflow_dispatch:
+    inputs:
+      xtest:
+        description: "test tweet ids"
+        required: false
 permissions:
   contents: write
 jobs:
@@ -13,6 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: node tools/tt-thumbs.mjs
+      - run: node tools/x-thumbs.mjs
+        env:
+          XTEST: ${{ github.event.inputs.xtest }}
       - run: |
           git add thumbs
           if git diff --cached --quiet; then exit 0; fi
