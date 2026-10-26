@@ -507,6 +507,8 @@ function ytId(url){
 }/* 유튜브 말고 틱톡·인스타그램 링크도 받아요 */
 function platOf(url){url=String(url||"");if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
 function ttId(url){const m=String(url).match(/\/video\/(\d+)/);return m?m[1]:null;}
+/* 인스타그램 게시물 주소의 코드 안에 올린 시각이 들어 있어요 */
+function igDate(code){if(!code||code.length>11)return "";const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";let id=0n;for(const ch of code){const i=A.indexOf(ch);if(i<0)return "";id=id*64n+BigInt(i);}const ms=Number(id>>23n)+1314220021721;if(ms<1.3e12||ms>Date.now()+864e5)return "";return kst(new Date(ms).toISOString());}
 function igCode(url){const m=String(url).match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/i);return m?m[1]:null;}
 function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}return null;}
 function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/"+ytId(url);
@@ -1131,7 +1133,8 @@ $("#f-url").addEventListener("change",async()=>{
     catch(e){msg("날짜는 가져왔어요. 제목은 직접 입력해 주세요.");}
     return;
   }
-  if(pf==="ig"){$("#f-cat").value="숏폼";syncFSub();$("#f-date").value=new Date().toISOString().slice(0,10);msg("인스타그램은 제목과 날짜를 자동으로 못 가져와요. 직접 입력해 주세요.");$("#f-title").focus();return;}
+  if(pf==="ig"){$("#f-cat").value="숏폼";syncFSub();const d=igDate(igCode(raw));$("#f-date").value=d||new Date().toISOString().slice(0,10);
+    msg(d?`올린 날짜(${d.replaceAll("-",".")})는 가져왔어요. 인스타그램은 제목(본문)을 다른 사이트에 안 내줘서, 제목은 직접 입력해 주세요.`:"인스타그램은 제목과 날짜를 자동으로 못 가져와요. 직접 입력해 주세요.");$("#f-title").focus();return;}
   const id=key0;
   {const st=ytStatus(id);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
   msg("영상 정보 가져오는 중…");
