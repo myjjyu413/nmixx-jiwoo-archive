@@ -598,7 +598,7 @@ function render(){
   if(subs){
     const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
-      const open=ch&&state.sub&&subIn(state.sub,k);
+      const open=ch&&state.sub&&subIn(state.sub,k)&&!sideFold[k];
       return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span></button>`+
         (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
     }).join("");
@@ -665,7 +665,12 @@ $("#pager").onclick=e=>{
   const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
   go(hashFor(+b.dataset.p));};
 function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.sub)h+="&s="+state.sub;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
-$("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;state.sub=b.dataset.s;go(hashFor(1));});
+/* 펼쳐진 상위 항목(자컨·무대 등)을 한 번 더 누르면 접혀요 */
+const sideFold={};
+$("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
+  if(b.classList.contains("haschild")&&state.sub&&subIn(state.sub,k)){sideFold[k]=!sideFold[k];if(sideFold[k]&&state.sub!==k){state.sub=k;go(hashFor(1));}else render();return;}
+  if(b.classList.contains("haschild"))sideFold[k]=false;
+  state.sub=k;go(hashFor(1));});
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
