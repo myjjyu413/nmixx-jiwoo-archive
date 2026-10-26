@@ -426,7 +426,7 @@ const CATS=["무대","예능","라디오","인터뷰","숏폼","라이브 방송
 const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","자컨":"예능","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
-const SUBS={"무대":[["main","무대"],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠",[["ytc-radio","라디오"]]],["etc","기타"]],
+const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식"],["main-concert","콘서트"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠",[["ytc-radio","라디오"]]],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["cover","커버"],["etc","기타"]],
   "라이브 방송":[["comeback","컴백"],["anniv","N주년"],["solo","개인"],["unit","유닛"],["group","단체"]],
   "라디오":[["full","본편"],["hl","하이라이트"],["etc","기타"]],
@@ -437,6 +437,15 @@ function subFlat(cat){const sl=SUBS[cat];if(!sl)return null;const out=[];sl.forE
 function subKids(cat,top){const e=(SUBS[cat]||[]).find(x=>x[0]===top);return e&&e[2]||null;}
 function subTopOf(k){return String(k||"").split("-")[0];}
 function subIn(k,sel){return k===sel||String(k).startsWith(sel+"-");}
+/* 무대 › 무대 의 세부: 음악방송 / 시상식 / 콘서트 / 행사 */
+function mainKid(t){
+  if(/mama|awards?|어워즈|어워드|시상식|골든디스크|golden ?disc|\bAAA\b|가요대전|가요대축제|가요대제전|gayo ?dae|서울가요대상|\bSMA\b|\bMMA\b|멜론뮤직|melon music|한터|hanteo|kgma|circle chart|써클차트|asia artist|아시아 아티스트|fact music|더팩트|dimension|디멘션/i.test(t))return "main-award";
+  if(/인기가요|inkigayo|음악중심|music ?core|뮤직뱅크|music ?bank|엠카운트다운|m ?countdown|엠카|쇼챔피언|show ?champion|더 ?쇼|the ?show|열린 ?음악회|open concert|스케치북|불후의|가요무대|음악캠프/i.test(t))return "main-mb";
+  if(/kcon|축제|festival|페스티벌|festa|페스타|대학|워터밤|waterbomb|행사|개막|시구|응원|드림 ?콘서트|dream ?concert|슈퍼 ?콘서트|super ?live/i.test(t))return "main-event";
+  if(/콘서트|concert|팬콘|fan ?con|팬미팅|fan ?meeting|tour|투어|쇼케이스|showcase|change up|mixx lab/i.test(t))return "main-concert";
+  if(/\| ?(SBS|KBS|MBC|Mnet) \d{6} 방송/i.test(t))return "main-mb";
+  return "";
+}
 function subOf(x){
   if(x.sub)return x.sub;
   if(x.category==="라디오"){const t=x.title||"";
@@ -470,7 +479,7 @@ function subOf(x){
   if(!cam&&/원곡|커버|cover|\(by |블랙핑크|blackpink/i.test(t))return "cover";
   if(cam&&/지우|jiwoo/i.test(t))return "jiwoo";
   if(cam||/풀캠|fullcam|full cam|choreo|sky cam|항공캠|단독샷|one take|비주얼캠|visual cam|tower cam/i.test(t))return "full";
-  if(/방송|musiccore|music core|music bank|뮤직뱅크|인기가요|inkigayo|엠카운트다운|gayo|가요/i.test(t))return "main";
+  {const k=mainKid(t);if(k||/방송|musiccore|music core|music bank|뮤직뱅크|인기가요|inkigayo|엠카운트다운|gayo|가요/i.test(t))return k||"main";}
   return "etc";
 }
 const KEY="jiwoo-archive-drafts";
