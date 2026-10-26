@@ -140,6 +140,26 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
+/* 로그인 화면 */
+.admin:has(#alogin:not([hidden])){background:none;border:0;padding:8px 0 24px}
+.auth{max-width:380px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px 28px 22px;text-align:center;box-shadow:0 10px 30px rgba(42,39,64,.10)}
+.auth-pic{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:3px solid var(--bg)}
+.auth h2{margin:0;font-size:22px;letter-spacing:-.01em}
+.auth-sub{margin:6px 0 20px;color:var(--muted);font-size:13px}
+.auth-form{display:flex;flex-direction:column;gap:10px;text-align:left}
+.auth-form[hidden]{display:none}
+.auth-form input,.auth-form select{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font:inherit;font-size:15px;color:var(--fg);transition:border-color .15s,box-shadow .15s}
+.auth-form input::placeholder{color:var(--muted);opacity:.8}
+.auth-form input:focus,.auth-form select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(78,63,134,.18)}
+.auth-form input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px var(--bg) inset;-webkit-text-fill-color:var(--fg)}
+.auth-lab{font-size:12px;font-weight:600;color:var(--muted);margin:4px 2px -4px}
+.auth-q{margin:6px 2px 0;font-size:14px}
+.auth-main{width:100%;padding:12px;border-radius:12px;font-size:15px;margin-top:4px}
+.auth-links{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:14px;color:var(--muted);font-size:13px}
+.linkbtn{background:none;border:0;padding:4px 2px;font:inherit;color:var(--muted);cursor:pointer}
+.linkbtn:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.auth-msg{margin:12px 0 0;min-height:0}.auth-msg:empty{display:none}
+.auth-foot{margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6}
 .admin h3{margin:18px 0 8px;font-size:16px}
 .apromo{display:flex;gap:8px;align-items:center;margin:-4px 0 14px}.apromo input{max-width:220px}
 .arole{display:flex;align-items:center;gap:10px;margin:0 0 6px}.arole .btn{padding:5px 12px;font-size:13px}
@@ -310,37 +330,51 @@ main{padding-bottom:40px}
 
     <section class="admin" id="admin" hidden>
       <div id="alogin">
-        <h2>로그인</h2>
-        <p class="hint">본인 트위터 아이디(@…)로 아이디를 만들면 누구나 영상을 추가하고 고칠 수 있어요. 영상 삭제와 게시글 삭제는 관리자만 할 수 있어요. 탭을 닫으면 로그아웃돼요.</p>
+       <div class="auth">
+        <img class="auth-pic" src="profile.jpg" alt="">
         <div id="a-login-box">
-          <form class="form" id="a-form"><label>아이디<input id="a-id" placeholder="아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label><label>비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label><button hidden></button></form>
-          <div class="btns"><button class="btn primary" id="a-login">로그인</button><button class="btn" id="a-go-signup">아이디·비밀번호 만들기</button><button class="btn" id="a-go-find">아이디·비밀번호 찾기</button></div>
+          <h2>로그인</h2>
+          <p class="auth-sub">로그인하면 영상을 추가하고 고칠 수 있어요</p>
+          <form class="auth-form" id="a-form">
+            <input id="a-id" placeholder="아이디" aria-label="아이디" autocomplete="username" autocapitalize="off" spellcheck="false">
+            <input id="a-pw" type="password" placeholder="비밀번호" aria-label="비밀번호" autocomplete="current-password">
+            <button class="btn primary auth-main" id="a-login" type="submit">로그인</button>
+          </form>
+          <div class="auth-links"><button type="button" class="linkbtn" id="a-go-signup">아이디 만들기</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" id="a-go-find">비밀번호 찾기</button></div>
         </div>
         <div id="a-signup-box" hidden>
-          <h3>아이디·비밀번호 만들기</h3>
-          
-          <div class="form">
-            <label>아이디 (본인 트위터 아이디)<input id="s-id" placeholder="@트위터아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
-            <label>비밀번호 (6자 이상)<input id="s-pw" type="password" autocomplete="new-password"></label>
-            <label>비밀번호 확인<input id="s-pw2" type="password" autocomplete="new-password"></label>
-            <label class="wide sq">비밀번호를 잊었을 때 쓸 질문<select id="s-q"><option>가장 좋아하는 지우 노래는?</option><option>처음 본 엔믹스 무대는?</option><option>내 최애 간식은?</option><option>어릴 때 살던 동네는?</option><option value="__c">직접 쓰기</option></select></label>
-            <label class="wide sq" id="s-qc-wrap" hidden>질문 직접 쓰기<input id="s-qc" maxlength="100"></label>
-            <label class="wide sq">답<input id="s-a" maxlength="50" autocomplete="off"></label>
+          <h2>아이디 만들기</h2>
+          <p class="auth-sub">본인 트위터 아이디(@…)로 만들어 주세요</p>
+          <div class="auth-form">
+            <input id="s-id" placeholder="@트위터아이디" aria-label="아이디" autocomplete="username" autocapitalize="off" spellcheck="false">
+            <input id="s-pw" type="password" placeholder="비밀번호 (6자 이상)" aria-label="비밀번호" autocomplete="new-password">
+            <input id="s-pw2" type="password" placeholder="비밀번호 확인" aria-label="비밀번호 확인" autocomplete="new-password">
+            <label class="auth-lab">비밀번호를 잊었을 때 쓸 질문</label>
+            <select id="s-q" aria-label="질문"><option>가장 좋아하는 지우 노래는?</option><option>처음 본 엔믹스 무대는?</option><option>내 최애 간식은?</option><option>어릴 때 살던 동네는?</option><option value="__c">직접 쓰기</option></select>
+            <input id="s-qc" maxlength="100" placeholder="질문 직접 쓰기" aria-label="질문 직접 쓰기" hidden>
+            <input id="s-a" maxlength="50" placeholder="답" aria-label="답" autocomplete="off">
+            <button class="btn primary auth-main" id="s-go" type="button">만들기</button>
           </div>
-          <div class="btns"><button class="btn primary" id="s-go">만들기</button><button class="btn" data-aback>로그인으로</button></div>
+          <div class="auth-links"><button type="button" class="linkbtn" data-aback>← 로그인으로</button></div>
         </div>
         <div id="a-find-box" hidden>
-          <h3>아이디·비밀번호 찾기</h3>
-          <p class="hint">아이디는 가입할 때 쓴 <b>본인 트위터 아이디(@…)</b>예요. 아래에 넣고 확인을 누르면 가입돼 있는지 알려 주고, 질문의 답을 맞히면 비밀번호를 새로 정할 수 있어요.</p>
-          <div class="form"><label class="wide">아이디<input id="f2-id" placeholder="@트위터아이디" autocapitalize="off" spellcheck="false"></label></div>
-          <div class="btns"><button class="btn primary" id="f2-check">확인</button><button class="btn" data-aback>로그인으로</button></div>
-          <div id="f2-reset" hidden>
-            <p class="hint">질문: <b id="f2-q"></b></p>
-            <div class="form"><label>답<input id="f2-a" autocomplete="off"></label><label>새 비밀번호 (6자 이상)<input id="f2-pw" type="password" autocomplete="new-password"></label></div>
-            <div class="btns"><button class="btn primary" id="f2-go">비밀번호 바꾸고 로그인</button></div>
+          <h2>비밀번호 찾기</h2>
+          <p class="auth-sub">아이디는 가입할 때 쓴 본인 트위터 아이디(@…)예요</p>
+          <div class="auth-form">
+            <input id="f2-id" placeholder="@트위터아이디" aria-label="아이디" autocapitalize="off" spellcheck="false">
+            <button class="btn auth-main" id="f2-check" type="button">확인</button>
+            <div id="f2-reset" class="auth-form" hidden>
+              <p class="auth-q">Q. <b id="f2-q"></b></p>
+              <input id="f2-a" placeholder="답" aria-label="답" autocomplete="off">
+              <input id="f2-pw" type="password" placeholder="새 비밀번호 (6자 이상)" aria-label="새 비밀번호" autocomplete="new-password">
+              <button class="btn primary auth-main" id="f2-go" type="button">비밀번호 바꾸고 로그인</button>
+            </div>
           </div>
+          <div class="auth-links"><button type="button" class="linkbtn" data-aback>← 로그인으로</button></div>
         </div>
-        <p class="msg" id="a-msg"></p>
+        <p class="msg auth-msg" id="a-msg" role="status"></p>
+        <p class="auth-foot">영상 삭제와 게시글 삭제는 관리자만 할 수 있어요<br>탭을 닫으면 로그아웃돼요</p>
+       </div>
       </div>
       <div id="apanel" hidden>
       <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">로그아웃</button></p>
@@ -1318,7 +1352,7 @@ function showBox(w){$("#a-login-box").hidden=w!=="login";$("#a-signup-box").hidd
 document.querySelectorAll("[data-aback]").forEach(b=>b.onclick=()=>showBox("login"));
 $("#a-go-signup").onclick=()=>{showBox("signup");$("#s-id").focus();};
 $("#a-go-find").onclick=()=>{showBox("find");$("#f2-reset").hidden=true;$("#f2-id").value=$("#a-id").value;$("#f2-id").focus();};
-$("#s-q").onchange=()=>{$("#s-qc-wrap").hidden=$("#s-q").value!=="__c";};
+$("#s-q").onchange=()=>{$("#s-qc").hidden=$("#s-q").value!=="__c";};
 async function doLogin(){const h=String($("#a-id").value||"").trim().toLowerCase(),pw=$("#a-pw").value;if(!h||!pw){amsg("아이디와 비밀번호를 넣어 주세요.");return;}
   amsg("확인하는 중…");try{const j=await rpc("acct_login",{p_handle:h,p_pw:pw});if(!j||j.error){amsg(acctErr(j&&j.error||"WRONG_LOGIN"));return;}await setSession(j,pw);}catch(e){amsg(acctErr(e));}}
 $("#s-go").onclick=async()=>{const h=normHandle($("#s-id").value),pw=$("#s-pw").value,q=$("#s-q").value==="__c"?$("#s-qc").value.trim():$("#s-q").value,a=$("#s-a").value.trim();
@@ -1329,7 +1363,7 @@ $("#f2-check").onclick=async()=>{const h=normHandle($("#f2-id").value);if(!h){am
     $("#f2-q").textContent=q;$("#f2-reset").hidden=false;amsg(`${h} 아이디가 있어요. 비밀번호를 잊었다면 질문의 답을 넣고 새 비밀번호를 정하세요.`);$("#f2-a").focus();}catch(e){amsg(acctErr(e));}};
 $("#f2-go").onclick=async()=>{const h=normHandle($("#f2-id").value),a=$("#f2-a").value.trim(),pw=$("#f2-pw").value;if(pw.length<6){amsg(acctErr("SHORT_PW"));return;}
   try{const j=await rpc("acct_reset",{p_handle:h,p_a:a,p_newpw:pw});if(!j||j.error){amsg(acctErr(j&&j.error||"WRONG_ANSWER"));return;}await setSession(j,pw);}catch(e){amsg(acctErr(e));}};
-$("#a-login").onclick=doLogin;$("#a-form").addEventListener("submit",e=>{e.preventDefault();doLogin();});
+$("#a-form").addEventListener("submit",e=>{e.preventDefault();doLogin();});
 /* 저장된 로그인이 아직 유효한지 확인 */
 if(SESS)rpc("acct_me",{p_token:SESS.pw}).then(m=>{if(!m)lockNow();}).catch(()=>{});
 
