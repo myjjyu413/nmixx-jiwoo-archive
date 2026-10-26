@@ -225,6 +225,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 .igph{flex-direction:column;gap:2px;background:linear-gradient(135deg,#feda75,#d62976 50%,#4f5bd5);color:#fff!important;font-family:var(--latin)!important}
 .ttph{flex-direction:column;background:#111;color:#fff!important;font-family:var(--latin)!important}.ttph b{font-size:18px;text-shadow:2px 2px 0 #fe2c55,-2px -2px 0 #25f4ee}
 .igph b{font-size:18px}.igph small{font-size:12px;opacity:.9}
+.xph{flex-direction:column;gap:2px;background:#000;color:#fff!important;font-family:var(--latin)!important}.xph b{font-size:22px}.xph small{font-size:12px;opacity:.8}
 .player .info{padding:14px 18px}
 .player .info h3{margin:0;font-size:17px;min-width:0;overflow-wrap:anywhere}
 .close{position:absolute;top:0;right:0;width:40px;height:40px;border:0;background:none;color:#fff;cursor:pointer;display:grid;place-items:center;opacity:.85}
@@ -505,15 +506,19 @@ function ytId(url){
   const m=url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/|\/live\/)([\w-]{11})/);
   return m?m[1]:null;
 }/* 유튜브 말고 틱톡·인스타그램 링크도 받아요 */
-function platOf(url){url=String(url||"");if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
+function platOf(url){url=String(url||"");if(/(?:^|\/\/|\.)(x|twitter)\.com\/\w+\/status\/\d+/i.test(url))return "x";if(/tiktok\.com/i.test(url))return "tt";if(/instagram\.com/i.test(url))return "ig";if(ytId(url))return "yt";return "";}
+function xId(url){const m=String(url).match(/\/status\/(\d+)/);return m?m[1]:null;}
+/* X 글번호 안에 올린 시각이 들어 있어요 */
+function xDate(id){try{return kst(new Date(Number((BigInt(id)>>22n)+1288834974657n)).toISOString())}catch(e){return ""}}
 function ttId(url){const m=String(url).match(/\/video\/(\d+)/);return m?m[1]:null;}
 /* 인스타그램 게시물 주소의 코드 안에 올린 시각이 들어 있어요 */
 function igDate(code){if(!code||code.length>11)return "";const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";let id=0n;for(const ch of code){const i=A.indexOf(ch);if(i<0)return "";id=id*64n+BigInt(i);}const ms=Number(id>>23n)+1314220021721;if(ms<1.3e12||ms>Date.now()+864e5)return "";return kst(new Date(ms).toISOString());}
 function igCode(url){const m=String(url).match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/i);return m?m[1]:null;}
-function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}return null;}
+function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}if(p==="x"){const i=xId(url);return i?"x:"+i:null;}return null;}
 function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/"+ytId(url);
   if(p==="tt"){const m=String(url).match(/tiktok\.com\/@([\w.\-]+)\/video\/(\d+)/i);return m?`https://www.tiktok.com/@${m[1]}/video/${m[2]}`:String(url).split("?")[0];}
-  if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;return url;}
+  if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;
+  if(p==="x"){const m=String(url).match(/(?:x|twitter)\.com\/(\w+)\/status\/(\d+)/i);return m?`https://x.com/${m[1]}/status/${m[2]}`:url;}return url;}
 const TTK="jiwoo-archive-ttthumb";
 function ttThumbs(){try{return JSON.parse(sessionStorage.getItem(TTK))||{}}catch(e){return {}}}
 async function ttInfo(url){
@@ -523,6 +528,7 @@ async function ttInfo(url){
   }
   return {};
 }
+function xFail(img){const ph=document.createElement("div");ph.className="nothumb xph";ph.innerHTML="<b>X</b><small>영상</small>";img.replaceWith(ph);}
 function igFail(img){const ph=document.createElement("div");ph.className="nothumb igph";ph.innerHTML="<b>Instagram</b><small>릴스</small>";img.replaceWith(ph);}
 function ttFail(img){const ph=document.createElement("span");ph.className="nothumb ttph";ph.innerHTML="<b>TikTok</b><small>썸네일 준비 중</small>";img.replaceWith(ph);}
 function loadTTThumbs(root){
@@ -559,8 +565,8 @@ function dispTitle(x){
 }
 function cardHTML(x,i){
   const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
-  const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':"";
-  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':pf==="x"?'<span class="ptag">X</span>':"";
+  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;
@@ -908,13 +914,14 @@ $("#b-admin").addEventListener("change",()=>{try{const v=$("#b-admin").value;if(
 function openVideo(x){
   const pf=platOf(x.url);let src="";
   if(pf==="yt")src=`https://www.youtube.com/embed/${ytId(x.url)}?autoplay=1&rel=0&playsinline=1`;
+  else if(pf==="x"&&xId(x.url))src=`https://platform.twitter.com/embed/Tweet.html?id=${xId(x.url)}&dnt=true&lang=ko&theme=light`;
   else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=1&rel=0`;
   else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
   if(!src){window.open(x.url,"_blank","noopener");return;}
   $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
   $("#frame").innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
   $("#p-title").textContent=dispTitle(x);
-  const pl=$("#p-link");pl.hidden=pf==="yt";if(pf!=="yt"){pl.href=x.url;pl.textContent=(pf==="tt"?"TikTok":"Instagram")+"에서 보기 ↗";}
+  const pl=$("#p-link");pl.hidden=pf==="yt";if(pf!=="yt"){pl.href=x.url;pl.textContent=(pf==="tt"?"TikTok":pf==="x"?"X":"Instagram")+"에서 보기 ↗";}
   $("#modal").hidden=false;$("#close").focus();
 }
 
@@ -1124,7 +1131,7 @@ $("#f-url").addEventListener("change",async()=>{
   {const v=$("#f-url").value;if(/<blockquote|<iframe/i.test(v)){const m=v.match(/cite="([^"]+)"/i)||v.match(/data-instgrm-permalink="([^"]+)"/i)||v.match(/src="([^"]+)"/i);if(m)$("#f-url").value=m[1];}}
   const raw=$("#f-url").value.trim(),pf=platOf(raw),key0=vidKey(raw);
   if(/vm\.tiktok\.com|vt\.tiktok\.com|tiktok\.com\/t\//i.test(raw)){msg("틱톡 짧은 링크는 못 읽어요. 틱톡 앱이나 웹에서 영상을 연 뒤 주소창의 긴 주소(…/@계정/video/숫자)를 넣어 주세요.");return;}
-  if(!key0){msg("유튜브·틱톡·인스타그램 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
+  if(!key0){msg("유튜브·틱톡·인스타그램·X 링크 형식이 아니에요. 링크를 다시 확인해 주세요.");return;}
   {const st=ytStatus(key0);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
   if(pf==="tt"){
     $("#f-cat").value="숏폼";syncFSub();
@@ -1134,6 +1141,12 @@ $("#f-url").addEventListener("change",async()=>{
     catch(e){msg("날짜는 가져왔어요. 제목은 직접 입력해 주세요.");}
     return;
   }
+  if(pf==="x"){const id=xId(raw),d=xDate(id);if(d)$("#f-date").value=d;msg("X 글 가져오는 중…");
+    try{const tk=((Number(id)/1e15)*Math.PI).toString(36).replace(/(0+|\.)/g,"");const j=await (await fetch(`https://cdn.syndication.twimg.com/tweet-result?id=${id}&token=${tk}&lang=ko`)).json();
+      const t=String(j.text||"").replace(/https:\/\/t\.co\/\w+/g,"").replace(/\s+/g," ").trim();if(t&&!$("#f-title").value)$("#f-title").value=t;fSubHint();
+      msg(t?`제목(글 내용)과 날짜(${d.replaceAll("-",".")})를 가져왔어요. 제목이 길면 짧게 고쳐도 돼요.`:`날짜(${d.replaceAll("-",".")})는 가져왔어요. 제목은 직접 입력해 주세요.`);}
+    catch(e){msg(`날짜(${d.replaceAll("-",".")})는 가져왔어요. 제목은 직접 입력해 주세요.`);}
+    return;}
   if(pf==="ig"){$("#f-cat").value="숏폼";syncFSub();const d=igDate(igCode(raw));$("#f-date").value=d||new Date().toISOString().slice(0,10);
     msg(d?`올린 날짜(${d.replaceAll("-",".")})는 가져왔어요. 인스타그램은 제목(본문)을 다른 사이트에 안 내줘서, 제목은 직접 입력해 주세요.`:"인스타그램은 제목과 날짜를 자동으로 못 가져와요. 직접 입력해 주세요.");$("#f-title").focus();return;}
   const id=key0;
