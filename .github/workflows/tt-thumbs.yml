@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: node tools/remote.mjs
+      - run: npm install --no-save --no-package-lock sharp@0.33.5
+      - run: node tools/yt-thumbs.mjs
       - run: node tools/tt-thumbs.mjs
       - run: node tools/ig-thumbs.mjs
       - run: node tools/x-thumbs.mjs
@@ -29,5 +31,6 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "썸네일 저장 (틱톡·인스타그램)"
+          git commit -m "썸네일 저장 (유튜브·틱톡·인스타그램·X)"
+          git pull --rebase -q
           git push
