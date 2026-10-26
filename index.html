@@ -119,8 +119,9 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
 @media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.side button.child{padding:6px 12px;font-size:13px;border-style:dashed}.side .tog{width:20px;height:20px;margin:-4px -6px -4px 2px}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
-/* 휴대폰: 세부 카테고리는 한 줄로, 옆으로 넘겨요 */
-@media (max-width:600px){.side{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 calc(-1*var(--gut));padding:2px var(--gut);scroll-padding:0 var(--gut);gap:6px}.side::-webkit-scrollbar{display:none}.side button{flex:0 0 auto}}
+/* 휴대폰: 세부 카테고리는 두 줄까지 보이고, 위아래로 넘겨요 */
+@media (max-width:600px){.side{flex-wrap:wrap;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:6px;padding:2px 0}.side::-webkit-scrollbar{display:none}.side button{flex:0 0 auto}
+  .side.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 14px),transparent);mask-image:linear-gradient(#000 calc(100% - 14px),transparent)}.side.more.end{-webkit-mask-image:none;mask-image:none}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
 .csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
 .csearch svg{width:18px;height:18px;flex:none;color:var(--muted)}
@@ -692,6 +693,12 @@ function cardHTML(x,i){
     (kids?`<select class="esub" ${dd} aria-label="${esc(sl.find(e=>e[0]===top)[1])} 세부">${[[top,"세부 없음"],...kids].map(([k,n])=>`<option value="${k}"${k===cur?" selected":""}>${esc(n)}</option>`).join("")}</select>`:""):"";
   return `<div class="cardw${x._edited?" edited":""}${x._del?" deleted":""}">${card}<div class="erow"><select class="ecat" data-url="${esc(x.url)}" aria-label="카테고리 바꾸기">${opts}</select>${subSel}</div></div>`;
 }
+/* 휴대폰에서 세부 카테고리 칸 높이를 두 줄로 맞춰요 */
+function sideFit(){const sd=$("#side");sd.style.maxHeight="";if(!matchMedia("(max-width:600px)").matches||sd.hidden)return;
+  const bs=[...sd.querySelectorAll("button")];const tops=[...new Set(bs.map(b=>b.offsetTop))].sort((a,b)=>a-b);
+  if(tops.length>2){const row2=bs.filter(b=>b.offsetTop===tops[1]);const bottom=Math.max(...row2.map(b=>b.offsetTop+b.offsetHeight));sd.style.maxHeight=(bottom-sd.offsetTop+4)+"px";}}
+function sideMore(){const sd=$("#side");const more=sd.scrollHeight>sd.clientHeight+2;sd.classList.toggle("more",more);sd.classList.toggle("end",more&&sd.scrollTop+sd.clientHeight>=sd.scrollHeight-2);}
+$("#side").addEventListener("scroll",sideMore,{passive:true});window.addEventListener("resize",()=>{sideFit();sideMore();});
 function bindCards(el,list){el.querySelectorAll(".card").forEach(c=>c.onclick=()=>openVideo(list[+c.dataset.i]));loadTTThumbs(el);}
 
 /* 대표 영상 */
@@ -735,14 +742,14 @@ function render(){
   $("#vbody").classList.toggle("has-side",!!subs);$("#side").hidden=!subs;
   if(subs){
     const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
-    const sd=$("#side"),sl=sd.scrollLeft;
+    const sd=$("#side"),sl=sd.scrollTop;
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
       const open=ch&&!!sideOpen[state.cat+"|"+k];
       return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span>${ch?`<span class="tog" role="button" aria-label="${open?"접기":"펼치기"}">›</span>`:""}</button>`+
         (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
     }).join("");
-    sd.scrollLeft=sl;
-    if(sd.scrollWidth>sd.clientWidth){const cur=sd.querySelector('[aria-current="true"]');if(cur){const l=cur.offsetLeft-sd.offsetLeft,r=l+cur.offsetWidth;if(l<sd.scrollLeft||r>sd.scrollLeft+sd.clientWidth)sd.scrollLeft=Math.max(0,l-24);}}
+    sideFit();sd.scrollTop=sl;
+    if(sd.scrollHeight>sd.clientHeight+2){const cur=sd.querySelector('[aria-current="true"]');if(cur){const t=cur.offsetTop-sd.offsetTop,b=t+cur.offsetHeight;if(t<sd.scrollTop||b>sd.scrollTop+sd.clientHeight)sd.scrollTop=Math.max(0,t-4);}}sideMore();
     if(state.sub)v=v.filter((x,i)=>subIn(ks[i],state.sub));
   }
   $("#vtitle").textContent=home?"NEW":(state.q?`'${state.q}'`:"");
