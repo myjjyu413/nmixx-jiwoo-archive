@@ -119,6 +119,12 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
 @media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.side button.child{padding:6px 12px;font-size:13px;border-style:dashed}.side .tog{width:20px;height:20px;margin:-4px -6px -4px 2px}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
+/* 휴대폰: 펼친 하위 세부 카테고리 목록 */
+.sidekids{display:none}
+@media (max-width:600px){.sidekids:not([hidden]){display:flex;flex-direction:column;gap:2px;max-height:184px;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;margin:-6px 0 0;padding:6px;border:1px dashed var(--line);border-radius:14px;background:var(--surface)}
+  .sidekids button{display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:10px;font:inherit;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+  .sidekids button[aria-current="true"]{background:var(--fg);color:var(--bg)}
+  .sidekids .n{font-family:var(--mono);font-size:12px;opacity:.7}}
 /* 휴대폰: 세부 카테고리는 한 줄로, 옆으로 넘겨요 */
 @media (max-width:600px){.side{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 calc(-1*var(--gut));padding:2px var(--gut);scroll-padding:0 var(--gut);gap:6px}.side::-webkit-scrollbar{display:none}.side button{flex:0 0 auto}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
@@ -329,6 +335,7 @@ main{padding-bottom:40px}
     <div class="vhead"><h2 class="row-title" id="vtitle">NEW</h2><div class="vtools"><form class="csearch" id="csearch" role="search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><input id="cq" type="search" placeholder="이 카테고리에서 검색" aria-label="이 카테고리에서 검색" autocomplete="off"></form><button class="vclear" id="vclear" aria-label="메인으로" hidden>×</button></div></div>
     <div class="vbody" id="vbody">
     <aside class="side" id="side" hidden aria-label="세부 카테고리"></aside>
+    <div class="sidekids" id="sidekids" hidden aria-label="하위 세부 카테고리"></div>
     <div class="vmain">
     <div class="shelf-wrap">
       <button class="arrow prev" id="prev" aria-label="이전" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2 4 8l7 6z" fill="currentColor"/></svg></button>
@@ -732,15 +739,19 @@ function render(){
   if(catView&&$("#cq").value!==state.cq&&document.activeElement!==$("#cq"))$("#cq").value=state.cq;
   let v=home?list:list.filter(x=>(state.cat==="전체"||x.category===state.cat)&&(!q||(x.title+" "+(x.note||"")).toLowerCase().includes(q))&&(!catView||!cq||(x.title+" "+(x.note||"")).toLowerCase().includes(cq)));
   const subs=catView&&SUBS[state.cat];
-  $("#vbody").classList.toggle("has-side",!!subs);$("#side").hidden=!subs;
+  $("#vbody").classList.toggle("has-side",!!subs);$("#side").hidden=!subs;if(!subs)$("#sidekids").hidden=true;
   if(subs){
     const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
-    const sd=$("#side"),sl=sd.scrollLeft;
+    const sd=$("#side"),sl=sd.scrollLeft,phone=matchMedia("(max-width:600px)").matches;
+    const kidsOf=ch=>ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join("");
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
       const open=ch&&!!sideOpen[state.cat+"|"+k];
       return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span>${ch?`<span class="tog" role="button" aria-label="${open?"접기":"펼치기"}">›</span>`:""}</button>`+
-        (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
+        (open&&!phone?kidsOf(ch):"");
     }).join("");
+    /* 휴대폰: 펼친 하위 항목은 한 줄 아래에 세로 목록으로 (위아래로 넘겨요) */
+    const op=phone&&subs.find(([k,n,ch])=>ch&&sideOpen[state.cat+"|"+k]);
+    $("#sidekids").innerHTML=op?kidsOf(op[2]):"";$("#sidekids").hidden=!op;
     sd.scrollLeft=sl;
     if(sd.scrollWidth>sd.clientWidth){const cur=sd.querySelector('[aria-current="true"]');if(cur){const l=cur.offsetLeft-sd.offsetLeft,r=l+cur.offsetWidth;if(l<sd.scrollLeft||r>sd.scrollLeft+sd.clientWidth)sd.scrollLeft=Math.max(0,l-24);}}
     if(state.sub)v=v.filter((x,i)=>subIn(ks[i],state.sub));
@@ -814,10 +825,12 @@ const SOKEY="jiwoo-archive-sideopen";
 /* 다른 카테고리에 갔다 오면 다시 접혀요 */
 const sideOpen={};let sideCat="";try{localStorage.removeItem(SOKEY)}catch(e){}
 function saveSideOpen(){}
-$("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
+function sideClick(e){const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
   /* › 표시를 눌렀을 때만 펼치기/접기 */
   if(e.target.closest(".tog")){const id=state.cat+"|"+k;if(sideOpen[id])delete sideOpen[id];else sideOpen[id]=true;saveSideOpen();render();return;}
-  state.sub=k;go(hashFor(1));});
+  state.sub=k;go(hashFor(1));}
+$("#side").addEventListener("click",sideClick);$("#sidekids").addEventListener("click",sideClick);
+matchMedia("(max-width:600px)").addEventListener("change",()=>render());
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
