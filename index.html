@@ -150,7 +150,9 @@ html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidde
 .bbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .bsecret{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer}.bsecret small{font-weight:400;color:var(--muted)}
 .bmsg{flex:1;font-size:13px;color:var(--muted);text-align:right}
-.bwall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}.bwall>.vnone{grid-column:1/-1}
+.bwall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.bwall .note{height:100%;box-sizing:border-box}
+.bwall .note.full,.bwall .note.cmopen{height:auto;min-height:100%;align-self:start;position:relative;z-index:5;box-shadow:0 14px 36px rgba(30,24,60,.28);max-height:70vh;overflow-y:auto}.bwall>.vnone{grid-column:1/-1}
 @media (max-width:900px){.bwall{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.bwall{grid-template-columns:minmax(0,1fr)}}
 .note{background:var(--surface);border-radius:12px;padding:14px 16px;margin:0;display:flex;flex-direction:column;gap:8px}
 .note.secret{background:var(--chip)}
@@ -800,6 +802,9 @@ function drawBoard(){
   bState.page=Math.min(Math.max(1,bState.page||1),pages);
   const list=bState.posts.slice((bState.page-1)*BPER,bState.page*BPER);
   w.innerHTML=n?list.map(noteHTML).join(""):`<p class="vnone">아직 글이 없어요. 첫 글을 남겨 주세요!</p>`;
+  /* 칸 높이를 접힌 글 기준으로 고정 → 펼친 글은 아래 칸 위로 겹쳐서 보여요 */
+  w.style.gridAutoRows="";
+  {const all=[...w.querySelectorAll(".note")];if(all.length){const t=all[0],had=[t.classList.contains("full"),t.classList.contains("cmopen")];t.classList.remove("full","cmopen");t.style.height="auto";const h=t.offsetHeight;t.style.height="";t.classList.toggle("full",had[0]);t.classList.toggle("cmopen",had[1]);w.style.gridAutoRows=h+"px";}}
   /* 두 줄을 넘는 글에만 '더보기' */
   w.querySelectorAll(".note").forEach(el=>{const nb=el.querySelector(".nb"),bt=el.querySelector(".nmore");if(el.classList.contains("full")){bt.hidden=false;return;}bt.hidden=!(nb.scrollHeight>nb.clientHeight+2);});
   const pg=$("#bpager");pg.hidden=pages<=1;if(pages<=1){pg.innerHTML="";return;}
