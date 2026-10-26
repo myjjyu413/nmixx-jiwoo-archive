@@ -141,7 +141,6 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 }
 .vnone{color:var(--muted);margin:0}
 .admin h3{margin:18px 0 8px;font-size:16px}
-.skind{display:flex;gap:16px;margin:0 0 12px;font-size:14px}.skind label{display:flex;gap:6px;align-items:center;cursor:pointer}.skind input{width:auto}
 .apromo{display:flex;gap:8px;align-items:center;margin:-4px 0 14px}.apromo input{max-width:220px}
 .arole{display:flex;align-items:center;gap:10px;margin:0 0 6px}.arole .btn{padding:5px 12px;font-size:13px}
 html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidden;pointer-events:none}.grid.vert .ghost-a .thumb{aspect-ratio:9/16}
@@ -314,15 +313,14 @@ main{padding-bottom:40px}
         <h2>로그인</h2>
         <p class="hint">본인 트위터 아이디(@…)로 아이디를 만들면 누구나 영상을 추가하고 고칠 수 있어요. 영상 삭제와 게시글 삭제는 관리자만 할 수 있어요. 탭을 닫으면 로그아웃돼요.</p>
         <div id="a-login-box">
-          <form class="form" id="a-form"><label>아이디<input id="a-id" placeholder="@트위터아이디 (관리자는 관리자 아이디)" autocomplete="username" autocapitalize="off" spellcheck="false"></label><label>비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label><button hidden></button></form>
+          <form class="form" id="a-form"><label>아이디<input id="a-id" placeholder="아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label><label>비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label><button hidden></button></form>
           <div class="btns"><button class="btn primary" id="a-login">로그인</button><button class="btn" id="a-go-signup">아이디·비밀번호 만들기</button><button class="btn" id="a-go-find">아이디·비밀번호 찾기</button></div>
         </div>
         <div id="a-signup-box" hidden>
           <h3>아이디·비밀번호 만들기</h3>
-          <div class="skind"><label><input type="radio" name="skind" value="editor" checked> 편집자</label><label><input type="radio" name="skind" value="admin"> 관리자 (사이트 주인)</label></div>
+          
           <div class="form">
-            <label id="s-adm-wrap" class="wide" hidden>관리자 비밀번호 <small style="font-weight:400;color:var(--muted)">(게시판 만들 때 Supabase에서 정한 비밀번호)</small><input id="s-adm" type="password" autocomplete="off"></label>
-            <label><span id="s-id-label">아이디 (본인 트위터 아이디)</span><input id="s-id" placeholder="@트위터아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+            <label>아이디 (본인 트위터 아이디)<input id="s-id" placeholder="@트위터아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
             <label>비밀번호 (6자 이상)<input id="s-pw" type="password" autocomplete="new-password"></label>
             <label>비밀번호 확인<input id="s-pw2" type="password" autocomplete="new-password"></label>
             <label class="wide sq">비밀번호를 잊었을 때 쓸 질문<select id="s-q"><option>가장 좋아하는 지우 노래는?</option><option>처음 본 엔믹스 무대는?</option><option>내 최애 간식은?</option><option>어릴 때 살던 동네는?</option><option value="__c">직접 쓰기</option></select></label>
@@ -346,7 +344,6 @@ main{padding-bottom:40px}
       </div>
       <div id="apanel" hidden>
       <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">로그아웃</button></p>
-      <div class="apromo" id="a-promo" hidden><input id="a-adm" type="password" placeholder="관리자 비밀번호" autocomplete="off"><button class="btn" id="a-promo-go">관리자 되기</button></div>
       <h2>유튜브에서 찾기</h2>
       <p class="hint">API 키는 내 비밀번호로 암호화해서 이 브라우저에만 저장돼요. 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
@@ -1303,7 +1300,7 @@ function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
   $("#abadge-t").textContent=`${SESS.handle||""} · ${r==="admin"?"관리자":"편집 모드"}`;
 }
-function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-promo").hidden=r!=="editor";$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
+function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
 function lockNow(){const t=sessPw();if(t)rpc("acct_logout",{p_token:t}).catch(()=>{});SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
 const amsg=t=>{$("#a-msg").textContent=t};
@@ -1316,25 +1313,17 @@ function acctErr(e){const m=String(e&&e.message||e);
   if(/WRONG_ADMIN/.test(m))return "관리자 비밀번호가 맞지 않아요. 편집자로 만들 거면 그 칸은 비워 두세요.";if(/WRONG_LOGIN/.test(m))return "아이디 또는 비밀번호가 맞지 않아요.";if(/WRONG_ANSWER/.test(m))return "답이 맞지 않아요.";
   if(/function|schema/i.test(m))return "Supabase 설정(accounts.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
 async function setSession(j,pw){SESS={role:j.role,pw:j.token,handle:j.handle,kp:await kpFrom(pw,j.handle)};try{sessionStorage.setItem(SKEY,JSON.stringify(SESS))}catch(e){}
-  ["#a-pw","#s-pw","#s-pw2","#s-a","#s-adm","#a-adm","#f2-a","#f2-pw"].forEach(x=>{const el=$(x);if(el)el.value="";});amsg("");showBox("login");await unlockKey();syncAdminUI();render();updateBadge();}
+  ["#a-pw","#s-pw","#s-pw2","#s-a","#f2-a","#f2-pw"].forEach(x=>{const el=$(x);if(el)el.value="";});amsg("");showBox("login");await unlockKey();syncAdminUI();render();updateBadge();}
 function showBox(w){$("#a-login-box").hidden=w!=="login";$("#a-signup-box").hidden=w!=="signup";$("#a-find-box").hidden=w!=="find";amsg("");}
 document.querySelectorAll("[data-aback]").forEach(b=>b.onclick=()=>showBox("login"));
 $("#a-go-signup").onclick=()=>{showBox("signup");$("#s-id").focus();};
 $("#a-go-find").onclick=()=>{showBox("find");$("#f2-reset").hidden=true;$("#f2-id").value=$("#a-id").value;$("#f2-id").focus();};
-const sAdmin=()=>document.querySelector('input[name="skind"]:checked').value==="admin";
-function syncSignup(){const ad=sAdmin();$("#s-adm-wrap").hidden=!ad;$("#s-id-label").textContent=ad?"관리자 아이디 (@ 없이도 돼요)":"아이디 (본인 트위터 아이디)";$("#s-id").placeholder=ad?"영문·숫자·_ 2~20자":"@트위터아이디";
-  document.querySelectorAll("#a-signup-box .sq").forEach(el=>{el.hidden=ad||(el.id==="s-qc-wrap"&&$("#s-q").value!=="__c");});}
-document.querySelectorAll('input[name="skind"]').forEach(r=>r.onchange=syncSignup);
-$("#s-q").onchange=syncSignup;
+$("#s-q").onchange=()=>{$("#s-qc-wrap").hidden=$("#s-q").value!=="__c";};
 async function doLogin(){const h=String($("#a-id").value||"").trim().toLowerCase(),pw=$("#a-pw").value;if(!h||!pw){amsg("아이디와 비밀번호를 넣어 주세요.");return;}
   amsg("확인하는 중…");try{const j=await rpc("acct_login",{p_handle:h,p_pw:pw});if(!j||j.error){amsg(acctErr(j&&j.error||"WRONG_LOGIN"));return;}await setSession(j,pw);}catch(e){amsg(acctErr(e));}}
-$("#s-go").onclick=async()=>{const ad=sAdmin();if(ad){const h=String($("#s-id").value||"").trim().toLowerCase(),pw=$("#s-pw").value,ap=$("#s-adm").value;
-    if(!ap){amsg("관리자 비밀번호를 넣어 주세요.");return;}if(!/^@?[a-z0-9_]{2,20}$/.test(h)){amsg(acctErr("BAD_ADMIN_ID"));return;}if(pw.length<6){amsg(acctErr("SHORT_PW"));return;}if(pw!==$("#s-pw2").value){amsg("비밀번호 확인이 맞지 않아요.");return;}
-    amsg("만드는 중…");try{const j=await rpc("acct_signup",{p_handle:h,p_pw:pw,p_q:null,p_a:null,p_admin:ap});await setSession(j,pw);}catch(e){amsg(acctErr(e));}return;}
-  const h=normHandle($("#s-id").value),pw=$("#s-pw").value,q=$("#s-q").value==="__c"?$("#s-qc").value.trim():$("#s-q").value,a=$("#s-a").value.trim();
+$("#s-go").onclick=async()=>{const h=normHandle($("#s-id").value),pw=$("#s-pw").value,q=$("#s-q").value==="__c"?$("#s-qc").value.trim():$("#s-q").value,a=$("#s-a").value.trim();
   if(!/^@[a-z0-9_]{1,15}$/.test(h)){amsg(acctErr("BAD_HANDLE"));return;}if(pw.length<6){amsg(acctErr("SHORT_PW"));return;}if(pw!==$("#s-pw2").value){amsg("비밀번호 확인이 맞지 않아요.");return;}if(!q||!a){amsg(acctErr("NO_Q"));return;}
   amsg("만드는 중…");try{const j=await rpc("acct_signup",{p_handle:h,p_pw:pw,p_q:q,p_a:a,p_admin:null});await setSession(j,pw);}catch(e){amsg(acctErr(e));}};
-$("#a-promo-go").onclick=async()=>{const v=$("#a-adm").value;if(!v)return;try{const j=await rpc("acct_promote",{p_token:sessPw(),p_admin:v});$("#a-adm").value="";SESS.role=j.role;try{sessionStorage.setItem(SKEY,JSON.stringify(SESS))}catch(e){}syncAdminUI();render();updateBadge();}catch(e){$("#a-role").textContent=acctErr(e);}};
 $("#f2-check").onclick=async()=>{const h=normHandle($("#f2-id").value);if(!h){amsg("아이디를 넣어 주세요.");return;}
   try{const q=await rpc("acct_question",{p_handle:h});if(!q){$("#f2-reset").hidden=true;amsg(`${h} 로 만든 아이디가 없어요. 트위터 아이디를 다시 확인하거나 새로 만들어 주세요.`);return;}
     $("#f2-q").textContent=q;$("#f2-reset").hidden=false;amsg(`${h} 아이디가 있어요. 비밀번호를 잊었다면 질문의 답을 넣고 새 비밀번호를 정하세요.`);$("#f2-a").focus();}catch(e){amsg(acctErr(e));}};
