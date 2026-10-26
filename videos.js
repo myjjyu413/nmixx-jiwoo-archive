@@ -227,7 +227,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/1fgIgWO6rbM","title":"이렇게 떨린 적은 처음이에요⚾️ | 애슬레틱스 시구 & 미국 국가 제창 비하인드 | Day MIXX","date":"2025-08-29","category":"자컨","group":"단독","note":"","sub":"day"},
   {"url":"https://youtu.be/Xg_Fm76_nLQ","title":"오늘 하루도 수고 많았어~💙","date":"2025-08-28","category":"라이브 방송","group":"단독","note":"","sub":"solo"},
   {"url":"https://youtu.be/pVIbBEQB0GU","title":"NMIXX x Pabllo Vittar ‘MEXE’ Dance Practice & MV Behind | ‘MEXE’ MAKING FILM EP.02","date":"2025-08-25","category":"자컨","group":"단독","note":"","sub":"making"},
-  {"url":"https://youtu.be/wWO2AsLKCyM","title":"NMIXX x Pabllo Vittar ‘MEXE’ Recording Behind | NMIXX(엔믹스), Pabllo Vittar ‘MEXE’ MAKING FILM EP.01","date":"2025-08-23","category":"자컨","group":"단독","note":"","sub":"making"},
+  {"url":"https://youtu.be/wWO2AsLKCyM","title":"NMIXX x Pabllo Vittar ‘MEXE’ Recording Behind | NMIXX(엔믹스), Pabllo Vittar ‘MEXE’ MAKING FILM EP.01","date":"2025-08-23","category":"자컨","group":"단독","note":"","sub":"rec"},
   {"url":"https://www.instagram.com/reel/DNqRmIxv4D2/","title":"이제 주말이니까 놀자아","date":"2025-08-22","category":"라이브 방송","group":"단독","note":"","sub":"unit"},
   {"url":"https://www.instagram.com/reel/DNqSbeeP_YP/","title":"이제 주말이니까 놀자아","date":"2025-08-22","category":"라이브 방송","group":"단독","note":"","sub":"unit"},
   {"url":"https://youtu.be/AiRZP1TUS9I","title":"케밀리의 운수 좋은 날🧩 NMIXX FAMILY TRIP EP.3 | PICK NMIXX","date":"2025-08-22","category":"자컨","group":"단독","note":"","sub":"pick"},
