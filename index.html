@@ -529,7 +529,7 @@ async function ttInfo(url){
   }
   return {};
 }
-function xFail(img){const ph=document.createElement("div");ph.className="nothumb xph";ph.innerHTML="<b>X</b><small>영상</small>";img.replaceWith(ph);}
+function xFail(img,b){const ph=document.createElement("div");ph.className="nothumb xph";ph.innerHTML="<b>X</b><small>"+(b?"라이브 다시보기":"영상")+"</small>";img.replaceWith(ph);}
 function igFail(img){const ph=document.createElement("div");ph.className="nothumb igph";ph.innerHTML="<b>Instagram</b><small>릴스</small>";img.replaceWith(ph);}
 function ttFail(img){const ph=document.createElement("span");ph.className="nothumb ttph";ph.innerHTML="<b>TikTok</b><small>썸네일 준비 중</small>";img.replaceWith(ph);}
 function loadTTThumbs(root){
@@ -567,7 +567,7 @@ function dispTitle(x){
 function cardHTML(x,i){
   const pf=platOf(x.url),id=pf==="yt"?ytId(x.url):null;
   const tag=pf==="tt"?'':pf==="ig"?'<span class="ptag">Instagram</span>':pf==="x"||pf==="xb"?'<span class="ptag">X</span>':"";
-  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<div class="nothumb xph"><b>X</b><small>라이브 다시보기</small></div>`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
+  const img=pf==="tt"&&ttId(x.url)?`<img loading="lazy" src="thumbs/tt/${ttId(x.url)}.jpg" onerror="ttFail(this)" alt="">`+tag:pf==="ig"?`<img loading="lazy" src="thumbs/ig/${igCode(x.url)}.jpg" onerror="igFail(this)" alt="">`:pf==="x"?`<img loading="lazy" src="thumbs/x/${xId(x.url)}.jpg" onerror="xFail(this)" alt="">`:pf==="xb"?`<img loading="lazy" src="thumbs/x/b-${(x.url.match(/broadcasts\/(\w+)/)||[])[1]}.jpg" onerror="xFail(this,1)" alt="">`:id?`<img loading="lazy" src="https://i.ytimg.com/vi/${id}/maxresdefault.jpg" onload="if(this.naturalWidth<=120&&!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://i.ytimg.com/vi/${id}/mqdefault.jpg'}" alt="">`:`<div class="nothumb">외부 링크</div>`;
   const card=`<button class="card" data-i="${i}"><span class="thumb">${img}</span><span class="ct">${esc(dispTitle(x))}</span></button>`;
   if(!adminMode())return card;
   const opts=CATS.map(c=>`<option${!x._del&&c===x.category?" selected":""}>${esc(c)}</option>`).join("")+`<option value="__del"${x._del?" selected":""}>목록에서 빼기</option>`;

@@ -32,7 +32,7 @@ for (const id of bids) {
       const h = await (await fetch(`https://x.com/i/broadcasts/${id}`, { headers: { "User-Agent": ua } })).text();
       const m = h.match(/property="og:image" content="([^"]+)"/) || h.match(/name="twitter:image" content="([^"]+)"/) || h.match(/content="([^"]+)" property="og:image"/);
       LOG.push(`b ${id} ua=${ua.slice(0,12)} len=${h.length} img=${m ? m[1] : "-"}`);
-      if (m && !/abs\.twimg\.com\/(responsive-web|errors)/.test(m[1])) { img = m[1].replace(/&amp;/g, "&"); break; }
+      if (m && !/abs\.twimg\.com\/(responsive-web|errors)/.test(m[1])) { img = m[1].replace(/&amp;/g, "&").replace("format=webp", "format=jpg"); break; }
     } catch (e) { LOG.push(`b ${id} fail ${e.message}`); }
   }
   if (!img) continue;
@@ -40,4 +40,4 @@ for (const id of bids) {
   if (r.ok) { fs.writeFileSync(out, Buffer.from(await r.arrayBuffer())); LOG.push(`saved ${out}`); }
 }
 console.log(LOG.join("\n"));
-fs.writeFileSync("thumbs/x/_log.txt", LOG.join("\n"));
+
