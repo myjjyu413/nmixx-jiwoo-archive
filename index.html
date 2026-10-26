@@ -510,17 +510,21 @@ const PROFILE={
   ]
 };
 
-const CATS=["MV & Track Video","무대","자컨","예능","라디오","인터뷰","숏폼","라이브 방송"];
+const CATS=["Official Video","무대","자컨","예능","라디오","인터뷰","숏폼","라이브 방송"];
 /* 예전 카테고리 이름도 새 이름으로 읽어요 */
-const OLDCAT={"무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","라이브":"라이브 방송"};
+const OLDCAT={"MV & Track Video":"Official Video","무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
+/* 예전 자컨의 Performance Video·Stage Practice·Dance Practice·응원법은 Official Video로 */
+const OVSUB=["perf","sp","dp","cheer"];
+function ovMove(v){if(v&&v.category==="자컨"&&OVSUB.includes(subOf(v))){const s=subOf(v);v.category="Official Video";v.sub=s;}return v;}
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
 const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식 & 연말무대"],["main-concert","쇼케 & 콘서트 & 팬미팅"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["radio","라디오"],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["idol","타아이돌"],["cover","커버"],["mag","매거진"],["etc","기타"]],
   "라이브 방송":[["solo","개인"],["unit","유닛"],["group","단체"],["comeback","컴백"],["anniv","N주년"],["etc","기타"]],
   "라디오":[["full","본편"],["hl","하이라이트"],["etc","기타"]],
   /* 자컨은 고르면 그 아래 세부 카테고리가 펼쳐져요 */
-  "자컨":[["jjk","쮸뀨미"],["perf","Performance Video"],["sp","Stage Practice"],["dp","Dance Practice"],["cheer","응원법"],["pick","PICK NMIXX"],["day","Day MIXX"],["making","Making MIXX"],["rec","Recording MIXX"],["log","MIXX Log"],["react","Reaction"],["jeolle","절레전래동화가족"],["wonder","이상한 나라의 엔믹스"],["etc","기타"]]};
+  "Official Video":[["mv","MV"],["perf","Performance Video"],["sp","Stage Practice"],["dp","Dance Practice"],["cheer","응원법"]],
+  "자컨":[["jjk","쮸뀨미"],["pick","PICK NMIXX"],["day","Day MIXX"],["making","Making MIXX"],["rec","Recording MIXX"],["log","MIXX Log"],["react","Reaction"],["jeolle","절레전래동화가족"],["wonder","이상한 나라의 엔믹스"],["etc","기타"]]};
 /* 관리자 선택칸용: 하위 카테고리까지 펼친 목록 */
 function subFlat(cat){const sl=SUBS[cat];if(!sl)return null;const out=[];sl.forEach(([k,n,ch])=>{out.push([k,n]);(ch||[]).forEach(([k2,n2])=>out.push([k2,n+" › "+n2]));});return out;}
 function subKids(cat,top){const e=(SUBS[cat]||[]).find(x=>x[0]===top);return e&&e[2]||null;}
@@ -541,6 +545,8 @@ function subOf(x){
     if(/하이라이트|highlight|\bcut\b|클립|clip|쿨룩|live ?▷/i.test(t))return "hl";
     if(/\[full\]|full ?ver|풀버전|보는 ?라디오|with ?(nmixx|엔믹스)|초대석|방송$|full\.ver/i.test(t))return "full";
     return "etc";}
+  if(x.category==="Official Video"){const t=x.title||"";
+    if(/performance video/i.test(t))return "perf";if(/stage practice/i.test(t))return "sp";if(/dance practice|안무 ?연습/i.test(t))return "dp";if(/응원법|cheering ?guide|fan ?chant/i.test(t))return "cheer";return "mv";}
   if(x.category==="자컨"){const t=x.title||"";if(/절레전래/.test(t))return "jeolle";if(/nmixx in wonderland|이상한 나라의 엔믹스/i.test(t))return "wonder";
     /* 시리즈 이름(제목 끝 | ○○)이 내용보다 먼저 */
     if(/recording ?mixx/i.test(t))return "rec";
@@ -649,11 +655,12 @@ function all(){
   const adds=REMOTE.adds.filter(a=>{const k=vidKey(a.url);if(!k||have.has(k))return false;have.add(k);return true;}).map(a=>({url:a.url,title:a.title,date:a.date||"",category:a.category,group:"단독",note:"",...(a.sub?{sub:a.sub}:{})}));
   const list=base.concat(adds).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.deleted)return null;
     const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
+  list.forEach(ovMove);
   if(!localMode())return list;
   const led=loadEdits(),seen=new Set(list.map(v=>vidKey(v.url)));
   const out=list.map(v=>{const e=led[v.url];if(!e)return v;if(e.delete)return null;const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
   for(const d of loadDrafts()){const k=vidKey(d.url);if(!k||seen.has(k))continue;seen.add(k);const e=led[d.url]||{};if(e.delete)continue;const o={...d,category:normCat(e.category||d.category),_draft:true};if(e.category)delete o.sub;if(e.sub)o.sub=e.sub;out.push(o);}
-  return out;
+  return out.map(ovMove);
 }
 function siteErr(e){const m=String(e&&e.message||e);if(/NO_AUTH/.test(m)&&SESS){setTimeout(lockNow,0);return "로그인이 끝났어요. 다시 로그인해 주세요.";}if(/ADMIN_ONLY/.test(m))return "관리자만 할 수 있어요.";if(/NO_AUTH/.test(m))return "로그인이 필요해요. 주소 뒤에 #admin 을 붙여 로그인해 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -803,7 +810,7 @@ $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{sta
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
-const SLUG={"MV & Track Video":"mv","무대":"stage","자컨":"jacon","예능":"variety","라디오":"radio","인터뷰":"interview","숏폼":"shorts","라이브 방송":"live"};
+const SLUG={"Official Video":"mv","무대":"stage","자컨":"jacon","예능":"variety","라디오":"radio","인터뷰":"interview","숏폼":"shorts","라이브 방송":"live"};
 function go(hash){if(location.hash==="#"+hash)route();else location.hash=hash;}
 function goVideos({cat,q}){go(q?"search="+encodeURIComponent(q):(SLUG[cat]||"all"));}
 function goInsta(){go("sns");}
@@ -1343,7 +1350,7 @@ $("#export").onclick=async()=>{const ed0=loadEdits();
   if(!merged.length&&!ekeys.length){msg("새로 추가하거나 고친 영상이 없어요.");return;}
   const lines=merged.map(v=>"  "+JSON.stringify(Object.assign({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group||"단독",note:v.note||""},v.sub?{sub:v.sub}:{}))+",");
   const elines=ekeys.map(u=>"  "+JSON.stringify(u)+": "+JSON.stringify(ed[u])+",");
-  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: MV & Track Video / 무대 / 자컨 / 예능 / 라디오 / 인터뷰 / 숏폼 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
+  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: Official Video / 무대 / 자컨 / 예능 / 라디오 / 인터뷰 / 숏폼 / 라이브 방송, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
   const out=$("#out");out.value=text;out.hidden=false;
   try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
