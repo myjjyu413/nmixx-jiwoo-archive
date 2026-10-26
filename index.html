@@ -140,6 +140,16 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
+/* 관리자 화면(넓은 화면): 영상은 왼쪽, 로그인·편집 칸은 오른쪽 */
+@media (min-width:1100px){
+  body.adminview.is-home{--stage:min(1180px,calc((100svh - var(--hchrome,262px)) * 4 / 3),calc(100vw - 440px - 2*var(--gut) - 16px))}
+  body.adminview{--apw:clamp(440px,calc(100vw - var(--stage,1180px) - 2*var(--gut) - 16px),900px)}
+  body.adminview main{margin-right:var(--apw)}
+  body.adminview .hero-in,body.adminview #hero,body.adminview #videos{margin-left:0}
+  body.adminview #admin:not([hidden]){position:fixed;top:0;right:0;bottom:0;width:var(--apw);margin:0;border:0;border-left:1px solid var(--line);border-radius:0;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;padding:76px 28px 40px;z-index:5;background:var(--surface)}
+  body.adminview #admin:not([hidden]):has(#alogin:not([hidden])){display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--surface) 55%,transparent)}
+  body.adminview #admin #alogin{width:100%}
+}
 /* 로그인 화면 */
 .admin:has(#alogin:not([hidden])){background:none;border:0;padding:8px 0 24px}
 .auth{max-width:380px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px 28px 22px;text-align:center;box-shadow:0 10px 30px rgba(42,39,64,.10)}
@@ -822,7 +832,7 @@ function route(){
   else if(h==="all")state.view="list";
   else if(h.startsWith("search=")){state.view="list";try{state.q=decodeURIComponent(h.slice(7))}catch(e){state.q=h.slice(7)}}
   else{const c=Object.keys(SLUG).find(k=>SLUG[k]===h);state.view=c?"list":"home";if(c)state.cat=c;}
-  $("#admin").hidden=!isAdmin();
+  $("#admin").hidden=!isAdmin();document.body.classList.toggle("adminview",isAdmin());
   if(isAdmin())renderDrafts();
   render();
   updateBadge();
