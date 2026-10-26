@@ -598,7 +598,7 @@ function render(){
   if(subs){
     const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
-      const open=ch&&state.sub&&subIn(state.sub,k)&&!sideFold[k];
+      const open=ch&&!!sideOpen[state.cat+"|"+k];
       return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span></button>`+
         (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
     }).join("");
@@ -665,11 +665,14 @@ $("#pager").onclick=e=>{
   const b=e.target.closest("button[data-p]");if(!b||b.disabled)return;
   go(hashFor(+b.dataset.p));};
 function hashFor(p){const base=location.hash.slice(1).split("&")[0]||"all";let h=base;if(state.sub)h+="&s="+state.sub;if(state.cq)h+="&q="+encodeURIComponent(state.cq);if(p>1)h+="&p="+p;return h;}
-/* 펼쳐진 상위 항목(자컨·무대 등)을 한 번 더 누르면 접혀요 */
-const sideFold={};
+/* 상위 항목(자컨·무대 등): 누르면 펼쳐지고, 다른 항목을 눌러도 펼친 채로 두고, 펼쳐진 걸 고른 상태에서 다시 누르면 접혀요 */
+const SOKEY="jiwoo-archive-sideopen";
+const sideOpen=(()=>{try{return JSON.parse(localStorage.getItem(SOKEY))||{}}catch(e){return {}}})();
+function saveSideOpen(){try{localStorage.setItem(SOKEY,JSON.stringify(sideOpen))}catch(e){}}
 $("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
-  if(b.classList.contains("haschild")&&state.sub&&subIn(state.sub,k)){sideFold[k]=!sideFold[k];if(sideFold[k]&&state.sub!==k){state.sub=k;go(hashFor(1));}else render();return;}
-  if(b.classList.contains("haschild"))sideFold[k]=false;
+  if(b.classList.contains("haschild")){const id=state.cat+"|"+k;
+    if(sideOpen[id]&&state.sub&&subIn(state.sub,k)){delete sideOpen[id];saveSideOpen();if(state.sub!==k){state.sub=k;go(hashFor(1));}else render();return;}
+    sideOpen[id]=true;saveSideOpen();}
   state.sub=k;go(hashFor(1));});
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
