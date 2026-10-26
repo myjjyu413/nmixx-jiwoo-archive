@@ -143,16 +143,19 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidden;pointer-events:none}.grid.vert .ghost-a .thumb{aspect-ratio:9/16}
 .ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
 /* 게시판 */
-.bform{background:var(--surface);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.bform{background:var(--surface);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:18px}.bform .bmsg{text-align:left}.bform .bmsg:empty{display:none}
 .bform input:not([type=checkbox]),.bform textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font:inherit;color:var(--fg)}
-.bform textarea{resize:vertical;min-height:72px}
-.brow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px}
+.bform textarea{resize:none;min-height:0;height:64px}.bwrite{display:flex;gap:10px;align-items:stretch}.bwrite textarea{flex:1}.bside{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:6px}.bside .btn{flex:1;min-width:72px}
+.brow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:10px;align-items:center}
 .bbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .bsecret{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer}.bsecret small{font-weight:400;color:var(--muted)}
 .bmsg{flex:1;font-size:13px;color:var(--muted);text-align:right}
-.bwall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.bwall .note{height:100%;box-sizing:border-box}
-.bwall .note.full,.bwall .note.cmopen{height:auto;min-height:100%;align-self:start;position:relative;z-index:5;box-shadow:0 14px 36px rgba(30,24,60,.28);max-height:70vh;overflow-y:auto}.bwall>.vnone{grid-column:1/-1}
+.bwall{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#board{padding-top:6px}#board .vhead{margin-bottom:10px}#board .pager{margin-top:14px}
+@media (min-width:901px){.bwall .note{padding:11px 16px;gap:5px}}
+.bwall .note{height:100%;box-sizing:border-box}.bwall .note>*{flex-shrink:0}
+.cfull{margin:0;font-size:12px;color:var(--muted)}.ncm .cm{flex-wrap:wrap;row-gap:0}.ncm .cm .cd{margin-left:auto}.ncm .cm .cb{flex:0 0 100%;order:9}.ncm .cm.re .cb{padding-left:18px}
+.bwall .note.full,.bwall .note.cmopen{height:auto;min-height:100%;align-self:start;position:relative;z-index:5;box-shadow:0 14px 36px rgba(30,24,60,.28);max-height:calc(100vh - 100px);overflow-y:auto}.bwall>.vnone{grid-column:1/-1}
 @media (max-width:900px){.bwall{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:560px){.bwall{grid-template-columns:minmax(0,1fr)}}
 .note{background:var(--surface);border-radius:12px;padding:14px 16px;margin:0;display:flex;flex-direction:column;gap:8px}
 .note.secret{background:var(--chip)}
@@ -165,7 +168,7 @@ html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidde
 .note .na{display:flex;gap:10px;justify-content:flex-end}.note .na button{border:0;background:none;padding:0;font:inherit;font-size:12px;color:var(--muted);cursor:pointer}.note .na button:hover{color:var(--fg);text-decoration:underline}
 .note .nx{display:flex;flex-direction:column;gap:8px}.note .nx input:not([type=checkbox]),.note .nx textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--fg)}
 .note .nx .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.note .nx .row .sp{flex:1;font-size:12px;color:#a33}
-.bmore{text-align:center;margin-top:8px}
+.bmore{text-align:center;margin-top:8px}.bcount{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .ncm{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px}.ncm:not(:has(.cm)):has(.cf[hidden]){display:none}
 .ncm .cm{display:flex;gap:6px;align-items:baseline;font-size:13px;line-height:1.5}.ncm .cm b{flex:none}.ncm .cb{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}.ncm .cd{flex:none;font-size:11px;color:var(--muted)}
 .ncm .cm button{flex:none;border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}.ncm .cm button:hover{color:var(--fg)}
@@ -354,9 +357,9 @@ main{padding-bottom:40px}
   <section class="gut" id="board" hidden>
     <div class="vhead"><h2 class="row-title">게시판</h2><button class="vclear" id="bclear" aria-label="메인으로">×</button></div>
     <form class="bform" id="bform" autocomplete="off">
-      <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" value="쮸랑단원"><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required></div>
-      <textarea id="b-body" maxlength="1000" rows="3" placeholder="자유롭게 남겨 주세요" required></textarea>
-      <div class="bbar"><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label><span class="bmsg" id="b-msg" role="status"></span><button type="submit" class="btn primary" id="b-send">등록</button></div>
+      <div class="brow"><input id="b-name" maxlength="20" placeholder="닉네임" value="쮸랑단원"><input id="b-pw" type="password" minlength="4" maxlength="40" placeholder="비밀번호 (수정·삭제할 때 필요해요)" required><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label></div>
+      <div class="bwrite"><textarea id="b-body" maxlength="150" rows="2" placeholder="자유롭게 남겨 주세요" required></textarea><div class="bside"><span class="bcount" id="b-count">0/150</span><button type="submit" class="btn primary" id="b-send">등록</button></div></div>
+      <span class="bmsg" id="b-msg" role="status"></span>
     </form>
     <div class="bwall" id="bwall"></div>
     <nav class="pager" id="bpager" aria-label="게시판 페이지" hidden></nav>
@@ -792,11 +795,13 @@ function noteHTML(p){
   return `<article class="note${p.secret?" secret":""}${bState.full.has(p.id)?" full":""}${bState.cmOpen.has(p.id)?" cmopen":""}" data-id="${p.id}"><div class="nh"><span class="nn">${esc(p.name)}</span><span class="nd">${kdate(p.created_at)}${p.updated_at?" (수정됨)":""}${p.secret?" · 🔒":""}</span></div>`+
     `<div class="nb${locked?" locked":""}">${locked?"비밀글이에요.":esc(p.body)}</div>`+
     (Array.isArray(p.comments)?`<div class="ncm">${cmOrder(p.comments).map(c=>`<div class="cm${c.parent_id?" re":""}" data-cid="${c.id}" data-name="${esc(c.name)}">${c.parent_id?`<i>↳</i>`:""}<b>${esc(c.name)}</b><span class="cb">${esc(c.body)}</span><span class="cd">${kdate(c.created_at).slice(5)}</span>${"parent_id" in c?`<button data-a="creply1" class="crep">답글</button>`:""}<button data-a="cdel" aria-label="댓글 삭제">×</button></div>`).join("")}`+
-      `<div class="cf"${bState.cmOpen.has(p.id)?"":" hidden"}><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
+      (p.comments.length>=CMAX?`<p class="cfull">댓글은 글 하나에 ${CMAX}개까지예요.</p>`:"")+`<div class="cf"${bState.cmOpen.has(p.id)&&p.comments.length<CMAX?"":" hidden"}><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="50" placeholder="댓글을 남겨 주세요 (50자까지)" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
     `<div class="na"><button class="nmore" data-a="more" hidden>${bState.full.has(p.id)?"접기":"더보기"}</button>${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
+/* 펼친 칸이 화면 아래로 넘치면 위로 올려서 스크롤 없이 보이게 */
+function noteFit(el){el.style.transform="";if(!el.classList.contains("full")&&!el.classList.contains("cmopen"))return;const top=($(".top")?$(".top").getBoundingClientRect().bottom:0)+8;const r=el.getBoundingClientRect(),over=r.bottom-(innerHeight-12);if(over>0)el.style.transform=`translateY(${-Math.min(over,Math.max(0,r.top-top))}px)`;}
 /* 게시판: 최신순, 한 페이지에 9개 */
-const BPER=9;
+const BPER=9,CMAX=5;
 function drawBoard(){
   const w=$("#bwall"),n=bState.posts.length,pages=Math.max(1,Math.ceil(n/BPER));
   bState.page=Math.min(Math.max(1,bState.page||1),pages);
@@ -805,6 +810,7 @@ function drawBoard(){
   /* 칸 높이를 접힌 글 기준으로 고정 → 펼친 글은 아래 칸 위로 겹쳐서 보여요 */
   w.style.gridAutoRows="";
   {const all=[...w.querySelectorAll(".note")];if(all.length){const t=all[0],had=[t.classList.contains("full"),t.classList.contains("cmopen")];t.classList.remove("full","cmopen");t.style.height="auto";const h=t.offsetHeight;t.style.height="";t.classList.toggle("full",had[0]);t.classList.toggle("cmopen",had[1]);w.style.gridAutoRows=h+"px";}}
+  requestAnimationFrame(()=>w.querySelectorAll(".note.full,.note.cmopen").forEach(noteFit));
   /* 두 줄을 넘는 글에만 '더보기' */
   w.querySelectorAll(".note").forEach(el=>{const nb=el.querySelector(".nb"),bt=el.querySelector(".nmore");if(el.classList.contains("full")){bt.hidden=false;return;}bt.hidden=!(nb.scrollHeight>nb.clientHeight+2);});
   const pg=$("#bpager");pg.hidden=pages<=1;if(pages<=1){pg.innerHTML="";return;}
@@ -828,6 +834,8 @@ async function loadBoard(more){
   finally{bState.busy=false;}
 }
 function renderBoard(){$("#bform").hidden=!(BOARD.url&&BOARD.key);loadBoard(false);}
+function bCount(){$("#b-count").textContent=$("#b-body").value.length+"/150";}
+$("#b-body").addEventListener("input",bCount);
 $("#bform").addEventListener("submit",async e=>{
   e.preventDefault();const msg=$("#b-msg");
   const name=$("#b-name").value.trim()||DEFNAME,pw=$("#b-pw").value,body=$("#b-body").value.trim(),secret=$("#b-secret").checked;
@@ -835,7 +843,7 @@ $("#bform").addEventListener("submit",async e=>{
   if(pw.length<4){msg.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
   $("#b-send").disabled=true;msg.textContent="올리는 중…";
   try{const nid=await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});bRemember(nid,pw);
-    $("#b-body").value="";$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";bState.page=1;
+    $("#b-body").value="";bCount();$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";bState.page=1;
     try{localStorage.setItem("jiwoo-archive-boardname",name)}catch(e){}
     await loadBoard(false);
   }catch(err){msg.textContent=bErr(err);}
@@ -851,7 +859,7 @@ $("#bwall").addEventListener("click",async e=>{
   const openEdit=async pw=>{
     try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];
       x.hidden=false;x.dataset.pw=pw;if(pw!==apw)bRemember(id,pw);
-      x.innerHTML=`<textarea class="xbody" maxlength="1000" rows="4">${esc(r.body)}</textarea><div class="row"><label class="bsecret"><input type="checkbox" class="xsec"${r.secret?" checked":""}> 비밀글</label><span class="sp"></span><button class="btn primary" data-a="save">저장</button><button class="btn" data-a="cancel">취소</button></div>`;
+      x.innerHTML=`<textarea class="xbody" maxlength="150" rows="4">${esc(r.body)}</textarea><div class="row"><label class="bsecret"><input type="checkbox" class="xsec"${r.secret?" checked":""}> 비밀글</label><span class="sp"></span><button class="btn primary" data-a="save">저장</button><button class="btn" data-a="cancel">취소</button></div>`;
     }catch(e2){err(bErr(e2));}
   };
   const openView=async pw=>{try{const r=(await rpc("board_get",{p_id:id,p_pw:pw}))[0];p.body=r.body;if(r.comments)p.comments=r.comments;if(pw!==apw)bRemember(id,pw);drawBoard();}catch(e2){err(bErr(e2));}};
@@ -859,17 +867,16 @@ $("#bwall").addEventListener("click",async e=>{
   if(a==="cancel"){x.hidden=true;x.innerHTML="";delete x.dataset.pw;return;}
   if(a==="edit"){if(apw)openEdit(apw);else askPw("확인","edit-ok");return;}
   if(a==="del"){if(apw){x.hidden=false;x.innerHTML=`<div class="row"><span class="sp"></span></div>`;doDel(apw);}else askPw("삭제","del-ok");return;}
-  if(a==="more"){if(bState.full.has(id))bState.full.delete(id);else bState.full.add(id);art.classList.toggle("full");b.textContent=art.classList.contains("full")?"접기":"더보기";return;}
-  if(a==="creply"){const f=art.querySelector(".cf"),open=!art.classList.contains("cmopen");art.classList.toggle("cmopen",open);if(open)bState.cmOpen.add(id);else bState.cmOpen.delete(id);f.hidden=!open;delete f.dataset.parent;f.querySelector(".cto").hidden=true;if(open)f.querySelector(".cbody").focus();return;}
-  if(a==="creply1"){const cm=b.closest(".cm"),f=art.querySelector(".cf"),to=f.querySelector(".cto");f.hidden=false;f.dataset.parent=cm.dataset.cid;to.hidden=false;to.innerHTML=`↳ <b>${esc(cm.dataset.name)}</b> 님에게 답글 <button data-a="cto-x" aria-label="답글 취소">×</button>`;f.querySelector(".cbody").focus();return;}
+  if(a==="more"){if(bState.full.has(id))bState.full.delete(id);else bState.full.add(id);art.classList.toggle("full");b.textContent=art.classList.contains("full")?"접기":"더보기";noteFit(art);return;}
+  if(a==="creply"){const f=art.querySelector(".cf"),open=!art.classList.contains("cmopen");art.classList.toggle("cmopen",open);if(open)bState.cmOpen.add(id);else bState.cmOpen.delete(id);const full=(p.comments||[]).length>=CMAX;f.hidden=!open||full;delete f.dataset.parent;f.querySelector(".cto").hidden=true;if(open&&!full)f.querySelector(".cbody").focus({preventScroll:true});noteFit(art);return;}
+  if(a==="creply1"){if((p.comments||[]).length>=CMAX)return;const cm=b.closest(".cm"),f=art.querySelector(".cf"),to=f.querySelector(".cto");f.hidden=false;f.dataset.parent=cm.dataset.cid;to.hidden=false;to.innerHTML=`↳ <b>${esc(cm.dataset.name)}</b> 님에게 답글 <button data-a="cto-x" aria-label="답글 취소">×</button>`;f.querySelector(".cbody").focus();return;}
   if(a==="cto-x"){const f=art.querySelector(".cf");delete f.dataset.parent;f.querySelector(".cto").hidden=true;return;}
-  if(a==="csend"){
+  if(a==="csend"){if((p.comments||[]).length>=CMAX)return;
     const f=art.querySelector(".cf"),cn=f.querySelector(".cname").value.trim()||DEFNAME,cp=f.querySelector(".cpw").value,cb=f.querySelector(".cbody").value.trim(),sp=f.querySelector(".sp");
     if(!cb){sp.textContent="댓글을 적어 주세요.";return;}if(cp.length<4){sp.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
     b.disabled=true;
     const par=f.dataset.parent?+f.dataset.parent:null;const parC=par&&(p.comments||[]).find(c=>c.id===par);
-    try{const args={p_post:id,p_name:cn,p_body:cb,p_pw:cp};if(par)args.p_parent=par;const cid=await rpc("board_comment_add",args);bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,parent_id:par?(parC&&parC.parent_id||par):null,name:cn,body:cb,created_at:new Date().toISOString()});drawBoard();
-      bState.cmOpen.add(id);const nf=$("#bwall").querySelector(`.note[data-id="${id}"] .cf`);if(nf)nf.hidden=false;}
+    try{const args={p_post:id,p_name:cn,p_body:cb,p_pw:cp};if(par)args.p_parent=par;const cid=await rpc("board_comment_add",args);bCmRemember(cid,cp);(p.comments=p.comments||[]).push({id:cid,parent_id:par?(parC&&parC.parent_id||par):null,name:cn,body:cb,created_at:new Date().toISOString()});bState.cmOpen.add(id);drawBoard();}
     catch(e2){sp.textContent=bErr(e2);b.disabled=false;}
     return;}
   if(a==="cdel"||a==="cdel-ok"){
