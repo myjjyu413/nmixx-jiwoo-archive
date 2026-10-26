@@ -140,6 +140,7 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
+.admin h3{margin:18px 0 8px;font-size:16px}
 .arole{display:flex;align-items:center;gap:10px;margin:0 0 6px}.arole .btn{padding:5px 12px;font-size:13px}
 html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidden;pointer-events:none}.grid.vert .ghost-a .thumb{aspect-ratio:9/16}
 .ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
@@ -308,16 +309,41 @@ main{padding-bottom:40px}
 
     <section class="admin" id="admin" hidden>
       <div id="alogin">
-        <h2>관리자 잠금</h2>
-        <p class="hint">편집자 또는 관리자 비밀번호를 넣으면 영상을 추가하고 고칠 수 있어요. 영상 삭제와 게시글 삭제는 관리자 비밀번호로만 돼요. 탭을 닫으면 다시 잠겨요.</p>
-        <form class="form" id="a-form"><label class="wide">비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label></form>
-        <div class="btns"><button class="btn primary" id="a-login">잠금 풀기</button></div>
+        <h2>로그인</h2>
+        <p class="hint">본인 트위터 아이디(@…)로 아이디를 만들면 누구나 영상을 추가하고 고칠 수 있어요. 영상 삭제와 게시글 삭제는 관리자만 할 수 있어요. 탭을 닫으면 로그아웃돼요.</p>
+        <div id="a-login-box">
+          <form class="form" id="a-form"><label>아이디<input id="a-id" placeholder="@트위터아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label><label>비밀번호<input id="a-pw" type="password" autocomplete="current-password"></label><button hidden></button></form>
+          <div class="btns"><button class="btn primary" id="a-login">로그인</button><button class="btn" id="a-go-signup">아이디·비밀번호 만들기</button><button class="btn" id="a-go-find">아이디·비밀번호 찾기</button></div>
+        </div>
+        <div id="a-signup-box" hidden>
+          <h3>아이디·비밀번호 만들기</h3>
+          <div class="form">
+            <label>아이디 (본인 트위터 아이디)<input id="s-id" placeholder="@트위터아이디" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+            <label>비밀번호 (6자 이상)<input id="s-pw" type="password" autocomplete="new-password"></label>
+            <label>비밀번호 확인<input id="s-pw2" type="password" autocomplete="new-password"></label>
+            <label class="wide">비밀번호를 잊었을 때 쓸 질문<select id="s-q"><option>가장 좋아하는 지우 노래는?</option><option>처음 본 엔믹스 무대는?</option><option>내 최애 간식은?</option><option>어릴 때 살던 동네는?</option><option value="__c">직접 쓰기</option></select></label>
+            <label class="wide" id="s-qc-wrap" hidden>질문 직접 쓰기<input id="s-qc" maxlength="100"></label>
+            <label class="wide">답<input id="s-a" maxlength="50" autocomplete="off"></label>
+          </div>
+          <div class="btns"><button class="btn primary" id="s-go">만들기</button><button class="btn" data-aback>로그인으로</button></div>
+        </div>
+        <div id="a-find-box" hidden>
+          <h3>아이디·비밀번호 찾기</h3>
+          <p class="hint">아이디는 가입할 때 쓴 <b>본인 트위터 아이디(@…)</b>예요. 아래에 넣고 확인을 누르면 가입돼 있는지 알려 주고, 질문의 답을 맞히면 비밀번호를 새로 정할 수 있어요.</p>
+          <div class="form"><label class="wide">아이디<input id="f2-id" placeholder="@트위터아이디" autocapitalize="off" spellcheck="false"></label></div>
+          <div class="btns"><button class="btn primary" id="f2-check">확인</button><button class="btn" data-aback>로그인으로</button></div>
+          <div id="f2-reset" hidden>
+            <p class="hint">질문: <b id="f2-q"></b></p>
+            <div class="form"><label>답<input id="f2-a" autocomplete="off"></label><label>새 비밀번호 (6자 이상)<input id="f2-pw" type="password" autocomplete="new-password"></label></div>
+            <div class="btns"><button class="btn primary" id="f2-go">비밀번호 바꾸고 로그인</button></div>
+          </div>
+        </div>
         <p class="msg" id="a-msg"></p>
       </div>
       <div id="apanel" hidden>
-      <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">잠그기</button></p>
+      <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">로그아웃</button></p>
       <h2>유튜브에서 찾기</h2>
-      <p class="hint">API 키는 잠금 비밀번호로 암호화해서 이 브라우저에만 저장돼요. 사이트 코드에는 들어가지 않아요.</p>
+      <p class="hint">API 키는 내 비밀번호로 암호화해서 이 브라우저에만 저장돼요. 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
         <label class="wide">API 키<input id="yt-key" type="password" placeholder="AIza로 시작하는 키" autocomplete="off"></label>
         <label>찾는 방식<select id="yt-mode"><option value="search">유튜브 전체 검색</option><option value="channel">특정 채널 안에서</option><option value="playlist">재생목록 가져오기</option></select></label>
@@ -398,7 +424,7 @@ main{padding-bottom:40px}
   </div>
 </div>
 
-<div class="abadge" id="abadge" hidden><span id="abadge-t">관리자 모드</span><a href="#admin">관리 화면</a><button id="aoff">끄기</button></div>
+<div class="abadge" id="abadge" hidden><span id="abadge-t">편집 모드</span><a href="#admin">관리 화면</a><button id="aoff">끄기</button></div>
 
 <div class="modal" id="modal" hidden>
   <div class="player" role="dialog" aria-modal="true" aria-labelledby="p-title">
@@ -560,7 +586,7 @@ function isAdmin(){return location.hash==="#admin"}
 const AKEY="jiwoo-archive-admin",EKEY="jiwoo-archive-edits";
 /* 관리자 잠금: 비밀번호를 서버(Supabase)에서 확인하고, 이 탭에서만 기억해요 */
 const SKEY="jiwoo-archive-sess";
-let SESS=(()=>{try{return JSON.parse(sessionStorage.getItem(SKEY))}catch(e){return null}})();
+let SESS=(()=>{try{const o=JSON.parse(sessionStorage.getItem(SKEY));return o&&/^tok_/.test(o.pw||"")&&o.kp?o:null}catch(e){return null}})();
 function role(){return SESS&&SESS.role||null}
 function sessPw(){return SESS&&SESS.pw||null}
 function adminMode(){return !!role()}
@@ -577,7 +603,7 @@ function all(){
   return base.concat(adds).map(v=>{v={...v,category:normCat(v.category)};const e=ed[v.url];if(!e)return v;if(e.deleted)return null;
     const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
 }
-function siteErr(e){const m=String(e&&e.message||e);if(/ADMIN_ONLY/.test(m))return "관리자 비밀번호로 잠금을 풀어야 할 수 있어요.";if(/NO_AUTH/.test(m))return "잠금이 풀려 있지 않아요. 관리자 화면에서 비밀번호를 넣어 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
+function siteErr(e){const m=String(e&&e.message||e);if(/NO_AUTH/.test(m)&&SESS){setTimeout(lockNow,0);return "로그인이 끝났어요. 다시 로그인해 주세요.";}if(/ADMIN_ONLY/.test(m))return "관리자만 할 수 있어요.";if(/NO_AUTH/.test(m))return "로그인이 필요해요. 주소 뒤에 #admin 을 붙여 로그인해 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const fmt=d=>String(d||"").replaceAll("-",".");
 
@@ -960,21 +986,16 @@ const YTK="jiwoo-archive-ytkey",YT="https://www.googleapis.com/youtube/v3/";
 /* API 키는 잠금 비밀번호로 암호화(AES-GCM)해서 저장해요 */
 const YKE="jiwoo-archive-ytkey-enc";
 const b64=a=>btoa(String.fromCharCode(...a)),ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function deriveKey(pw,salt){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
+/* 내 비밀번호에서 만든 키(이 탭에만 보관)로 암호화해요 */
+async function kpFrom(pw,handle){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode("jiwoo-archive:"+handle),iterations:150000,hash:"SHA-256"},base,256);return b64(new Uint8Array(bits));}
+async function aesKey(){if(!SESS||!SESS.kp)return null;return crypto.subtle.importKey("raw",ub64(SESS.kp),"AES-GCM",false,["encrypt","decrypt"]);}
+const ykeName=()=>YKE+":"+(SESS&&SESS.handle||"");
 let ytSaved="";
-async function saveKeyEnc(k){if(!sessPw()||!k||k===ytSaved)return;ytSaved=k;try{const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const key=await deriveKey(sessPw(),salt);const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(k)));localStorage.setItem(YKE,JSON.stringify({s:b64(salt),i:b64(iv),c:b64(ct)}));}catch(e){}}
+async function saveKeyEnc(k){if(!k||k===ytSaved)return;const key=await aesKey();if(!key)return;ytSaved=k;try{const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(k)));localStorage.setItem(ykeName(),JSON.stringify({i:b64(iv),c:b64(ct)}));}catch(e){}}
 async function unlockKey(){
-  try{const plain=localStorage.getItem(YTK);if(plain&&sessPw()){await saveKeyEnc(plain);localStorage.removeItem(YTK);$("#yt-key").value=plain;return;}}catch(e){}
-  try{const o=JSON.parse(localStorage.getItem(YKE));if(!o||!sessPw())return;const key=await deriveKey(sessPw(),ub64(o.s));const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(o.i)},key,ub64(o.c));ytSaved=new TextDecoder().decode(pt);$("#yt-key").value=ytSaved;}catch(e){}
+  try{const plain=localStorage.getItem(YTK);if(plain&&SESS&&SESS.kp){await saveKeyEnc(plain);localStorage.removeItem(YTK);localStorage.removeItem(YKE);$("#yt-key").value=plain;return;}}catch(e){}
+  try{const o=JSON.parse(localStorage.getItem(ykeName()));const key=await aesKey();if(!o||!key)return;const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(o.i)},key,ub64(o.c));ytSaved=new TextDecoder().decode(pt);$("#yt-key").value=ytSaved;}catch(e){}
 }
-let ytNext="",ytItems=[],ytStop=false;
-function ytMsg(t){$("#yt-msg").textContent=t}
-/* 제목에 적힌 날짜 찾기: 250324 / 2025.03.24 / 20250324 / 2025-03-24 */
-function titleDate(t){t=String(t||"");let m=t.match(/(?:^|[^\d])(20\d{2})[.\-/ ]?(0[1-9]|1[0-2])[.\-/ ]?(0[1-9]|[12]\d|3[01])(?!\d)/);
-  if(!m){const k=t.match(/(?:^|[^\d])(\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)/);if(k&&+k[1]>=15&&+k[1]<=40)m=[0,"20"+k[1],k[2],k[3]];}
-  return m?`${m[1]}-${m[2]}-${m[3]}`:"";}
-function kst(t){if(!t)return "";const d=new Date(new Date(t).getTime()+9*3600e3);return isNaN(d)?String(t).slice(0,10):d.toISOString().slice(0,10);}
-function decodeHTML(t){const d=document.createElement("textarea");d.innerHTML=t;return d.value}
 function ytKey(){const k=$("#yt-key").value.trim();if(k)saveKeyEnc(k);return k;}
 async function ytGet(path,params){
   const r=await fetch(YT+path+"?"+new URLSearchParams({...params,key:ytKey()}));
@@ -1275,18 +1296,40 @@ document.addEventListener("change",async e=>{
 });
 function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
-  $("#abadge-t").textContent=r==="admin"?"관리자 모드":"편집자 모드";
+  $("#abadge-t").textContent=`${SESS.handle||""} · ${r==="admin"?"관리자":"편집 모드"}`;
 }
-function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r==="admin"?"관리자로 잠금 해제됨":r==="editor"?"편집자로 잠금 해제됨 (삭제는 관리자만)":"";}
-function lockNow(){SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
+function syncAdminUI(){const r=role();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${SESS.handle||""} 로그인됨 (${r==="admin"?"관리자":"편집자 · 삭제는 관리자만"})`:"";}
+function lockNow(){const t=sessPw();if(t)rpc("acct_logout",{p_token:t}).catch(()=>{});SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
-async function doLogin(){const pw=$("#a-pw").value;if(!pw){$("#a-msg").textContent="비밀번호를 넣어 주세요.";return;}
-  $("#a-msg").textContent="확인하는 중…";
-  try{const r=await rpc("site_role",{p_pw:pw});if(!r){$("#a-msg").textContent="비밀번호가 맞지 않아요.";return;}
-    SESS={role:r,pw};try{sessionStorage.setItem(SKEY,JSON.stringify(SESS))}catch(e){}
-    $("#a-pw").value="";$("#a-msg").textContent="";await unlockKey();syncAdminUI();render();updateBadge();}
-  catch(e){$("#a-msg").textContent=siteErr(e);}}
+const amsg=t=>{$("#a-msg").textContent=t};
+function normHandle(v){v=String(v||"").trim().toLowerCase();if(v&&v[0]!=="@")v="@"+v;return v;}
+function acctErr(e){const m=String(e&&e.message||e);
+  if(/BAD_HANDLE/.test(m))return "아이디는 @로 시작하는 트위터 아이디로 써 주세요. (영문·숫자·_ 15자 이내)";
+  if(/TAKEN/.test(m))return "이미 만들어진 아이디예요. 본인 아이디라면 '아이디·비밀번호 찾기'를 눌러 주세요.";
+  if(/SHORT_PW/.test(m))return "비밀번호는 6자 이상으로 해 주세요.";if(/NO_Q/.test(m))return "질문과 답을 넣어 주세요.";
+  if(/LOCKED/.test(m))return "여러 번 틀려서 10분 동안 잠겼어요. 잠시 뒤에 다시 해 주세요.";if(/TOO_MANY/.test(m))return "지금 가입이 너무 많아요. 잠시 뒤에 다시 해 주세요.";
+  if(/WRONG_LOGIN/.test(m))return "아이디 또는 비밀번호가 맞지 않아요.";if(/WRONG_ANSWER/.test(m))return "답이 맞지 않아요.";
+  if(/function|schema/i.test(m))return "Supabase 설정(accounts.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
+async function setSession(j,pw){SESS={role:j.role,pw:j.token,handle:j.handle,kp:await kpFrom(pw,j.handle)};try{sessionStorage.setItem(SKEY,JSON.stringify(SESS))}catch(e){}
+  ["#a-pw","#s-pw","#s-pw2","#s-a","#f2-a","#f2-pw"].forEach(x=>{const el=$(x);if(el)el.value="";});amsg("");showBox("login");await unlockKey();syncAdminUI();render();updateBadge();}
+function showBox(w){$("#a-login-box").hidden=w!=="login";$("#a-signup-box").hidden=w!=="signup";$("#a-find-box").hidden=w!=="find";amsg("");}
+document.querySelectorAll("[data-aback]").forEach(b=>b.onclick=()=>showBox("login"));
+$("#a-go-signup").onclick=()=>{showBox("signup");$("#s-id").focus();};
+$("#a-go-find").onclick=()=>{showBox("find");$("#f2-reset").hidden=true;$("#f2-id").value=$("#a-id").value;$("#f2-id").focus();};
+$("#s-q").onchange=()=>{$("#s-qc-wrap").hidden=$("#s-q").value!=="__c";};
+async function doLogin(){const h=normHandle($("#a-id").value),pw=$("#a-pw").value;if(!h||!pw){amsg("아이디와 비밀번호를 넣어 주세요.");return;}
+  amsg("확인하는 중…");try{const j=await rpc("acct_login",{p_handle:h,p_pw:pw});if(!j||j.error){amsg(acctErr(j&&j.error||"WRONG_LOGIN"));return;}await setSession(j,pw);}catch(e){amsg(acctErr(e));}}
+$("#s-go").onclick=async()=>{const h=normHandle($("#s-id").value),pw=$("#s-pw").value,q=$("#s-q").value==="__c"?$("#s-qc").value.trim():$("#s-q").value,a=$("#s-a").value.trim();
+  if(!/^@[a-z0-9_]{1,15}$/.test(h)){amsg(acctErr("BAD_HANDLE"));return;}if(pw.length<6){amsg(acctErr("SHORT_PW"));return;}if(pw!==$("#s-pw2").value){amsg("비밀번호 확인이 맞지 않아요.");return;}if(!q||!a){amsg(acctErr("NO_Q"));return;}
+  amsg("만드는 중…");try{const j=await rpc("acct_signup",{p_handle:h,p_pw:pw,p_q:q,p_a:a});await setSession(j,pw);}catch(e){amsg(acctErr(e));}};
+$("#f2-check").onclick=async()=>{const h=normHandle($("#f2-id").value);if(!h){amsg("아이디를 넣어 주세요.");return;}
+  try{const q=await rpc("acct_question",{p_handle:h});if(!q){$("#f2-reset").hidden=true;amsg(`${h} 로 만든 아이디가 없어요. 트위터 아이디를 다시 확인하거나 새로 만들어 주세요.`);return;}
+    $("#f2-q").textContent=q;$("#f2-reset").hidden=false;amsg(`${h} 아이디가 있어요. 비밀번호를 잊었다면 질문의 답을 넣고 새 비밀번호를 정하세요.`);$("#f2-a").focus();}catch(e){amsg(acctErr(e));}};
+$("#f2-go").onclick=async()=>{const h=normHandle($("#f2-id").value),a=$("#f2-a").value.trim(),pw=$("#f2-pw").value;if(pw.length<6){amsg(acctErr("SHORT_PW"));return;}
+  try{const j=await rpc("acct_reset",{p_handle:h,p_a:a,p_newpw:pw});if(!j||j.error){amsg(acctErr(j&&j.error||"WRONG_ANSWER"));return;}await setSession(j,pw);}catch(e){amsg(acctErr(e));}};
 $("#a-login").onclick=doLogin;$("#a-form").addEventListener("submit",e=>{e.preventDefault();doLogin();});
+/* 저장된 로그인이 아직 유효한지 확인 */
+if(SESS)rpc("acct_me",{p_token:SESS.pw}).then(m=>{if(!m)lockNow();}).catch(()=>{});
 
 window.addEventListener("hashchange",route);
 window.addEventListener("popstate",route);
