@@ -323,7 +323,7 @@ main{padding-bottom:40px}
       </div>
       <label class="hidechk" id="yt-full-wrap" hidden><input type="checkbox" id="yt-full"> 빠짐없이 훑기 (기간을 정해도 최신부터 하나하나 확인해서 느려요)</label>
       <label class="hidechk"><input type="checkbox" id="yt-hide" checked> 이미 목록에 있는 영상 숨기기</label>
-      <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button></div>
+      <div class="btns"><button class="btn primary" id="yt-go">검색</button><button class="btn" id="yt-more" hidden>더 보기</button><button class="btn" id="yt-stop" hidden>멈추기</button><button class="btn" id="yt-clear">입력 내용 지우기</button></div>
       <p class="msg" id="yt-msg"></p>
       <div class="ytbulk" id="yt-bulk" hidden><span>보이는 영상 전부</span><select id="yt-bulk-cat" aria-label="카테고리"></select><select id="yt-bulk-sub" aria-label="세부 카테고리"></select><select id="yt-bulk-sub2" aria-label="하위 세부 카테고리" hidden></select><button class="btn primary" id="yt-bulk-add">한꺼번에 추가</button></div>
       <div class="ytres" id="yt-res"></div>
@@ -1108,6 +1108,8 @@ $("#yt-go").onclick=async()=>{
 };
 $("#yt-more").onclick=async()=>{try{await ytSearch(true)}catch(e){ytMsg("안 됐어요: "+e.message)}};
 $("#yt-stop").onclick=()=>{ytStop=true;};
+/* API 키와 찾는 방식은 두고, 나머지 입력칸과 결과를 비워요 */
+$("#yt-clear").onclick=()=>{ytStop=true;["#yt-ch","#yt-pl","#yt-after","#yt-before"].forEach(s=>{const el=$(s);if(el)el.value="";});$("#yt-q").value=$("#yt-mode").value==="search"?"#지우 #NMIXX":"";if($("#yt-full"))$("#yt-full").checked=false;ytShow([],false);$("#yt-bulk").hidden=true;$("#yt-more").hidden=true;$("#yt-stop").hidden=true;ytNext="";ytMsg("");};
 $("#yt-res").addEventListener("click",e=>{
   const b=e.target.closest("button[data-k]");if(!b||b.disabled)return;
   const it=ytItems[+b.dataset.k];
