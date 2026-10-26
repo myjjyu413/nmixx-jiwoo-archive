@@ -86,7 +86,7 @@ main section{padding-block:44px 0}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,24px)}
 @media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}}
-.pager{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:28px}
+.pager{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:nowrap;margin-top:28px}
 .pager button{min-width:40px;height:40px;padding:0 10px;border:1px solid var(--line);background:transparent;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:14px;color:var(--fg)}
 .pager button[aria-current="page"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .pager button:disabled{opacity:.35;cursor:default}
@@ -140,7 +140,7 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
-html.fitfail .ghost{display:none}
+html.fitfail .ghost,html.fitfail .ghost-a{display:none}.ghost-a{visibility:hidden;pointer-events:none}.grid.vert .ghost-a .thumb{aspect-ratio:9/16}
 .ghost{visibility:hidden;display:flex;flex-direction:column;gap:8px}.ghost .thumb{position:relative;aspect-ratio:16/9;border-radius:10px}.grid.vert .ghost .thumb{aspect-ratio:9/16}.ghost .ct{font-size:14px;line-height:1.4;min-height:2.8em}
 /* 게시판 */
 .bform{background:var(--surface);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
@@ -224,7 +224,7 @@ dl.pinfo dd small{font-weight:500;color:var(--muted);margin-left:6px}
 
 /* 관리자 */
 .cardw{display:flex;flex-direction:column;gap:6px;min-width:0}
-.erow{display:flex;gap:6px}
+.erow{display:flex;gap:6px;flex-wrap:nowrap}.erow select{min-width:0;flex:1 1 0;width:0}
 .erow select{flex:1;min-width:0}
 .esub{padding:6px 8px;border:1px dashed var(--accent);border-radius:6px;background:var(--surface);font-size:13px;color:var(--fg)}
 .cardw.edited .esub{border-style:solid}
@@ -613,7 +613,7 @@ function render(){
   if(!home)v=v.slice((state.page-1)*per,state.page*per);
   renderPager(home?1:pages);
   if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
-  g.innerHTML=v.map(cardHTML).join("")+(home||!v.length?"":`<div class="ghost" aria-hidden="true"><span class="thumb"></span><span class="ct">&nbsp;</span></div>`.repeat(Math.max(0,per-v.length)));bindCards(g,v);fitPage();
+  g.innerHTML=v.map(cardHTML).join("")+(home||!v.length?"":(adminMode()?`<div class="cardw ghost-a" aria-hidden="true"><span class="card"><span class="thumb"></span><span class="ct">&nbsp;</span></span><div class="erow"><select class="ecat" tabindex="-1"><option>무대</option></select></div></div>`:`<div class="ghost" aria-hidden="true"><span class="thumb"></span><span class="ct">&nbsp;</span></div>`).repeat(Math.max(0,per-v.length)));bindCards(g,v);fitPage();
   requestAnimationFrame(arrows);
 }
 function arrows(){
@@ -647,7 +647,10 @@ $("#prev").onclick=()=>{$("#grid").scrollBy({left:-step(),behavior:"smooth"});};
 $("#next").onclick=()=>{$("#grid").scrollBy({left:step(),behavior:"smooth"});};
 let pgView=null,pgPages=1;
 function renderPager(pages,keepView){
-  const n=$("#pager");n.hidden=pages<=1;pgPages=pages;if(pages<=1){n.innerHTML="";return;}
+  const n=$("#pager");pgPages=pages;n.style.visibility="";
+  /* 페이지가 하나뿐이어도 번호 자리는 남겨 둬서 카드 크기가 다른 페이지와 같게 */
+  if(pages<=1){const home=document.body.classList.contains("is-home");n.hidden=home;n.innerHTML=home?"":`<button disabled>1</button>`;n.style.visibility="hidden";return;}
+  n.hidden=false;
   const p=state.page,B=5;
   if(!keepView||pgView===null)pgView=Math.floor((p-1)/B)*B+1;
   const start=pgView,end=Math.min(start+B-1,pages);
