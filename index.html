@@ -354,7 +354,7 @@ main{padding-bottom:40px}
       <div class="bbar"><label class="bsecret"><input type="checkbox" id="b-secret"> 비밀글 <small>(관리자만 볼 수 있어요)</small></label><span class="bmsg" id="b-msg" role="status"></span><button type="submit" class="btn primary" id="b-send">등록</button></div>
     </form>
     <div class="bwall" id="bwall"></div>
-    <div class="bmore"><button class="btn" id="bmore" hidden>더 보기</button></div>
+    <nav class="pager" id="bpager" aria-label="게시판 페이지" hidden></nav>
   </section>
 
   <section class="gut" id="profile" hidden>
@@ -790,24 +790,34 @@ function noteHTML(p){
       `<div class="cf" hidden><div class="cto" hidden></div><div class="row"><input class="cname" maxlength="20" value="${esc(DEFNAME)}" aria-label="닉네임"><input class="cpw" type="password" maxlength="40" placeholder="비밀번호" aria-label="댓글 비밀번호"></div><div class="row"><input class="cbody" maxlength="300" placeholder="댓글을 남겨 주세요" aria-label="댓글"><button class="btn primary" data-a="csend">등록</button></div><span class="sp"></span></div></div>`:"")+
     `<div class="na">${Array.isArray(p.comments)?`<button data-a="creply">댓글${p.comments.length?" "+p.comments.length:""}</button>`:""}${locked?`<button data-a="view">보기</button>`:""}<button data-a="edit">수정</button><button data-a="del">삭제</button></div><div class="nx" hidden></div></article>`;
 }
+/* 게시판: 최신순, 한 페이지에 9개 */
+const BPER=9;
 function drawBoard(){
-  const w=$("#bwall");
-  w.innerHTML=bState.posts.length?bState.posts.map(noteHTML).join(""):`<p class="vnone">아직 글이 없어요. 첫 글을 남겨 주세요!</p>`;
-  $("#bmore").hidden=!bState.more;
+  const w=$("#bwall"),n=bState.posts.length,pages=Math.max(1,Math.ceil(n/BPER));
+  bState.page=Math.min(Math.max(1,bState.page||1),pages);
+  const list=bState.posts.slice((bState.page-1)*BPER,bState.page*BPER);
+  w.innerHTML=n?list.map(noteHTML).join(""):`<p class="vnone">아직 글이 없어요. 첫 글을 남겨 주세요!</p>`;
+  const pg=$("#bpager");pg.hidden=pages<=1;if(pages<=1){pg.innerHTML="";return;}
+  const p=bState.page,st=Math.floor((p-1)/5)*5+1,en=Math.min(pages,st+4);
+  const btn=(t,to,dis,cur)=>`<button data-bp="${to}"${dis?" disabled":""}${cur?' aria-current="page"':""}>${t}</button>`;
+  let h=btn("«",1,p===1)+btn("‹",p-1,p===1);
+  for(let i=st;i<=en;i++)h+=btn(i,i,false,i===p);
+  pg.innerHTML=h+btn("›",p+1,p===pages)+btn("»",pages,p===pages);
 }
+$("#bpager").addEventListener("click",e=>{const b=e.target.closest("button[data-bp]");if(!b||b.disabled)return;bState.page=+b.dataset.bp;drawBoard();$("#board").scrollIntoView({block:"start"});});
 async function loadBoard(more){
   if(!BOARD.url||!BOARD.key){$("#bwall").innerHTML=`<p class="vnone">게시판을 준비하고 있어요.</p>`;$("#bform").hidden=true;return;}
   if(bState.busy)return;bState.busy=true;
   try{
-    const before=more&&bState.posts.length?bState.posts[bState.posts.length-1].id:null;
-    const rows=await rpc("board_list",{p_admin:boardAdminPw(),p_before:before,p_limit:60})||[];
+    /* 글 전체를 최신순으로 받아 와요 (100개씩) */
+    let rows=[],before=null;
+    for(let i=0;i<50;i++){const r=await rpc("board_list",{p_admin:boardAdminPw(),p_before:before,p_limit:100})||[];rows=rows.concat(r);if(r.length<100)break;before=r[r.length-1].id;}
     await bUnlock(rows);
-    bState.posts=more?bState.posts.concat(rows):rows;bState.more=rows.length===60;bState.loaded=true;drawBoard();
+    bState.posts=rows;bState.loaded=true;if(!more)bState.page=bState.page||1;drawBoard();
   }catch(e){$("#bwall").innerHTML=`<p class="vnone">${esc(bErr(e))}</p>`;}
   finally{bState.busy=false;}
 }
 function renderBoard(){$("#bform").hidden=!(BOARD.url&&BOARD.key);loadBoard(false);}
-$("#bmore").onclick=()=>loadBoard(true);
 $("#bform").addEventListener("submit",async e=>{
   e.preventDefault();const msg=$("#b-msg");
   const name=$("#b-name").value.trim()||DEFNAME,pw=$("#b-pw").value,body=$("#b-body").value.trim(),secret=$("#b-secret").checked;
@@ -815,7 +825,7 @@ $("#bform").addEventListener("submit",async e=>{
   if(pw.length<4){msg.textContent="비밀번호는 4자 이상으로 해 주세요.";return;}
   $("#b-send").disabled=true;msg.textContent="올리는 중…";
   try{const nid=await rpc("board_add",{p_name:name,p_body:body,p_secret:secret,p_pw:pw});bRemember(nid,pw);
-    $("#b-body").value="";$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";
+    $("#b-body").value="";$("#b-secret").checked=false;$("#b-pw").value="";msg.textContent=secret?"비밀글로 등록했어요.":"등록했어요!";bState.page=1;
     try{localStorage.setItem("jiwoo-archive-boardname",name)}catch(e){}
     await loadBoard(false);
   }catch(err){msg.textContent=bErr(err);}
