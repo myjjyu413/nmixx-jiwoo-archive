@@ -555,6 +555,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/cQMxySqLLck","title":"DICE - NMIXX(엔믹스) [뮤직뱅크/Music Bank] | KBS 221021 방송","date":"2022-10-21","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/SK-Of0G4uXw","title":"중독성 UP! 'NMIXX'의 'DICE' 무대 #엠카운트다운 EP.775 | Mnet 221020 방송","date":"2022-10-20","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/OMrZom3FNDY","title":"[SUPER ULTRA 8K] 엔믹스 'DICE' 풀캠 (NMIXX FullCam) @SBS Inkigayo 221009","date":"2022-10-16","category":"무대","group":"단독","note":""},
+  {"url":"https://x.com/i/broadcasts/1RDGlajkzkjJL","title":"#NMIXX #TwitterBlueroom LIVE Q&A","date":"2022-10-12","category":"라이브 방송","group":"단독","note":"","sub":"etc"},
   {"url":"https://youtu.be/3ePy-ZVyv8U","title":"[K-Choreo Tower Cam 4K] 엔믹스 직캠 'DICE'(NMIXX  Choreography) l @MusicBank KBS 221007","date":"2022-10-11","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/96jyN6A-8uM","title":"[안방1열 풀캠4K] 엔믹스 'DICE' (NMIXX FullCam)│@SBS Inkigayo 221009","date":"2022-10-10","category":"무대","group":"단독","note":""},
   {"url":"https://youtu.be/OXlm5bznDXM","title":"[SUPER ULTRA 8K] 엔믹스 'DICE' 풀캠 (NMIXX FullCam) @SBS Inkigayo 221002","date":"2022-10-09","category":"무대","group":"단독","note":""},
