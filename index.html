@@ -106,7 +106,7 @@ body.is-home .vhead{margin-bottom:12px}
 .side button{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;border:0;background:transparent;padding:9px 12px 9px 14px;white-space:nowrap;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted);font-size:15px}
 .side button:hover{color:var(--fg);background:var(--surface)}
 .side button[aria-current="true"]{color:var(--fg);background:var(--surface)}
-.side button.child{padding-left:28px;font-size:14px;font-weight:500}.side button.haschild{justify-content:flex-start}.side button.haschild::after{content:"›";margin-left:8px;order:3;opacity:.5;transition:transform .2s}.side button.haschild.open::after{transform:rotate(90deg)}.side button.haschild .n{margin-left:auto}
+.side button.child{padding-left:28px;font-size:14px;font-weight:500}.side button.haschild{justify-content:flex-start}.side .tog{display:inline-grid;place-items:center;width:26px;height:26px;margin:-6px -8px -6px 4px;border-radius:6px;font-size:16px;line-height:1;opacity:.6;transition:transform .2s,background .15s}.side .tog:hover{opacity:1;background:rgba(0,0,0,.07)}.side button.haschild.open .tog{transform:rotate(90deg)}.side button.haschild .n{margin-left:auto}
 .side button[aria-current="true"]::before{content:"";position:absolute;left:4px;top:9px;bottom:9px;width:3px;background:var(--accent);border-radius:2px}
 .side .n{font-family:var(--mono);font-size:12px;font-weight:500;opacity:.7}
 .vbody.has-side .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -117,7 +117,7 @@ html.fitview:not(.fitfail),html.fitview:not(.fitfail) body{overflow:hidden}
 html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
 .grid.vert .thumb{aspect-ratio:9/16}
 @media (max-width:520px){#grid.vert{gap:8px}.grid.vert .ct{font-size:12px}}
-@media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.side button.child{padding:6px 12px;font-size:13px;border-style:dashed}.side button.haschild::after{display:none}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.vbody.has-side{grid-template-columns:minmax(0,1fr)}.side{position:static;flex-direction:row;flex-wrap:wrap}.side button{width:auto;border:1px solid var(--line);border-radius:999px;padding:6px 12px}.side button[aria-current="true"]::before{display:none}.side button[aria-current="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}.side button.child{padding:6px 12px;font-size:13px;border-style:dashed}.side .tog{width:20px;height:20px;margin:-4px -6px -4px 2px}.vbody.has-side .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.vbody.has-side .grid{grid-template-columns:minmax(0,1fr)}}
 .vtools{display:flex;align-items:center;gap:10px;min-width:0;margin-left:auto}
 .csearch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:0 14px;height:40px;width:min(300px,52vw)}
@@ -598,7 +598,7 @@ function render(){
     const ks=v.map(subOf),count=k=>ks.filter(x=>subIn(x,k)).length;
     $("#side").innerHTML=[["","전체"],...subs].map(([k,n,ch])=>{
       const open=ch&&!!sideOpen[state.cat+"|"+k];
-      return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span></button>`+
+      return `<button data-s="${k}" aria-current="${state.sub===k}"${ch?` class="haschild${open?" open":""}"`:""}>${esc(n)}<span class="n">${k?count(k):v.length}</span>${ch?`<span class="tog" role="button" aria-label="${open?"접기":"펼치기"}">›</span>`:""}</button>`+
         (open?ch.map(([k2,n2])=>`<button data-s="${k2}" class="child" aria-current="${state.sub===k2}">${esc(n2)}<span class="n">${count(k2)}</span></button>`).join(""):"");
     }).join("");
     if(state.sub)v=v.filter((x,i)=>subIn(ks[i],state.sub));
@@ -669,9 +669,8 @@ const SOKEY="jiwoo-archive-sideopen";
 const sideOpen=(()=>{try{return JSON.parse(localStorage.getItem(SOKEY))||{}}catch(e){return {}}})();
 function saveSideOpen(){try{localStorage.setItem(SOKEY,JSON.stringify(sideOpen))}catch(e){}}
 $("#side").addEventListener("click",e=>{const b=e.target.closest("button[data-s]");if(!b)return;const k=b.dataset.s;
-  if(b.classList.contains("haschild")){const id=state.cat+"|"+k;
-    if(sideOpen[id]&&state.sub&&subIn(state.sub,k)){delete sideOpen[id];saveSideOpen();if(state.sub!==k){state.sub=k;go(hashFor(1));}else render();return;}
-    sideOpen[id]=true;saveSideOpen();}
+  /* › 표시를 눌렀을 때만 펼치기/접기 */
+  if(e.target.closest(".tog")){const id=state.cat+"|"+k;if(sideOpen[id])delete sideOpen[id];else sideOpen[id]=true;saveSideOpen();render();return;}
   state.sub=k;go(hashFor(1));});
 let cqT;
 $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{state.cq=$("#cq").value;history.replaceState(null,"","#"+hashFor(1));state.page=1;render();},200);});
