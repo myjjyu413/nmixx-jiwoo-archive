@@ -441,7 +441,7 @@ const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award"
   "라이브 방송":[["solo","개인"],["unit","유닛"],["group","단체"],["comeback","컴백"],["anniv","N주년"],["etc","기타"]],
   "라디오":[["full","본편"],["hl","하이라이트"],["etc","기타"]],
   /* 자컨은 고르면 그 아래 세부 카테고리가 펼쳐져요 */
-  "자컨":[["jjk","쮸뀨미"],["perf","Performance Video"],["sp","Stage Practice"],["dp","Dance Practice"],["cheer","응원법"],["pick","PICK NMIXX"],["day","Day MIXX"],["making","Making MIXX"],["log","MIXX Log"],["etc","기타"]]};
+  "자컨":[["jjk","쮸뀨미"],["perf","Performance Video"],["sp","Stage Practice"],["dp","Dance Practice"],["cheer","응원법"],["pick","PICK NMIXX"],["day","Day MIXX"],["making","Making MIXX"],["rec","Recording MIXX"],["log","MIXX Log"],["etc","기타"]]};
 /* 관리자 선택칸용: 하위 카테고리까지 펼친 목록 */
 function subFlat(cat){const sl=SUBS[cat];if(!sl)return null;const out=[];sl.forEach(([k,n,ch])=>{out.push([k,n]);(ch||[]).forEach(([k2,n2])=>out.push([k2,n+" › "+n2]));});return out;}
 function subKids(cat,top){const e=(SUBS[cat]||[]).find(x=>x[0]===top);return e&&e[2]||null;}
@@ -467,6 +467,7 @@ function subOf(x){
     if(/stage practice/i.test(t))return "sp";
     if(/dance practice|안무 ?연습/i.test(t))return "dp";
     if(/응원법|cheering ?guide|fan ?chant/i.test(t))return "cheer";
+    if(/recording ?mixx/i.test(t))return "rec";
     if(/making ?mixx/i.test(t))return "making";
     if(/pick ?nmixx/i.test(t))return "pick";
     if(/mixx ?log/i.test(t))return "log";
