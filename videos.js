@@ -804,7 +804,7 @@ window.VIDEOS = [
   {"url":"https://youtu.be/U-1cJ3Ejgzg","title":"웃음이 계속 나와💗 가오슝 쮸솔 브이로그 | BAE&JIWOO Vlog | 산책 데이트, 현지 빙수 먹어보기, 추억 여행 | MIXX Log","date":"2024-05-24","category":"자컨","group":"단독","note":""},
   {"url":"https://youtu.be/qELfi0y8QEo","title":"➊⓿ 🅜🅘🅝🅤🅣🅔🅢 #NMIXX #엔믹스 #지우 #JIWOO","date":"2024-05-22","category":"숏폼","group":"단독","note":"","sub":"nmixx"},
   {"url":"https://youtu.be/O4cjW8Ghkvg","title":"성년의 날(Coming-of-Age Day) Celebration ‘KISS ME’ Live Cover by NMIXX JIWOO💋","date":"2024-05-20","category":"무대","group":"단독","note":"","sub":"cover"},
-  {"url":"https://youtu.be/AcHKLzo3Tnc","title":"NMIXX(엔믹스) Stage Cam @ 2024 SUNGKYUNKWAN UNIVERSITY | 2024 성균관대학교 자연과학캠퍼스 대동제","date":"2024-05-18","category":"숏폼","group":"단독","note":"","sub":"nmixx"},
+  {"url":"https://youtu.be/AcHKLzo3Tnc","title":"NMIXX(엔믹스) Stage Cam @ 2024 SUNGKYUNKWAN UNIVERSITY | 2024 성균관대학교 자연과학캠퍼스 대동제","date":"2024-05-18","category":"무대","group":"단독","note":"","sub":"main-event"},
   {"url":"https://youtu.be/zUNeR5XB7aY","title":"규진 지우 놀아줄 사람 구해요🙋","date":"2024-05-17","category":"라이브 방송","group":"단독","note":""},
   {"url":"https://youtu.be/0HDmm1euIAk","title":"Let’s ride 꽉 잡아🎢 놀러와요 설윤이의 놀이동산🎡 | NMIXX의 그림일기📒 Ep.6 | PICK NMIXX","date":"2024-05-17","category":"자컨","group":"단독","note":"","sub":"pick"},
   {"url":"https://youtu.be/NQvxzA2MGYY","title":"☞ ᴡᴏʀᴋᴡᴏʀᴋᴡᴏʀᴋᴡᴏʀᴋᴡᴏʀᴋ ☜ #NMIXX #엔믹스 #배이 #BAE #지우 #JIWOO","date":"2024-05-17","category":"숏폼","group":"단독","note":"","sub":"nmixx"},
