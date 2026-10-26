@@ -140,16 +140,14 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
-/* 관리자 화면(넓은 화면): 영상은 왼쪽, 로그인·편집 칸은 오른쪽 */
-@media (min-width:1100px){
-  body.adminview.is-home{--stage:min(1180px,calc((100svh - var(--hchrome,262px)) * 4 / 3),calc(100vw - 440px - 2*var(--gut) - 16px))}
-  body.adminview{--apw:clamp(440px,calc(100vw - var(--stage,1180px) - 2*var(--gut) - 16px),900px)}
-  body.adminview main{margin-right:var(--apw)}
-  body.adminview .hero-in,body.adminview #hero,body.adminview #videos{margin-left:0}
-  body.adminview #admin:not([hidden]){position:fixed;top:0;right:0;bottom:0;width:var(--apw);margin:0;border:0;border-left:1px solid var(--line);border-radius:0;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;padding:76px 28px 40px;z-index:5;background:var(--surface)}
-  body.adminview #admin:not([hidden]):has(#alogin:not([hidden])){display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--surface) 55%,transparent)}
-  body.adminview #admin #alogin{width:100%}
-}
+/* 관리자 화면(#admin): 메인 화면과 메뉴는 숨기고 로그인·편집 칸만 */
+body.adminview header.top,body.adminview #hero,body.adminview #videos>.vhead,body.adminview #vbody,body.adminview #abadge{display:none!important}
+body.adminview main{padding-bottom:0}
+body.adminview #videos{max-width:none;padding-top:0}
+body.adminview #admin:not([hidden]){max-width:960px;margin:0 auto;padding:32px 0 56px;border:0;background:none;border-radius:0}
+body.adminview #admin:not([hidden]):has(#alogin:not([hidden])){min-height:100svh;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:24px 0}
+body.adminview #admin #alogin{width:100%}
+body.adminview #apanel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px 28px}
 /* 로그인 화면 */
 .admin:has(#alogin:not([hidden])){background:none;border:0;padding:8px 0 24px}
 .auth{max-width:380px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px 28px 22px;text-align:center;box-shadow:0 10px 30px rgba(42,39,64,.10)}
@@ -387,7 +385,7 @@ main{padding-bottom:40px}
        </div>
       </div>
       <div id="apanel" hidden>
-      <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">로그아웃</button></p>
+      <p class="arole"><b id="a-role"></b> <button class="btn" id="a-lock">로그아웃</button><a class="btn" href="./" style="text-decoration:none;color:inherit">사이트 보기</a></p>
       <h2>유튜브에서 찾기</h2>
       <p class="hint">API 키는 내 비밀번호로 암호화해서 이 브라우저에만 저장돼요. 사이트 코드에는 들어가지 않아요.</p>
       <div class="form">
