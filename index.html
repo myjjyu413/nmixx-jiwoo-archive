@@ -623,11 +623,12 @@ function xDate(id){try{return kst(new Date(Number((BigInt(id)>>22n)+128883497465
 function ttId(url){const m=String(url).match(/\/video\/(\d+)/);return m?m[1]:null;}
 /* 인스타그램 게시물 주소의 코드 안에 올린 시각이 들어 있어요 */
 function igDate(code){if(!code||code.length>11)return "";const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";let id=0n;for(const ch of code){const i=A.indexOf(ch);if(i<0)return "";id=id*64n+BigInt(i);}const ms=Number(id>>23n)+1314220021721;if(ms<1.3e12||ms>Date.now()+864e5)return "";return kst(new Date(ms).toISOString());}
+function igPost(url){return /instagram\.com\/(?:[\w.]+\/)?p\//i.test(String(url||""));}
 function igCode(url){const m=String(url).match(/instagram\.com\/(?:[\w.]+\/)?(?:reels?|p|tv)\/([\w-]+)/i);return m?m[1]:null;}
 function vidKey(url){const p=platOf(url);if(p==="yt")return ytId(url);if(p==="tt"){const i=ttId(url);return i?"tt:"+i:null;}if(p==="ig"){const c=igCode(url);return c?"ig:"+c:null;}if(p==="x"){const i=xId(url);return i?"x:"+i:null;}if(p==="xb"){const m=url.match(/broadcasts\/(\w+)/);return m?"xb:"+m[1]:null;}return null;}
 function cleanUrl(url){const p=platOf(url);if(p==="yt")return "https://youtu.be/"+ytId(url);
   if(p==="tt"){const m=String(url).match(/tiktok\.com\/@([\w.\-]+)\/video\/(\d+)/i);return m?`https://www.tiktok.com/@${m[1]}/video/${m[2]}`:String(url).split("?")[0];}
-  if(p==="ig")return `https://www.instagram.com/reel/${igCode(url)}/`;
+  if(p==="ig")return `https://www.instagram.com/${igPost(url)?"p":"reel"}/${igCode(url)}/`;
   if(p==="xb"){const m=String(url).match(/broadcasts\/(\w+)/);return m?`https://x.com/i/broadcasts/${m[1]}`:url;}
   if(p==="x"){const m=String(url).match(/(?:x|twitter)\.com\/(\w+)\/status\/(\d+)/i);return m?`https://x.com/${m[1]}/status/${m[2]}`:url;}return url;}
 const TTK="jiwoo-archive-ttthumb";
@@ -683,7 +684,7 @@ function all(){
   if(!localMode())return list;
   const led=loadEdits(),seen=new Set(list.map(v=>vidKey(v.url)));
   const out=list.map(v=>{const e=led[v.url];if(!e)return v;if(e.delete)return null;const o={...v,_edited:true};if(e.category){o.category=normCat(e.category);delete o.sub;}if(e.sub)o.sub=e.sub;return o;}).filter(Boolean);
-  for(const d of loadDrafts()){const k=vidKey(d.url);if(!k||seen.has(k))continue;seen.add(k);const e=led[d.url]||{};if(e.delete)continue;const o={...d,category:normCat(e.category||d.category),_draft:true};if(e.category)delete o.sub;if(e.sub)o.sub=e.sub;out.push(o);}
+  for(const d of loadDrafts()){if(d.category==="SNS")continue;const k=vidKey(d.url);if(!k||seen.has(k))continue;seen.add(k);const e=led[d.url]||{};if(e.delete)continue;const o={...d,category:normCat(e.category||d.category),_draft:true};if(e.category)delete o.sub;if(e.sub)o.sub=e.sub;out.push(o);}
   return out.map(ovMove);
 }
 function siteErr(e){const m=String(e&&e.message||e);if(/NO_AUTH/.test(m)&&SESS){setTimeout(lockNow,0);return "로그인이 끝났어요. 다시 로그인해 주세요.";}if(/ADMIN_ONLY/.test(m))return "관리자만 할 수 있어요.";if(/NO_AUTH/.test(m))return "로그인이 필요해요. 주소 뒤에 #admin 을 붙여 로그인해 주세요.";if(/DELETED/.test(m))return "관리자가 지운 영상이라 다시 넣을 수 없어요.";if(/TOO_MANY/.test(m))return "너무 빨리 많이 추가하고 있어요. 잠시 뒤에 다시 해 주세요.";if(/function|schema/i.test(m))return "Supabase 설정(site.sql)이 아직 안 된 것 같아요.";return "안 됐어요: "+m;}
@@ -1073,7 +1074,7 @@ function openVideo(x){
   if(pf==="yt")src=`https://www.youtube.com/embed/${ytId(x.url)}?autoplay=1&rel=0&playsinline=1`;
   else if(pf==="x"&&xId(x.url))src=`https://platform.twitter.com/embed/Tweet.html?id=${xId(x.url)}&dnt=true&lang=ko&theme=light`;
   else if(pf==="tt"&&ttId(x.url))src=`https://www.tiktok.com/player/v1/${ttId(x.url)}?embed_from=oembed&music_info=1&description=1&autoplay=1&muted=1&rel=0`;
-  else if(pf==="ig"&&igCode(x.url))src=`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
+  else if(pf==="ig"&&igCode(x.url))src=igPost(x.url)?`https://www.instagram.com/p/${igCode(x.url)}/embed/captioned/`:`https://www.instagram.com/reel/${igCode(x.url)}/embed/`;
   if(!src){window.open(x.url,"_blank","noopener");return;}
   $(".player").classList.toggle("vertical",pf!=="yt"||x.category==="숏폼"||/\/shorts\//.test(x.url));
   $("#frame").innerHTML=`<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(x.title)}"></iframe>`;
@@ -1289,7 +1290,7 @@ $("#yt-res").addEventListener("click",e=>{
 });
 
 /* 관리자 */
-$("#f-cat").innerHTML=CATS.map(c=>`<option value="${c}">${catName(c)}</option>`).join("");
+$("#f-cat").innerHTML=CATS.map(c=>`<option value="${c}">${catName(c)}</option>`).join("")+`<option value="SNS" id="f-cat-sns">SNS (인스타·X 게시물)</option>`;
 function syncFSub(){const sl=SUBS[$("#f-cat").value];$("#f-sub-wrap").hidden=!sl;$("#f-sub").innerHTML=sl?`<option value="">자동 (제목 보고 분류)</option>`+sl.map(([k,n])=>`<option value="${k}">${n}</option>`).join(""):"";syncFSub2();}
 function syncFSub2(){const cat=$("#f-cat").value,top=$("#f-sub").value,kids=top&&subKids(cat,top);$("#f-sub2-wrap").hidden=!kids;
   if(kids){$("#f-sub2-label").textContent=(SUBS[cat].find(e=>e[0]===top)||[])[1]+" 세부";$("#f-sub2").innerHTML=`<option value="">세부 없음</option>`+kids.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join("");}else $("#f-sub2").innerHTML="";}
@@ -1323,7 +1324,7 @@ $("#f-url").addEventListener("change",async()=>{
       msg(t?`제목(글 내용)과 날짜(${d.replaceAll("-",".")})를 가져왔어요. 제목이 길면 짧게 고쳐도 돼요.`:`날짜(${d.replaceAll("-",".")})는 가져왔어요. 제목은 직접 입력해 주세요.`);}
     catch(e){msg(`날짜(${d.replaceAll("-",".")})는 가져왔어요. 제목은 직접 입력해 주세요.`);}
     return;}
-  if(pf==="ig"){$("#f-cat").value="숏폼";syncFSub();const d=igDate(igCode(raw));$("#f-date").value=d||new Date().toISOString().slice(0,10);
+  if(pf==="ig"){if(!igPost(raw)){$("#f-cat").value="숏폼";syncFSub();}const d=igDate(igCode(raw));$("#f-date").value=d||new Date().toISOString().slice(0,10);
     msg(d?`올린 날짜(${d.replaceAll("-",".")})는 가져왔어요. 인스타그램은 제목(본문)을 다른 사이트에 안 내줘서, 제목은 직접 입력해 주세요.`:"인스타그램은 제목과 날짜를 자동으로 못 가져와요. 직접 입력해 주세요.");$("#f-title").focus();return;}
   const id=key0;
   {const st=ytStatus(id);if(st){msg(st==="목록에 있음"?"이미 사이트에 올라가 있는 영상이에요. 추가하지 않아도 돼요.":"이미 미리보기 목록에 추가한 영상이에요.");$("#f-title").value="";return;}}
@@ -1371,7 +1372,8 @@ function addDraft({url,title,date,category,sub}){const d=loadDrafts();if(d.some(
 /* 이미 사이트에 올라간 영상은 미리보기 목록에서 자동으로 빼요 */
 function pruneDrafts(){
   const base=window.VIDEOS||[],have=new Set(base.map(v=>vidKey(v.url)));
-  const d=loadDrafts(),keep=d.filter(v=>!have.has(vidKey(v.url)));
+  const snsHave=new Set((window.SNS||[]).map(x=>String(x.url).replace(/[?#].*$/,"").replace(/\/$/,"")));
+  const d=loadDrafts(),keep=d.filter(v=>!have.has(vidKey(v.url))&&!(v.category==="SNS"&&snsHave.has(String(v.url).replace(/[?#].*$/,"").replace(/\/$/,""))));
   if(keep.length!==d.length)saveDrafts(keep);
   const known=new Set([...base.map(v=>v.url),...REMOTE.adds.map(a=>a.url),...keep.map(v=>v.url)]);
   const ed=loadEdits();let ch=false;
@@ -1427,7 +1429,7 @@ function updateBadge(){
   const r=role();$("#abadge").hidden=!r;if(!r)return;
   const ad=r==="admin";$("#abadge-t").textContent=`${SESS.handle||""} · ${ad?"관리자 모드":"편집 모드"}`;$("#abadge-a").textContent=ad?"관리 화면":"편집 화면";$("#aoff").textContent=ad?"관리자 모드 끄기":"편집 모드 끄기";
 }
-function syncAdminUI(){const r=role();$("#export").hidden=$("#clear").hidden=r!=="admin";$("#add-hint").innerHTML=r==="admin"?"여기서 추가하거나 고친 영상은 <b>이 브라우저에만 미리 보여요.</b> 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내 주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.":"추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)";$("#drafts").hidden=r!=="admin";if(r==="admin")renderDrafts();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${r==="admin"?"관리자 화면":"편집자 화면"} · ${SESS.handle||""}${r==="admin"?"":" (삭제는 관리자만)"}`:"";}
+function syncAdminUI(){const r=role();{const o=$("#f-cat-sns");if(o){o.hidden=o.disabled=r!=="admin";if(r!=="admin"&&$("#f-cat").value==="SNS"){$("#f-cat").value=CATS[0];syncFSub();}}}$("#export").hidden=$("#clear").hidden=r!=="admin";$("#add-hint").innerHTML=r==="admin"?"여기서 추가하거나 고친 영상은 <b>이 브라우저에만 미리 보여요.</b> 다 넣은 뒤 <b>추가·수정 내용 복사</b>를 눌러 Claude에게 보내 주면 사이트에 반영돼요. 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요.":"추가하면 <b>바로 사이트에 올라가요.</b> 세부 카테고리는 어느 화면에서든 영상 아래 칸에서 바꿀 수 있어요. (삭제는 관리자만)";$("#drafts").hidden=r!=="admin";if(r==="admin")renderDrafts();$("#alogin").hidden=!!r;$("#apanel").hidden=!r;$("#a-role").textContent=r?`${r==="admin"?"관리자 화면":"편집자 화면"} · ${SESS.handle||""}${r==="admin"?"":" (삭제는 관리자만)"}`:"";}
 function lockNow(){const t=sessPw();if(t)rpc("acct_logout",{p_token:t}).catch(()=>{});SESS=null;try{sessionStorage.removeItem(SKEY)}catch(e){}$("#yt-key").value="";ytSaved="";syncAdminUI();render();updateBadge();}
 $("#aoff").onclick=lockNow;$("#a-lock").onclick=lockNow;
 const amsg=t=>{$("#a-msg").textContent=t};
