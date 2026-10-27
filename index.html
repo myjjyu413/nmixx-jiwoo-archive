@@ -521,9 +521,9 @@ const PROFILE={
 };
 
 /* 화면에 보이는 카테고리 이름 (안쪽 값은 그대로) */
-const CATLABEL={"무대":"Performance","자컨":"NMIXX Original Content","예능":"Variety","라디오":"Radio","인터뷰":"Interview","숏폼":"Short-form Content","라이브 방송":"Live","기타":"Etc."};
+const CATLABEL={"무대":"Performance","자컨":"NMIXX Original Content","예능":"Variety","라디오":"Radio","인터뷰":"Interview","숏폼":"Short-form Content","라이브 방송":"Live","기타":"Etc.","화보":"Magazine & CF"};
 const catName=c=>CATLABEL[c]||c;
-const CATS=["Official Video","무대","자컨","예능","라디오","인터뷰","숏폼","라이브 방송","기타"];
+const CATS=["Official Video","무대","자컨","예능","라디오","화보","인터뷰","숏폼","라이브 방송","기타"];
 /* 예전 카테고리 이름도 새 이름으로 읽어요 */
 const OLDCAT={"MV & Track Video":"Official Video","무대 & 직캠":"무대","자컨 & 예능":"예능","직캠":"무대","라이브":"라이브 방송"};
 const normCat=c=>OLDCAT[c]||c;
@@ -532,6 +532,7 @@ const OVSUB=["perf","sp","dp","cheer"];
 function ovMove(v){if(v&&v.category==="자컨"&&OVSUB.includes(subOf(v))){const s=subOf(v);v.category="Official Video";v.sub=s;}return v;}
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
 const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식 & 연말무대"],["main-concert","쇼케 & 콘서트 & 팬미팅"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["radio","라디오"],["etc","기타"]],
+  "화보":[["mag","Magazine"],["cf","CF"]],
   "예능":[["solo","단독"],["hgj","아이돌 인간극장"],["spotify","Spotify"],["workdol","워크돌"],["magic","길거리 마법상점"],["behind","비하인드"],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["idol","타아이돌"],["cover","커버"],["mag","매거진"],["etc","기타"]],
   "라이브 방송":[["solo","개인"],["unit","유닛"],["group","단체"],["comeback","컴백"],["anniv","N주년"],["etc","기타"]],
@@ -560,6 +561,7 @@ function subOf(x){
     if(/하이라이트|highlight|\bcut\b|클립|clip|쿨룩|live ?▷/i.test(t))return "hl";
     if(/\[full\]|full ?ver|풀버전|보는 ?라디오|with ?(nmixx|엔믹스)|초대석|방송$|full\.ver/i.test(t))return "full";
     return "etc";}
+  if(x.category==="화보"){const t=x.title||"";return /광고|\bcf\b|commercial|\bad\b|campaign|캠페인|브랜드|brand/i.test(t)&&!/magazine|매거진|화보|w ?korea|\belle\b|엘르|dazed|allure|esquire|vogue|보그|bazaar|바자|cosmopolitan|singles|marie ?claire|\bgq\b|1st ?look/i.test(t)?"cf":"mag";}
   if(x.category==="예능"){const t=x.title||"";
     if(/인간극장/.test(t))return "hgj";if(/워크돌|workdol/i.test(t))return "workdol";if(/마법 ?상점/.test(t))return "magic";
     if(/spotify|스포티파이|spot on!|k-pop on/i.test(t))return "spotify";if(/비하인드|behind|미공개/i.test(t))return "behind";
@@ -852,7 +854,7 @@ $("#cq").addEventListener("input",()=>{clearTimeout(cqT);cqT=setTimeout(()=>{sta
 $("#csearch").addEventListener("submit",e=>{e.preventDefault();$("#cq").blur();});
 function renderAll(){render();}
 /* 주소(#)로 화면 기억: 새로고침해도 같은 화면에 남아요 */
-const SLUG={"Official Video":"mv","무대":"stage","자컨":"jacon","예능":"variety","라디오":"radio","인터뷰":"interview","숏폼":"shorts","라이브 방송":"live","기타":"etc"};
+const SLUG={"Official Video":"mv","무대":"stage","자컨":"jacon","예능":"variety","라디오":"radio","인터뷰":"interview","숏폼":"shorts","라이브 방송":"live","기타":"etc","화보":"magazine"};
 function go(hash){if(location.hash==="#"+hash)route();else location.hash=hash;}
 function goVideos({cat,q}){go(q?"search="+encodeURIComponent(q):(SLUG[cat]||"all"));}
 function goInsta(){go("sns");}
@@ -1394,7 +1396,7 @@ $("#export").onclick=async()=>{const ed0=loadEdits();
   if(!merged.length&&!ekeys.length){msg("새로 추가하거나 고친 영상이 없어요.");return;}
   const lines=merged.map(v=>"  "+JSON.stringify(Object.assign({url:v.url,title:v.title,date:v.date,category:v.category,group:v.group||"단독",note:v.note||""},v.sub?{sub:v.sub}:{}))+",");
   const elines=ekeys.map(u=>"  "+JSON.stringify(u)+": "+JSON.stringify(ed[u])+",");
-  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: Official Video / 무대 / 자컨 / 예능 / 라디오 / 인터뷰 / 숏폼 / 라이브 방송 / 기타, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
+  const text=`// 쮸카이브 새로 추가할 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개 (관리자 화면에서 생성)\n// category: Official Video / 무대 / 자컨 / 예능 / 라디오 / 화보 / 인터뷰 / 숏폼 / 라이브 방송 / 기타, group: 단독 / 단체\n\nwindow.VIDEOS = [\n${lines.join("\n")}\n];\n\nwindow.EDITS = {\n${elines.join("\n")}\n};\n`;
   const out=$("#out");out.value=text;out.hidden=false;
   try{await navigator.clipboard.writeText(text);msg(`새 영상 ${merged.length}개, 고친 영상 ${ekeys.length}개를 복사했어요. Claude에게 붙여넣어 보내고, 사이트에 올라간 걸 확인한 뒤 '미리보기 비우기'를 누르세요.`);}
   catch(e){out.select();msg("자동 복사가 안 돼서 아래 칸을 선택해 두었어요. Ctrl+C로 복사하세요.");}
