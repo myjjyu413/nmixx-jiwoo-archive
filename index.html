@@ -532,7 +532,7 @@ const OVSUB=["perf","sp","dp","cheer"];
 function ovMove(v){if(v&&v.category==="자컨"&&OVSUB.includes(subOf(v))){const s=subOf(v);v.category="Official Video";v.sub=s;}return v;}
 /* 세부 카테고리: 제목을 보고 자동으로 나눠요 (영상에 sub 값을 넣으면 그걸 우선해요) */
 const SUBS={"무대":[["main","무대",[["main-mb","음악방송"],["main-award","시상식 & 연말무대"],["main-concert","쇼케 & 콘서트 & 팬미팅"],["main-event","행사"]]],["cover","커버"],["jiwoo","개인 직캠"],["full","단체 직캠"],["encore","앵콜"],["ytc","유튜브 컨텐츠"],["radio","라디오"],["etc","기타"]],
-  "화보":[["mag","Magazine"],["cf","CF"]],
+  "화보":[["mag","Magazine"],["cf","CF"],["behind","Behind"]],
   "예능":[["solo","단독"],["hgj","아이돌 인간극장"],["spotify","Spotify"],["workdol","워크돌"],["magic","길거리 마법상점"],["behind","비하인드"],["etc","기타"]],
   "숏폼":[["nmixx","엔믹스"],["idol","타아이돌"],["cover","커버"],["mag","매거진"],["etc","기타"]],
   "라이브 방송":[["solo","개인"],["unit","유닛"],["group","단체"],["comeback","컴백"],["anniv","N주년"],["etc","기타"]],
@@ -561,7 +561,7 @@ function subOf(x){
     if(/하이라이트|highlight|\bcut\b|클립|clip|쿨룩|live ?▷/i.test(t))return "hl";
     if(/\[full\]|full ?ver|풀버전|보는 ?라디오|with ?(nmixx|엔믹스)|초대석|방송$|full\.ver/i.test(t))return "full";
     return "etc";}
-  if(x.category==="화보"){const t=x.title||"";return /광고|\bcf\b|commercial|\bad\b|campaign|캠페인|브랜드|brand/i.test(t)&&!/magazine|매거진|화보|w ?korea|\belle\b|엘르|dazed|allure|esquire|vogue|보그|bazaar|바자|cosmopolitan|singles|marie ?claire|\bgq\b|1st ?look/i.test(t)?"cf":"mag";}
+  if(x.category==="화보"){const t=x.title||"";if(/behind|비하인드|making|메이킹|촬영 ?현장|현장 ?스케치/i.test(t))return "behind";return /광고|\bcf\b|commercial|\bad\b|campaign|캠페인|브랜드|brand/i.test(t)&&!/magazine|매거진|화보|w ?korea|\belle\b|엘르|dazed|allure|esquire|vogue|보그|bazaar|바자|cosmopolitan|singles|marie ?claire|\bgq\b|1st ?look/i.test(t)?"cf":"mag";}
   if(x.category==="예능"){const t=x.title||"";
     if(/인간극장/.test(t))return "hgj";if(/워크돌|workdol/i.test(t))return "workdol";if(/마법 ?상점/.test(t))return "magic";
     if(/spotify|스포티파이|spot on!|k-pop on/i.test(t))return "spotify";if(/비하인드|behind|미공개/i.test(t))return "behind";
