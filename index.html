@@ -915,8 +915,9 @@ $("#bclear").onclick=goHome;
 
 /* 메뉴 */
 const MENU=[["Profile",goProfile],
-  ...CATS.map(c=>[catName(c),()=>goVideos({cat:c})]),
+  ...CATS.filter(c=>c!=="기타").map(c=>[catName(c),()=>goVideos({cat:c})]),
   ["SNS",goInsta],
+  [catName("기타"),()=>goVideos({cat:"기타"})],
   ["Board",()=>go("board")]];
 $("#mlist").innerHTML=MENU.map((m,i)=>`<li><button data-i="${i}">${esc(m[0])}</button></li>`).join("");
 $("#mlist").querySelectorAll("button").forEach(b=>b.onclick=()=>{closeMenu();MENU[+b.dataset.i][1]();});
