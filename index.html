@@ -149,6 +149,7 @@ html.listfit #videos{max-width:var(--listw,none);margin-inline:auto}
   .pager button{min-width:32px;height:32px;padding:0 6px;font-size:12px}
 }
 .vnone{color:var(--muted);margin:0}
+.vempty{position:absolute;inset:0;display:grid;place-items:center;z-index:1;font-size:15px}#grid:has(.vempty){position:relative}
 /* 관리자 화면(#admin): 메인 화면과 메뉴는 숨기고 로그인·편집 칸만 */
 body.adminview #hero,body.adminview #videos>.vhead,body.adminview #vbody{display:none!important}
 body.adminview #abadge a{display:none}
@@ -773,8 +774,9 @@ function render(){
   if(state.page>pages)state.page=pages;
   if(!home)v=v.slice((state.page-1)*per,state.page*per);
   renderPager(home?1:pages);
-  if(!v.length){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
-  g.innerHTML=v.map(cardHTML).join("")+(home||!v.length?"":(adminMode()?`<div class="cardw ghost-a" aria-hidden="true"><span class="card"><span class="thumb"></span><span class="ct">&nbsp;</span></span><div class="erow"><select class="ecat" tabindex="-1"><option>무대</option></select></div></div>`:`<div class="ghost" aria-hidden="true"><span class="thumb"></span><span class="ct">&nbsp;</span></div>`).repeat(Math.max(0,per-v.length)));bindCards(g,v);fitPage();
+  if(!v.length&&home){g.innerHTML=`<p class="vnone">아직 영상이 없어요.</p>`;return;}
+  /* 영상이 없어도 다른 카테고리와 같은 크기로 빈 칸을 깔고 가운데에 안내를 보여줘요 */
+  g.innerHTML=(v.length?"":`<p class="vnone vempty">아직 영상이 없어요.</p>`)+v.map(cardHTML).join("")+(home?"":(adminMode()?`<div class="cardw ghost-a" aria-hidden="true"><span class="card"><span class="thumb"></span><span class="ct">&nbsp;</span></span><div class="erow"><select class="ecat" tabindex="-1"><option>무대</option></select></div></div>`:`<div class="ghost" aria-hidden="true"><span class="thumb"></span><span class="ct">&nbsp;</span></div>`).repeat(Math.max(0,per-v.length)));bindCards(g,v);fitPage();
   requestAnimationFrame(arrows);
 }
 function arrows(){
